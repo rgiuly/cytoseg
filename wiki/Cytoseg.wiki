@@ -1,0 +1,8 @@
+
+= Installation =
+
+Unzip the source.zip file
+
+To start the program:
+python main.py
+
