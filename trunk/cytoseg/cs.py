@@ -1,4 +1,4 @@
-#Copyright (c) 2008 Richard Giuly
+#Copyright (c) 2008 by individual cytoseg contributors
 #
 #Permission is hereby granted, free of charge, to any person obtaining a copy
 #of this software and associated documentation files (the "Software"), to deal
@@ -58,6 +58,7 @@ import geometry
 
 #import cytoseg_util
 
+#from sets import Set
 
 global settings
 settings = {}
@@ -69,11 +70,14 @@ if hostname == "panther":
         #defaultPath = "O:\\images\\LFong\\tif_8bit_partial\\"
         #defaultPath = "O:\\images\\LFong\\tif_8bit_partial\\"
         #defaultPath = "O:\\images\\LFong\\tif_8bit_20_images\\"
-        defaultPath = "O:\\images\\LFong\\tif_8bit_10_images\\"
+        #defaultPath = "O:\\images\\LFong\\tif_8bit_10_images\\"
         #defaultPath = "O:\\images\\denk\\smallcube2\\"
         #defaultPath = "O:\\images\\denk\\smallcube_region2\\"
-        #defaultPath = "O:\\images\\denk\\70x70x70_cube\\"
+        defaultPath = "O:\\images\\denk\\70x70x70_cube\\"
         #defaultPath = "O:\\images\\LFong\\one_file\\8bit\\"
+        #defaultPath = "O:\\images\\test_watershed\\"
+        #defaultPath = "O:\\images\\test_watershed\\original\\"
+        #defaultPath = "I:\\ncmir_data\\caulobacter\\approximately_cubical_volume\\"
         defaultOutputPath = "O:\\temp\\output\\" 
 else:
         #defaultPath = "/crbsdata1/rgiuly/input/cb017_NA1000_set2/cropped204x150/"
@@ -190,9 +194,65 @@ def getNode(node, nameList):
     
 
 class Blob:
-    def __init__(self,center,size):
-        self.center = center
-        self.size = size
+#    def __init__(self, center=None, size=None, points=[], color=[100,0,0]):
+    def __init__(self, center=None, size=None):
+        self._center = center
+        self._size = size
+        #self._points = points
+        #self._color = color
+        
+        self._points = []
+        self._color = [100,0,0]
+    
+    def points(self):
+        return self._points
+    
+    def center(self):
+        return self._center
+    
+    def setPoints(self, points):
+        self._points = points 
+    
+    def color(self):
+        return self._color
+
+    def __repr__(self):
+        return "Blob_with_%d_points" % len(self.points())
+    
+    def setCenter(self, centerPoint):
+        self._center = centerPoint
+
+    def size(self):
+        return self._size
+    
+    def setSize(self, size):
+        self._size = size
+    
+    def addToSize(self, value):
+        self._size += value
+    
+    #def addToSize(self, value):
+    #    self._size += value
+    
+    
+    # this is sort of like size() but size can be set to anything so there is no guarantee they will be the same.
+    def numPoints(self):
+        return len(self.points())
+
+
+class FaceBlob(Blob):
+    def __init__(self):
+        Blob.__init__(self)
+        self.adjacentSuperVoxelIDs = None
+
+# todo: make this a superclass of Particle class
+# (could call this AnnotatedPoint)
+class LabeledPoint:
+    def __init__(self, location):
+        self.loc = location
+        self.adjacentNonzeroPoints = []
+        self.adjacentNonzeroValues = []
+        self.adjacentNonzeroValueSet = set()
         
 class Box:
     def __init__(self,cornerA,cornerB):
@@ -246,18 +306,27 @@ class DataNode:
         result += ')'
         return result
     
-    def addChild(self,node):
+    def addChild(self, node):
         self.children.append(node)
 
-    def addChildren(self,nodeList):
+    def insertChildAt(self, node, index):
+        self.children.insert(index, node)
+
+    def addChildren(self, nodeList):
         for node in nodeList:
             self.addChild(node)
     
-    def getChild(self,name):
+    def insertChildrenAt(self, nodeList, index):
+        for i in range(len(nodeList)):
+            node = nodeList[i]
+            self.insertChildAt(node, index + i)
+
+    
+    def getChild(self, name):
         for child in self.children:
             if child.name == name:
                 return child
-        print ("error: tried to access node named %s but it wasn't there" % name)
+        raise Exception, ("error: tried to access node named %s but it wasn't there" % name)
                
 
 
@@ -322,6 +391,23 @@ def setNodeValueCallback(node, value):
 class ControlsFrame(wx.Frame, wx.EvtHandler):
     
     def __init__(self, settingsTree):
+        
+        self.mainDoc = Document()
+        createSampleVolumes(self.mainDoc.volumeDict)
+        
+        
+        self.mouseClickCallbackDict = odict()
+        #self.mouseClickCallbackDict['item1'] = self.makeParticleAtMouseLocation
+        #self.mouseClickCallbackDict['item2'] = self.old_onClickedImage
+        
+        self.mouseClickCallbackDict['makeParticleAtMouseLocation'] = self.makeParticleAtMouseLocation
+        #self.mouseClickCallbackDict['updatePointFeaturesAtMouseLocation'] = self.updatePointFeaturesAtMouseLocation
+        #self.mouseClickCallbackDict['updateBlobFeaturesAtMouseLocation'] = self.updateBlobFeaturesAtMouseLocation
+        self.mouseClickCallbackDict['startDefiningBoxAtMouseLocation'] = self.startDefiningBoxAtMouseLocation
+        #self.mouseClickCallbackDict['printBlobNameAtMouseLocation'] = self.printBlobNameAtMouseLocation
+        
+        
+        #self.onOpenDocument(None)
         
         self.currentSubgroupIndex = -1  
         self.totals = []     
@@ -401,8 +487,8 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
 
         self.settingsTree = settingsTree
  
-        self.generateComponents(settingsTree, 0, [], None, None, None)
-        
+        self.generateComponents(settingsTree, 0, ["Empty List"], None, None, None)
+        self.refreshGUI()
         
         print 'timer start controls frame'
         self.startTimer()
@@ -419,7 +505,8 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         #self.onOpenImageStack(None)
         #self.onReadClassificationFile(None)
 
-
+        #print "self.mainDoc.volumes"
+        #print self.mainDoc.volumes
         self.loadedVolumeBoxInFullVolumeCoords = Box((0,0,0),self.getCurrentVolume().shape)
 
 
@@ -474,7 +561,7 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         panel = wx.ScrolledWindow(frame, id=-1, pos=wx.DefaultPosition,
                                        size=wx.DefaultSize, style=wx.HSCROLL | wx.VSCROLL,
                                        name="scrolledWindow")
-        panel.SetScrollbars(1, 1, 1600, 1400)
+        panel.SetScrollbars(1, 1, 1600, 2400)
         
         
         menuBar = wx.MenuBar()
@@ -525,31 +612,66 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
     #def onCloseChildFrame(self, event):
     #    print "child frame close"
     #    #self.Close(True)
+    
+    def onSaveDocument(self, event):
+        f = open("c:\\temp\\document.pickle", "wb")
+        pickle.dump(self.mainDoc, f)
+        f.close()
+
+    def onOpenDocument(self, event):
+        f = open("c:\\temp\\document.pickle")
+        self.mainDoc = pickle.load(f)
+        f.close()
+        self.refreshGUI()
+
         
     def onSaveVolumes(self, event):
         f = open("c:\\temp\\volumes.pickle", "wb")
-        pickle.dump(volumes, f)
+        pickle.dump(self.mainDoc.volumeDict, f)
         f.close()
-    
+
     def onOpenVolumes(self, event):
-        global volumes
+        #global volumes
         f = open("c:\\temp\\volumes.pickle")
-        volumes = pickle.load(f)
+        self.mainDoc.volumeDict = pickle.load(f)
         f.close()
-        
+        self.GUI()
+
+
+    def refreshListBox(self, listBoxNode, dictionary):
         keyList = []
-        for item in volumes.items():
+        for item in dictionary.items():
             keyList.append(item[0])
 
         # update the settings tree and the list box so it shows all variable names
-        node = getNode(self.settingsTree, ('particleMotionTool','visibleVolume'))
-        node.params['items'] = keyList
-        listBox = node.guiComponent
+        #listBoxNode.params['items'] = keyList
+        listBox = listBoxNode.guiComponent
         listBox.Set(keyList)
         
-        listBox.SetSelection(node.valueToSave)
+        # if the index of the selected item is in range, use it to pick currently selected item
+        if (listBoxNode.valueToSave < listBox.GetCount()):
+            listBox.SetSelection(listBoxNode.valueToSave)
 
-        
+    def refreshGUI(self):
+        self.refreshBlobList()
+        self.refreshVolumeList()
+        self.refreshMouseClickCallbackList()
+
+    def refreshBlobList(self):
+        listBoxNode = getNode(self.settingsTree, ('particleMotionTool','blobList'))
+        dictionary = self.mainDoc.blobDict
+        self.refreshListBox(listBoxNode, dictionary)
+
+    def refreshVolumeList(self):
+        listBoxNode = getNode(self.settingsTree, ('particleMotionTool','volumeList'))
+        dictionary = self.mainDoc.volumeDict
+        self.refreshListBox(listBoxNode, dictionary)
+
+
+    def refreshMouseClickCallbackList(self):
+        listBoxNode = getNode(self.settingsTree, ('particleMotionTool','mouseClickCallbackList'))
+        dictionary = self.mouseClickCallbackDict
+        self.refreshListBox(listBoxNode, dictionary)
 
     def readIMODFile(self, event):
         #contours = imod_tools.getAllContours('O:\\images\\denk\\70x70x70_cube\\membrane.imod');
@@ -574,9 +696,9 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
     
     
     def addVolume(self, volume, name):
-        volumes[name] = volume
-        node = getNode(self.settingsTree, ('particleMotionTool','visibleVolume'))
-        node.params['items'].insert(0, name)
+        self.mainDoc.volumeDict[name] = volume
+        node = getNode(self.settingsTree, ('particleMotionTool','volumeList'))
+        #node.params['items'].insert(0, name)
         listBox = node.guiComponent
         listBox.InsertItems([name],0)  # todo: regenerate the whole list based on the entries in the volumes dictionary
         
@@ -650,7 +772,7 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         particleGroup = doc.particleGroup
         
         
-        edges = doc.edges
+        #edges = doc.edges
         
         writeDocument(doc, filename)
         
@@ -669,7 +791,7 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         #offset = self.selectionRectangleCornerA + cornerA
         
         box = self.selectionBoxInLoadedVolumeCoords()
-        offset = box.cornerA
+        offset = self.loadedVolumeBoxInFullVolumeCoords.cornerA + box.cornerA 
 
     
         doc = automaticProcess(self.getCurrentVolumeForProcessing(), 
@@ -687,7 +809,7 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         
         blobs = doc.blobs
         particleGroup.addSubgroup(doc.particleGroup.getAll())
-        edges = doc.edges
+        #edges = doc.edges
         
         writeDocument(doc, filename)
         
@@ -804,10 +926,10 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         plotBlobSizes(blobs)
         
     def copyCurrentToTemporary(self, event):
-        volumes['Temporary'] = copy.deepcopy(self.getCurrentVolume())
+        self.mainDoc.volumeDict['Temporary'] = copy.deepcopy(self.getCurrentVolume())
         
     def watershedOnTemporary(self,event):
-        volumes['Temporary'] = watershed(volumes['Temporary'],26)
+        self.mainDoc.volumeDict['Temporary'] = watershed(self.mainDoc.volumeDict['Temporary'],26)
                             
     def startTimer(self):
         #self.t1 = wx.Timer(timerHandlerTest, id=1)
@@ -857,16 +979,58 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
     #def OnClick(self, event):
     #            self.button.SetLabel("Clicked")
 
+#    def getCurrentVolume(self):
+#        #print getNode(self.settingsTree, ('particleMotionTool','volumeList')).guiComponent.GetSelections()
+#        node = getNode(self.settingsTree, ('particleMotionTool','volumeList'))
+#        listBox = node.guiComponent
+#        selectionList = listBox.GetSelections()
+#        #print "selectionList"
+#        #print selectionList
+#        
+#        itemNumber = selectionList[0]
+#        #itemString = node.params['items'][itemNumber]
+#        itemString = listBox.GetString(itemNumber)
+#        
+#        #return volumes['Original']
+#        #print itemString
+#        return self.mainDoc.volumes[itemString]
+
     def getCurrentVolume(self):
-        #print getNode(self.settingsTree, ('particleMotionTool','visibleVolume')).guiComponent.GetSelections()
-        node = getNode(self.settingsTree, ('particleMotionTool','visibleVolume'))
-        listBox = node.guiComponent
+        listNode = getNode(self.settingsTree, ('particleMotionTool','volumeList'))
+        dictionary = self.mainDoc.volumeDict
+        return self.getAccordingToListBoxSelection(listNode, dictionary)
+
+    def getCurrentBlob(self):
+        listNode = getNode(self.settingsTree, ('particleMotionTool','blobList'))
+        dictionary = self.mainDoc.blobDict
+        return self.getAccordingToListBoxSelection(listNode, dictionary)
+
+    
+    # returns item of a dictionary according to the key specified with a list box
+    def getAccordingToListBoxSelection(self, listNode, dictionary):
+        itemString = self.getSelectedString(listNode)
+        if itemString == None:
+            return None
+        else:
+            return dictionary[itemString]
+
+    # returns the string that is selected in a list box
+    def getSelectedString(self, listNode):
+        
+        listBox = listNode.guiComponent
         selectionList = listBox.GetSelections()
+
+        # if no item is selected return None
+        if len(selectionList) < 1:
+            return None
+        
         itemNumber = selectionList[0]
-        itemString = node.params['items'][itemNumber]
-        #return volumes['Original']
-        #print itemString
-        return volumes[itemString]
+        itemString = listBox.GetString(itemNumber)
+        
+        return itemString
+
+#    def getCurrentVolumeName(self, listNode):
+        
     
     # todo: change name to get selected volume
     def getCurrentVolumeForProcessing(self):
@@ -886,142 +1050,7 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         file.write("\n")
         
     
-    def onMakeTabFile(self, event):
-#        print ""
-#        v = getCurrentVolume()
-#        sh = v.shape
-#        for x in range(0, sh[0]):
-#            for y in range(0, sh[1]):
-#                for z in range(0, sh[2]):
-#                    v[x,y,z]
 
-
-
-        file = open("c:\\temp\\output.tab", "w")
-        
-        volume = numpy.zeros(volumes['Original'].shape)
-        #selected x, y, and z
-
-        sh = volumes['Original'].shape
-      
-        
-        dictionary = getFeaturesAt(self.getCurrentVolume(), [3,3,3])
-        for item in dictionary.items():
-                key = item[0]
-                file.write("%s\t" % key)
-        file.write("is_membrane\n")
-
-        for item in dictionary.items():
-                file.write("c\t")
-        file.write("discrete\n")
-
-        for item in dictionary.items():
-                file.write("\t")
-        file.write("class\n")
-
-        # create a volume that has pixels turned on where the membrane is
-        m = zeros(sh, numpy.uint8)
-        for p in particleGroup.getAll():
-            m[p.loc[0],p.loc[1],p.loc[2]] = 1
-            
-            # write all true examples into tab file
-            d = getFeaturesAt(self.getCurrentVolume(), p.loc)
-            self.writeExample(file, d, True)
-            
-            
-        self.addVolume(m, 'membranePixel')
-
-        
-        
-        for x in range(0,sh[0],2):
-            print "%d out of %d" % (x, sh[0])
-            for y in range(0,sh[1],2):
-                for z in range(0,sh[2],2):
-                    
-                    d = getFeaturesAt(self.getCurrentVolume(), (x,y,z))
-                    
-                    #xG = volumes['xGradient'][x,y,z]
-                    #yG = volumes['yGradient'][x,y,z]
-                    #zG = volumes['zGradient'][x,y,z]
-        
-                    #st = structureTensor(xG,yG,zG)
-                    #eigenValues = numpy.linalg.eigvals(st)
-                    
-                    self.writeExample(file, d, (volumes['membranePixel'][x,y,z] != 0))
-
-                    
-        
-        file.close()
-
-
-
-
-
-
-
-    def onLearnFeaturesOfMembranePixels(self, event):
-        self.onLoadImageStack(None)
-        self.derivative(None)
-        self.readIMODFile(None)
-        self.onMakeTabFile(None)
-
-
-    #def onReadClassificationFile(self, event):
-    def onClassifyPixelsOfCurrentImage(self, event):
-        self.derivative(None)
-
-        #data = orange.ExampleTable("Copy of voting2.csv")
-        data = orange.ExampleTable("c:\\temp\\output.tab")
-        forest = orngEnsemble.RandomForestLearner(data, trees=50, name="forest")
-        
-        #tree = orngTree.TreeLearner(data, sameMajorityPruning=1, mForPruning=2)#, maxDepth=40)
-        
-        #tree = orngTree.TreeLearner(minExamples=2, mForPrunning=2, \
-        #                            sameMajorityPruning=True, name='tree')
-        
-       
-        print "Possible classes:", data.domain.classVar.values
-        #print "Probabilities for democrats:"
-        if False:
-            for i in range(len(data)):
-                p = forest(data[i], orange.GetProbabilities)
-                print "%d: %5.10f (originally %s)" % (i+1, p[1], data[i].getclass())
-
-        #orngTree.printTxt(tree)
-        
-       
-        
-        count = 0
-        v = zeros(self.getCurrentVolume().shape)
-        for x in range(borderWidthForFeatures, v.shape[0]-borderWidthForFeatures):
-            print x
-            for y in range(borderWidthForFeatures,v.shape[1]-borderWidthForFeatures):
-                for z in range(borderWidthForFeatures,v.shape[2]-borderWidthForFeatures):
-                    
-                    
-                    #print(data[count])
-                    #p = forest(data[count], orange.GetProbabilities)
-                    
-                    dictionary = getFeaturesAt(self.getCurrentVolume(), (x,y,z))
-                    list = []
-                    for item in dictionary.items():
-                        value = item[1]
-                        list.append(value)
-                    list.append('False')
-                    #p = forest(list, orange.GetProbabilities)
-                    example = orange.Example(data.domain, list)
-                    p = forest(example, orange.GetProbabilities)    
-                    
-                    #print (x,y,z)
-                    #print count
-                    #v[x,y,z] = numpy.log(p[1])
-                    v[x,y,z] = 1 - p[1]
-                    count += 1
-                    #print p[1]
-        
-        self.addVolume(v, 'probability')
-            
-        
         
         
 
@@ -1105,10 +1134,15 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
 
         dc = wx.BufferedDC(None, bitmap)
         self.drawParticles(dc)
-        
-        if (getNode(self.settingsTree, ('particleMotionTool','selectABox'))).get():
-            self.drawSelectionBox(dc)
 
+        if (getNode(self.settingsTree, ('particleMotionTool','drawBlobs'))).get():
+            self.drawBlobs(dc)
+        
+        #if (getNode(self.settingsTree, ('particleMotionTool','selectABox'))).get():
+        #    self.drawSelectionBox(dc)
+        if self.getSelectedMouseClickCallback() == self.startDefiningBoxAtMouseLocation:
+            self.drawSelectionBox(dc)
+        
         
         self.sb1.SetBitmap(bitmap)
         
@@ -1250,8 +1284,13 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
             
         elif node.type == 'listBox':
 
-            listBox = wx.ListBox(panel, -1, (20, 20), (100, 80), node.params['items'], wx.LB_SINGLE)
-            listBox.SetSelection(node.valueToSave)
+            if 'height' in node.params:
+                height = node.params['height']
+            else:
+                height = 80
+                
+            listBox = wx.ListBox(panel, -1, (20, 20), (200, height), [], wx.LB_SINGLE)
+            #listBox.SetSelection(node.valueToSave)
             container.AddMany([label, listBox])
             node.guiComponent = listBox
             
@@ -1280,15 +1319,21 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         subvolumeBox = Box((0,0,middleImageIndex), (sh[0],sh[1],middleImageIndex+1))
         v = loadImageStack(path, subvolumeBox)
 
-        self.setSliderMax(('imageControls','xIndex'), v.shape[0]-1)
-        self.setSliderMax(('imageControls','yIndex'), v.shape[1]-1)
+        #self.addVolume(v, 'Original')
+        self.addVolume(v, 'Preview')
+        listBox = getNode(self.settingsTree, ('particleMotionTool','volumeList')).guiComponent
+        listBox.SetStringSelection('Preview')
+
+
+        self.setSliderMax(self.settingsTree, ('imageControls','xIndex'), v.shape[0]-1)
+        self.setSliderMax(self.settingsTree, ('imageControls','yIndex'), v.shape[1]-1)
 
         self.setControlEnable(('particleMotionTool','loadPartialImageStack'), True)
 
 
 
 
-    def guiLoadImageStack(self, subvolumeBox):
+    def guiLoadImageStack(self, newVolumeName, subvolumeBox):
         print "onLoadImageStack"
 
         #m = cytoseg_util.winmem()
@@ -1298,7 +1343,11 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         
         # v is a volume
         v = loadImageStack((getNode(self.settingsTree, ('particleMotionTool','imageStackPath'))).get(), subvolumeBox)
-
+        
+        self.addVolume(v, newVolumeName)
+        listBox = getNode(self.settingsTree, ('particleMotionTool','volumeList')).guiComponent
+        listBox.SetStringSelection(newVolumeName)
+        
         self.setSliderMax(self.settingsTree, ('imageControls','xIndex'), v.shape[0]-1)
         self.setSliderMax(self.settingsTree, ('imageControls','yIndex'), v.shape[1]-1)
         self.setSliderMax(self.settingsTree, ('imageControls','zIndex'), v.shape[2]-1)
@@ -1316,7 +1365,10 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         #self.beepSound.Play()
         
     def onLoadImageStack(self, event):
-        self.guiLoadImageStack(None)
+
+        #self.fullStackShape = imageStackShape(self.getValue(('particleMotionTool','imageStackPath')))
+        
+        self.guiLoadImageStack('LoadedVolume', None)
         sh = imageStackShape(self.getValue(('particleMotionTool','imageStackPath')))
         self.loadedVolumeBoxInFullVolumeCoords = Box((0,0,0),sh)
 
@@ -1325,14 +1377,14 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         
         
         selectionBox = copy.deepcopy(self.getSelectionBoxInFullVolumeCoords())
-        fullStackShape = imageStackShape(self.getValue(('particleMotionTool','imageStackPath')))
+        self.fullStackShape = imageStackShape(self.getValue(('particleMotionTool','imageStackPath')))
         
         # assumes the user wants to open all of the z slices
         # todo: not sure if this is neccessary, the box may alread have this for the z values
         selectionBox.cornerA[2] = 0
-        selectionBox.cornerB[2] = fullStackShape[2]
+        selectionBox.cornerB[2] = self.fullStackShape[2]
         
-        self.guiLoadImageStack(selectionBox)
+        self.guiLoadImageStack('LoadedPartialVolume', selectionBox)
         
         self.setControlEnable(('particleMotionTool','loadPartialImageStack'), False)
 
@@ -1345,11 +1397,23 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         self.setControlEnable(('particleMotionTool','loadImageStack'), False)
         self.setControlEnable(('particleMotionTool','previewImageStack'), False)
 
-        
+    def getSelectedMouseClickCallback(self):
+        listNode = getNode(self.settingsTree, ('particleMotionTool','mouseClickCallbackList'))
+        dictionary = self.mouseClickCallbackDict
+        callback = self.getAccordingToListBoxSelection(listNode, dictionary)
+        return callback
 
     def onClickedImage(self, event):
         
-        print count
+        #self.mouseClickCallbackDict['item1'](event)
+        
+        callback = self.getSelectedMouseClickCallback()
+        callback(event)
+        
+
+    def old_onClickedImage(self, event):
+        
+        #print count
                     
         #location = (event.y, event.x)
         #print dir(event)
@@ -1363,7 +1427,7 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         #self.old_setFeatureSliders(location)
         if self.derivativeHasBeenComputed:
             #if isInsideVolumeWithBorder(volume, location, borderWidthForFeatures):
-                self.setFeatureSliders(location)
+                self.setPointFeatureSliders(location)
         
         # location in X-Y plane of volume
         #location = array(locationInScreenPixels) / self.zoomFactor()
@@ -1402,6 +1466,48 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         self.selectionBoxInFullVolumeCoords.cornerA[0] = location[0]
         self.selectionBoxInFullVolumeCoords.cornerA[1] = location[1]
         
+        
+       
+        # display information about the blob at this point
+        if (getNode(self.settingsTree, ('particleMotionTool','drawBlobs'))).get():
+            loadedVolumeLocation = self.screenXYToLoadedVolumeXYZ((event.X, event.Y))
+            blob = self.mainDoc.blobDict['inbetweenPoints']
+            print "value %s" % str(at(self.getCurrentVolume(), loadedVolumeLocation))
+            for labeledPoint in blob.points():
+                #print array(loadedVolumeLocation)
+                #print array(labeledPoint.loc)
+                if (loadedVolumeLocation.round() == labeledPoint.loc).all():
+                    if len(labeledPoint.adjacentNonzeroValueSet) > 0:
+                        #print labeledPoint.adjacentNonzeroPoints
+                        #print labeledPoint.adjacentNonzeroValues
+                        print labeledPoint.adjacentNonzeroValueSet
+
+
+    def makeParticleAtMouseLocation(self, event):
+        location = self.screenXYToFullVolumeXYZ((event.X, event.Y))
+        #volume = self.getCurrentVolume()
+        p = makeParticle(location)
+        particleGroup.addToSubgroup(self.currentSubgroupIndex, p)
+
+    # todo: move to cytoseg_classify.py
+    def updatePointFeaturesAtMouseLocation(self, event):
+        location = self.screenXYToFullVolumeXYZ((event.X, event.Y))
+        if self.derivativeHasBeenComputed:
+            #if isInsideVolumeWithBorder(volume, location, borderWidthForFeatures):
+                # todo: rename to setBlobFeatureSliders
+                self.setPointFeatureSliders(location)
+
+    #def updateBlobFeaturesAtMouseLocation(self, event):
+    #    location = self.screenXYToFullVolumeXYZ((event.X, event.Y))
+    #    self.setBlobFeatureSliders(location)
+
+
+    def startDefiningBoxAtMouseLocation(self, event):
+        location = self.screenXYToFullVolumeXYZ((event.X, event.Y))
+        self.drawingSelectionBox = True
+        self.selectionBoxInFullVolumeCoords.cornerA[0] = location[0]
+        self.selectionBoxInFullVolumeCoords.cornerA[1] = location[1]
+
 
     def onMouseMotionOnImage(self, event):
         #self.cornerA = (0,0,0)
@@ -1433,7 +1539,8 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         doc = Document()
         global particleGroup
         doc.particleGroup = particleGroup
-        doc.volumeShape = self.getCurrentVolume().shape
+        #doc.volumeShape = self.getCurrentVolume().shape
+        #doc.volumeShape = self.fullStackShape
         writeDocument(doc, self.currentFilename)
 
     def onMenuSaveAs(self, event):
@@ -1453,7 +1560,8 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
             global particleGroup
             #doc.blobs = blobs
             doc.particleGroup = particleGroup
-            doc.volumeShape = self.getCurrentVolume().shape
+            #doc.volumeShape = self.getCurrentVolume().shape
+            #doc.volumeShape = self.fullStackShape
         
             writeDocument(doc, dialog.GetPath())
         
@@ -1479,7 +1587,8 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
             
             # todo: if a space is at end of filename maybe this would use the original filename and overwrite the file. (possible bug)
             radius = (getNode(self.settingsTree, ('particleMotionTool','particleRadius'))).get()
-            imod_tools.IMODFileInsertPoints(dialog.GetPath(), dialog.GetPath() + "_insert.imod", points, self.getCurrentVolume().shape, radius)
+            #imod_tools.IMODFileInsertPoints(dialog.GetPath(), dialog.GetPath() + "_insert.imod", points, self.getCurrentVolume().shape, radius)
+            imod_tools.IMODFileInsertPoints(dialog.GetPath(), dialog.GetPath() + "_insert.imod", points, self.fullStackShape, radius)
         dialog.Destroy()
         
         
@@ -1502,24 +1611,7 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         dc.DrawRectangle(a[0], a[1], width, height)  
 
 
-    def setFeatureSliders(self, location):
-        loc = numpy.int_(location)
-        dictionary = getFeaturesAt(self.getCurrentVolume(), loc)
-        #if dictionary != None:
-        for item in dictionary.items():
-            key = item[0]
-            value = item[1]
-            #'featuresAtPoint',key
-            
-            if value < self.getSliderMin(self.viewerRootNode, (key,)):
-                self.setSliderMin(self.viewerRootNode, (key,), value)
 
-            if value > self.getSliderMax(self.viewerRootNode, (key,)):
-                self.setSliderMax(self.viewerRootNode, (key,), value)
-                            
-            (getNode(self.viewerRootNode, (key,))).set(value)
-            #(getNode(self.settingsTree, ('featuresAtPoint',key))).set(value)
-            
 
     def old_setFeatureSliders(self, location):
 
@@ -1730,6 +1822,117 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         #for p in selectedParticles:
         #    drawCircleInAllViews(p.x, (255,255,100), form['particleRadius'].value)
 
+#    def adjacentNonzeroList(volume, point)
+#        p = point
+#        volume[p[0]-1, p[1]-1, p[2]+1]
+#        volume[p[0]-1, p[1]+0, p[2]+1]
+#        volume[p[0]-1, p[1]+1, p[2]+1]
+#        volume[p[0]+0, p[1]-1, p[2]+1]
+#        volume[p[0]+0, p[1]+0, p[2]+1]
+#        volume[p[0]+0, p[1]+1, p[2]+1]
+#        volume[p[0]+1, p[1]-1, p[2]+1]
+#        volume[p[0]+1, p[1]+0, p[2]+1]
+#        volume[p[0]+1, p[1]+1, p[2]+1]
+#        
+#        volume[p[0]-1, p[1]-1, p[2]]
+#        volume[p[0]-1, p[1]+0, p[2]]
+#        volume[p[0]-1, p[1]+1, p[2]]
+#        volume[p[0]+0, p[1]-1, p[2]]
+#        #volume[p[0]+0, p[1]+0, p[2]]
+#        volume[p[0]+0, p[1]+1, p[2]]
+#        volume[p[0]+1, p[1]-1, p[2]]
+#        volume[p[0]+1, p[1]+0, p[2]]
+#        volume[p[0]+1, p[1]+1, p[2]]
+#        
+#        volume[p[0]-1, p[1]-1, p[2]-1]
+#        volume[p[0]-1, p[1]+0, p[2]-1]
+#        volume[p[0]-1, p[1]+1, p[2]-1]
+#        volume[p[0]+0, p[1]-1, p[2]-1]
+#        volume[p[0]+0, p[1]+0, p[2]-1]
+#        volume[p[0]+0, p[1]+1, p[2]-1]
+#        volume[p[0]+1, p[1]-1, p[2]-1]
+#        volume[p[0]+1, p[1]+0, p[2]-1]
+#        volume[p[0]+1, p[1]+1, p[2]-1]
+
+
+    
+
+
+
+
+    def drawBlobs(self, dc):
+
+        f = self.zoomFactor()
+        pen = wx.Pen("red", 1)
+
+        #for key in self.mainDoc.blobDictionary:
+        
+        #items = self.mainDoc.blobDictionary.items()
+        #for item in items:
+        #    key = item[0]
+        
+        #todo: if getCurrentBlob not equal to None
+        blob = self.getCurrentBlob()
+
+        if blob != None:
+            for p in blob.points():
+                 # if particle is close to current z plane, show it
+                 if p.loc[2] == (getNode(self.settingsTree, ('imageControls','zIndex'))).get():
+                     dc.SetPen(pen)
+                     dc.SetBrush(wx.TRANSPARENT_BRUSH)
+                     x, y = self.fullVolumeXYToScreenXY((p.loc[0], p.loc[1]))
+                     dc.DrawEllipse(x - f*1, y - f*1, 2*f*1, 2*f*1)
+                     
+    
+adjacentOffsets = [array([-1, -1, +1]),
+                   array([-1, +0, +1]),
+                   array([-1, +1, +1]),
+                   array([+0, -1, +1]),
+                   array([+0, +0, +1]),
+                   array([+0, +1, +1]),
+                   array([+1, -1, +1]),
+                   array([+1, +0, +1]),
+                   array([+1, +1, +1]),
+            
+                   array([-1, -1, 0]),
+                   array([-1, +0, 0]),
+                   array([-1, +1, 0]),
+                   array([+0, -1, 0]),
+                   #[+0, +0, ]
+                   array([+0, +1, 0]),
+                   array([+1, -1, 0]),
+                   array([+1, +0, 0]),
+                   array([+1, +1, 0]),
+            
+                   array([-1, -1, -1]),
+                   array([-1, +0, -1]),
+                   array([-1, +1, -1]),
+                   array([+0, -1, -1]),
+                   array([+0, +0, -1]),
+                   array([+0, +1, -1]),
+                   array([+1, -1, -1]),
+                   array([+1, +0, -1]),
+                   array([+1, +1, -1])]
+
+# computes the adjacent values that are not zero, for each point in the blob.
+# stores the result in the labeled points of the blob
+def computeAdjacentValueSets(volume, blob):
+    for labeledPoint in blob.points():
+        computeAdjacentValueSet(volume, labeledPoint)
+
+def computeAdjacentValueSet(volume, labeledPoint):
+    for offset in adjacentOffsets:
+        p = labeledPoint.loc + offset
+        #labeledPoint.adjacentNonZeroPoints = []
+        #print p
+
+        if at(volume, p) != 0:
+            #print '--------------------'
+            #print p
+            #labeledPoint.adjacentNonzeroPoints.append(p)
+            #labeledPoint.adjacentNonzeroValues.append(at(volume,p))
+            labeledPoint.adjacentNonzeroValueSet.add(at(volume,p))
+            
 
 def insideLimits(shape, point):
     # todo: add a check to make sure the point has the type that it should have
@@ -1768,6 +1971,7 @@ def makeParticle(location):
 
 
 def makeDefaultGUITree():
+    print ""
     rootNode = DataNode("root","group",{'caption' : 'root', 'position' : (100,100), 'size' : (100,100)},"value")
     #print 'n1 type'
     #print type(n1)
@@ -1793,22 +1997,25 @@ def makeDefaultGUITree():
                     DataNode("menuInsertIntoIMODFile","menuItem",{'caption' : 'Insert into IMOD File'},'onMenuInsertIntoIMODFile'),
                     DataNode("menuExit","menuItem",{'caption' : 'Exit'},'onMenuExit'),
 
-                    DataNode("visibleVolume","listBox",{'caption' : 'visibleVolume', 'items' : ['Original', 'Temporary']},0),
+                    DataNode("volumeList","listBox",{'caption' : 'volumeList'},0),
+                    DataNode("blobList","listBox",{'caption' : 'blobList'},0),
+                    DataNode("mouseClickCallbackList","listBox",{'caption' : 'mouseClickCallbackList', 'height' : 200},0), 
 
-                    DataNode("selectABox","boolean",{'caption' : 'Select a Box'},True),
+                    #DataNode("selectABox","boolean",{'caption' : 'Select a Box'},True),
+                    DataNode("drawBlobs","boolean",{'caption' : 'Select a Box'},True),
                     DataNode("processSelectionOnly","boolean",{'caption' : 'processSelectionOnly'},True),
 
                     DataNode("previewImageStack","button",{'caption' : 'Preview Image Stack'},'onPreviewImageStack'),
                     DataNode("loadImageStack","button",{'caption' : 'Load Image Stack'},'onLoadImageStack'),
                     DataNode("loadPartialImageStack","button",{'caption' : 'Load Partial Image Stack'},'onLoadPartialImageStack'),
 
+                    DataNode("saveDocument","button",{'caption' : 'saveDocument'},'onSaveDocument'),
+                    DataNode("openDocument","button",{'caption' : 'openDocument'},'onOpenDocument'),
+
                     DataNode("saveVolumes","button",{'caption' : 'saveVolumes'},'onSaveVolumes'),
                     DataNode("openVolumes","button",{'caption' : 'openVolumes'},'onOpenVolumes'),
                     
-                    DataNode("learnFeaturesOfMembranePixels","button",{'caption' : 'learnFeaturesOfMembranePixels'},'onLearnFeaturesOfMembranePixels'),
-                    DataNode("classifyPixelsOfCurrentImage","button",{'caption' : 'classifyPixelsOfCurrentImage'},'onClassifyPixelsOfCurrentImage'),
 
-                    DataNode("makeTabFile","button",{'caption' : 'makeTabFile'},'onMakeTabFile'),
                     DataNode("findBlobsThenParticleMovement","button",{'caption' : 'findBlobsThenParticleMovement'},'findBlobsThenParticleMovement'),
                     DataNode("readIMODFile","button",{'caption' : 'readIMODFile'},'readIMODFile'),
                     DataNode("saveParticlesToPSI","button",{'caption' : 'Save particles to output.psi'},'saveParticlesToPSIButton'),
@@ -1821,7 +2028,7 @@ def makeDefaultGUITree():
                     DataNode("tempPath","text",{'caption' : 'Temporary Files Path'},defaultOutputPath),
                     DataNode("thresholdEnabled","boolean",{'caption' : 'Threshold Enabled'},False),
                     DataNode("grayThreshold","slider",{'caption' : 'Gray Threshold', 'max' : 300},25),
-                    DataNode("makeNewParticles","boolean",{'caption' : 'Make New Particles'},False),
+                    #DataNode("makeNewParticles","boolean",{'caption' : 'Make New Particles'},False),
                     DataNode("trackParticle","boolean",{'caption' : 'Track Particle'},False),
                     DataNode("selectParticle","boolean",{'caption' : 'Select Particle'},False),
                     DataNode("moveParticlesAlongGradient","boolean",{'caption' : 'Move Particles along Gradient'},False),
@@ -1883,8 +2090,8 @@ def makeDefaultGUITree():
     print loadedData
     f.close()
     
-    print 'testing get node'
-    print getNode(loadedData, ('particleMotionTool', 'd'))
+    #print 'testing get node'
+    #print getNode(loadedData, ('particleMotionTool', 'd'))
     
     return rootNode
               
@@ -2132,6 +2339,10 @@ class Document:
     #particleGroup = None
     def dummyFunction():
         print ""
+        
+    def __init__(self):
+        self.volumeDict = odict()
+        self.blobDict = odict()
     
 def volumeOfSphere(radius):
     return (4/3)*3.14*radius*radius*radius
@@ -2156,7 +2367,7 @@ def generateParticleGroupFromBlobs(blobs):
 
 def moveBlobs(blobs, offset):
     for b in blobs:
-        b.center = numpy.array(b.center) + numpy.array(offset)
+        b.setCenter(numpy.array(b.center()) + numpy.array(offset))
 
 def automaticProcess(volume, pathToImages, grayThreshold, minSize, maxSize, useSubgroups, offset):
     # todo: make openImageStack return a volume rather than setting a global variable
@@ -2248,7 +2459,7 @@ def loadBlobsAndParticlesAndEdges(filename):
     # todo: there should be one global variable, the document, with members blobs, particleGroup, edges
     blobs = doc.blobs
     particleGroup = doc.particleGroup
-    edges = doc.edges
+    #edges = doc.edges
     
 
 def displayHelp(arg1):
@@ -2432,13 +2643,17 @@ def imageStackShape(path):
 # todo: make subvolumeBox an optional parameter
 def loadImageStack(path, subvolumeBox):
     
-    global volumes
-    
+   
     
     #volume = volumes['Original']
     
     fileList = os.listdir(path)
     fileList = stringsWithImageFileExtensions(fileList)
+    
+    if len(fileList) == 0:
+        raise Exception, "There are no images files of a type that cytoseg can read in the folder %s" % path
+
+    
     fileList.sort()
     print fileList
         
@@ -2506,6 +2721,17 @@ def loadImageStack(path, subvolumeBox):
                 volume = numpy.zeros(box.shape(), numpy.uint8)
 
                 firstImage = False
+             
+            # todo: current code doesn't work for loading partial image stack, to make this work compare the size of this 2d image to the size of the first 2d image   
+            #else:
+            #    # check to see if this image has a different size than the first one loaded
+            #    print "array2d.shape"
+            #    print array2d.shape
+            #    print "volume.shape"
+            #    print volume.shape
+            #    if array2d.shape[0] != volume.shape[0] or array2d.shape[1] != volume.shape[1]:
+            #        raise Exception, "Images in image stack at %s do not all have the same size (width and height). They should all have the same size." % path
+                
     
             #volume[:,:,i] = numpy.asarray(imRed)
             
@@ -2536,7 +2762,7 @@ def loadImageStack(path, subvolumeBox):
         #            volume[i,j,k] = (i + j + k) * 10
         
         
-    volumes['Original'] = volume
+    #volumes['Original'] = volume
     #volume[0:5,0:10,0:20] = 100
     return volume
     
@@ -2654,14 +2880,14 @@ def matlabToPythonPointList(matlabPointList):
 def centersOfBlobsLargerThan(blobs, sizeThreshold):
     centers = []
     for b in blobs:
-        if b.size > sizeThreshold:
-            centers.append(b.center)
+        if b.size() > sizeThreshold:
+            centers.append(b.center())
     return centers
 
 def blobsSmallerThan(blobs, sizeThreshold):
     newList = []
     for b in blobs:
-        if b.size < sizeThreshold:
+        if b.size() < sizeThreshold:
             newList.append(b)
     return newList
 
@@ -2893,7 +3119,7 @@ def stringsWithImageFileExtensions(listOfStrings):
     #todo: string comparison should ignore case
     result = []
     for s in listOfStrings:
-        if (s.find('.tif') != -1) or (s.find('.bmp') != -1):
+        if (s.find('.tif') != -1) or (s.find('.bmp') != -1) or (s.find('.pgm') != -1):
             result.append(s)
     return result
 
@@ -3329,26 +3555,27 @@ from socket import gethostname; hostname = gethostname()
 ##volume = numpy.ones((40,140,30), Float32) * 100
 
 #volumes = {}
-volumes = odict()
+#volumes = odict()
 
 borderWidthForFeatures = 1
     
 
-
-volumes['Original'] = numpy.ones((20,70,15)) * 100
-# make the array a gradient
-for i in range(0,volumes['Original'].shape[0]):
-    for j in range(0,volumes['Original'].shape[1]):
-        for k in range(0,volumes['Original'].shape[2]):
-            volumes['Original'][i,j,k] = (i + j + k) * 10
-
-
-volumes['Temporary'] = numpy.ones((40,140,30)) * 100
-# make the array a gradient
-for i in range(0,volumes['Temporary'].shape[0]):
-    for j in range(0,volumes['Temporary'].shape[1]):
-        for k in range(0,volumes['Temporary'].shape[2]):
-            volumes['Temporary'][i,j,k] = (i + j + k) * 1
+def createSampleVolumes(volumes):
+    
+    volumes['ExampleVolume1'] = numpy.ones((20,70,15)) * 100
+    # make the array a gradient
+    for i in range(0,volumes['ExampleVolume1'].shape[0]):
+        for j in range(0,volumes['ExampleVolume1'].shape[1]):
+            for k in range(0,volumes['ExampleVolume1'].shape[2]):
+                volumes['ExampleVolume1'][i,j,k] = (i + j + k) * 10
+    
+    
+    volumes['ExampleVolume2'] = numpy.ones((40,140,30)) * 100
+    # make the array a gradient
+    for i in range(0,volumes['ExampleVolume2'].shape[0]):
+        for j in range(0,volumes['ExampleVolume2'].shape[1]):
+            for k in range(0,volumes['ExampleVolume2'].shape[2]):
+                volumes['ExampleVolume2'][i,j,k] = (i + j + k) * 1
 
 
 ###table = StarControl(volume)
@@ -3467,7 +3694,42 @@ def isInsideVolumeWithBorder(volume, point, border):
         return False
 
     
+# todo: move this to cytoseg_classify.py    
+# return a dictionary of blobs, each has an index that is based on the set of adjacent regions (if the point is adjacent to region 2 and 3 for example, it's dictionary entry key will be a set with elements 2 and 3)
+def splitBlobBasedOnAdjacentValueSet(blob):
+    dictionary = {}
     
+    for labeledPoint in blob.points():
+        
+        # valueSet is used as a key
+        
+        valueSet = frozenset(labeledPoint.adjacentNonzeroValueSet)
+        
+        # create new face if needed
+        if not(valueSet in dictionary):
+            faceBlob = FaceBlob()
+            faceBlob.adjacentSuperVoxelIDs = valueSet
+            dictionary[valueSet] = faceBlob #[] #Blob()
+        
+        
+        # todo: it's sort of redundant to stor the set specifying adjacencies in every labeled point considering all of them (in the blob) have the same adjacent blobs 
+        dictionary[valueSet].points().append(labeledPoint)
+        
+        #dictionary[valueSet].append(labeledPoint)
+
+        #print '----------------------------------'
+        #print dictionary[valueSet].points()[0:10]
+        #print valueSet
+        
+        #items = dictionary.items()
+        #for item in items:
+        #    print item
+            #print item[0]
+            #print item[1][0:10]
+            #print len(item[1])
+        #    print dictionary[item[0]].points()[0:10]
+    
+    return dictionary
      
     
 ####################################################
