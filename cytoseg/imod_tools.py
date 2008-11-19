@@ -1,4 +1,4 @@
-#Copyright (c) 2008 Richard Giuly
+#Copyright (c) 2008 by individual cytoseg contributors
 #
 #Permission is hereby granted, free of charge, to any person obtaining a copy
 #of this software and associated documentation files (the "Software"), to deal
@@ -66,7 +66,10 @@ def chunkSize(s, location):
         return 4 + 16 + (12 * psize[0])
     
     elif id == 'MESH':
-        print "error: mesh handling not in the program yet"
+        #print "error: mesh handling not in the program yet"
+        meshData = MeshData()
+        meshData.readFromString(s[location:])
+        return 20 + (meshData.vsize * 12) + (meshData.lsize * 4) 
         
     elif id == 'IEOF':
         #return EOF
@@ -237,7 +240,44 @@ class ObjectData:
     #def readFromString(self, s):
     #    partOfString = s[0:128+4*4]
     #    (self.name, self.xmax, self.ymax, self.zmax, self.objsize) = struct.unpack('>128siiii', partOfString)  
-    
+
+
+
+
+
+class MeshData:
+    def __init__(self):
+
+        self.id = "chunk id"
+        self.vsize = 0 #int (4 bytes)   Size of vertex array (# of triple floats).
+        self.lsize = 0 #int (4 bytes)  Size of index array.
+        self.flag = 0 #uint (4 bytes)        flag    Bit 16 on  : normals have magnitudes.
+        #                           Bits 20-23 are resolution : 0 for high, 
+        #                          1 for lower resolution, etc.
+        self.time = 0 #short (2 bytes)   Contains a time index or 0
+        self.surf = 0 #short (2 bytes)   Contains a surface number or 0
+        
+        
+        # todo: these are currently not read from the file
+        #self.vert = None # (12*vsize bytes total)  (three floats use 12 bytes)     Array of points.
+        #self.index = None # (4*lsize bytes total) (each int is 4 bytes)            Array of ints.
+
+
+    formatString = '>4siiIhh'
+
+    def readFromString(self, s):
+        print self.formatString
+        
+        # todo: note this does note read the vert and index data
+        data = struct.unpack(self.formatString, s[0:20])
+        
+        (self.id, self.vsize, self.lsize, self.flag, self.time, self.surf) = data
+
+          
+
+
+
+
 def readIMODString(s):
     chunks = []
     current = sizeOfModelDataStructure
@@ -260,6 +300,17 @@ def readIMODString(s):
         current += sz    
     
     return chunks
+
+def getAllContoursFromIMODChunks(chunks):
+
+    contours = []
+    for chunk in chunks:
+        if chunk.text[:4] == 'CONT':
+            points = readContourChunk(chunk.text)
+            #print points
+            contours.append(points)
+            
+    return contours
     
 #    #firstChunkLocation = 240
 #
@@ -440,7 +491,7 @@ def getAllContours(filename):
     file = open(filename, "rb")
     s = file.read()
     file.close()
-    return readImodString(s)
+    return getAllContoursFromIMODChunks(readIMODString(s))
 
 
 
