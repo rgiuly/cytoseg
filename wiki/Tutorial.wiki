@@ -4,10 +4,10 @@ http://cytoseg.googlecode.com/svn/wiki/cytoseg_screenshot.png
 
 = Blob detection Tutorial =
 
-# Set the imageStackPath text box to the tif stack you want to open. For example:
+ # Set the imageStackPath text box to the tif stack you want to open. For example:
 c:\your_folder\
 
-# Press "Load Image Stack"
+ # Press "Load Image Stack"
 
 # Select "startDefiningBoxAtMouseLocation"
 
