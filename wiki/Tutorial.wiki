@@ -1,6 +1,6 @@
 #summary Blob detection Tutorial
 
-http://cytoseg.googlecode.com/svn/wiki/cytoseg_screenshot.png
+
 
 = Blob detection Tutorial =
 
@@ -14,6 +14,7 @@ To insert into an existing IMOD file:
  # File -> Insert into IMOD file
  # Pick an existing IMOD file
 
+http://cytoseg.googlecode.com/svn/wiki/cytoseg_screenshot.png
 
 A new file will be created that has spheres inserted at blob centers
 
