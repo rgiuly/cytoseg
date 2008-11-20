@@ -2,6 +2,8 @@
 
 = Blob detection Tutorial =
 
+http://cytoseg.googlecode.com/svn/wiki/cytoseg_screenshot1.png
+
 http://cytoseg.googlecode.com/svn/wiki/imod_blob_screenshot.png
 
 http://cytoseg.googlecode.com/svn/wiki/imod_blob_3D_view_screenshot.png
