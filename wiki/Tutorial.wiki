@@ -1,9 +1,30 @@
 #summary Blob detection Tutorial
 
-= Blob detection Tutorial =
-
 http://cytoseg.googlecode.com/svn/wiki/cytoseg_screenshot.png
 
+= Blob detection Tutorial =
+
+# Set the imageStackPath text box to the tif stack you want to open. For example:
+c:\your_folder\
+
+# Press "Load Image Stack"
+
+# Select "startDefiningBoxAtMouseLocation"
+
+# Use the mouse to draw a box (from top left corner to bottom right) that defines the region where you want blob detection to occur.
+
+# Press "Mark Blobs"
+
+To insert into an existing IMOD file:
+
+# File -> Insert into IMOD file
+
+# Pick an existing IMOD file
+
+A new file will be created that has spheres inserted at blob centers
+
+Result shown in IMOD
 http://cytoseg.googlecode.com/svn/wiki/imod_blob_screenshot.png
 
+Result shown in IMOD 3D model view
 http://cytoseg.googlecode.com/svn/wiki/imod_blob_3D_view_screenshot.png
