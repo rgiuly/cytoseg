@@ -1,5 +1,4 @@
-[Installation]
-= Installation =
+
 
 Install pythonxy with all options
 www.pythonxy.com
