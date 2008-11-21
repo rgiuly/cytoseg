@@ -1,3 +1,5 @@
+% Bryan Smith wrote most of this
+
 function sliceView(img, title)
 
 xLim = [1,size(img,2)];
