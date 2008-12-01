@@ -6,12 +6,12 @@ function [centroids, areas] = findBlobs(volume1D,d1,d2,d3,threshold,showResults)
     
     volume = reshape(volume1D, d1,d2,d3);
     if showResults
-    	cytoseg_sliceView(volume);
+    	%cytoseg_sliceView(volume);
     end
     thresholded = volume < threshold;
     labelMatrix = bwlabeln(thresholded);
     if showResults
-    	cytoseg_sliceView(labelMatrix);
+    	%cytoseg_sliceView(labelMatrix);
     end
     props = regionprops(labelMatrix,{'Area', 'Centroid'});
     for i=1:length(props)
