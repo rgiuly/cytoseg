@@ -1,25 +1,24 @@
-
 This page is under construction
 
 ----------------------------
-for larger blobs:
-open image stack
-set particle radius 10 pixels
-set threshold 121
-findBlobsThenParticleMovement
- (300 iterations of particle movement will happen)
+*for larger blobs:
+*open image stack
+*set particle radius 10 pixels
+*set threshold 121
+*findBlobsThenParticleMovement
+* (300 iterations of particle movement will happen)
 
-psi files will appear in tmp directory at each iteration
+*psi files will appear in tmp directory at each iteration
 
 ----------------------------
-for smaller blobs:
-set min blob size 6
-set max blob size 5  (which means 53)
-set threshold 121
+*for smaller blobs:
+*set min blob size 6
+*set max blob size 5  (which means 53)
+*set threshold 121
 
-uncheck "use subgroups"
- (no groups of particles or particle movement used)
+*uncheck "use subgroups"
+* (no groups of particles or particle movement used)
 
-click automatic process
+*click automatic process
 
-save particles to output.psi
+*save particles to output.psi
