@@ -1,12 +1,12 @@
 This page is under construction
 
 ----------------------------
--for larger blobs:
--open image stack
--set particle radius 10 pixels
--set threshold 121
--findBlobsThenParticleMovement
-- (300 iterations of particle movement will happen)
+- for larger blobs:
+- open image stack
+- set particle radius 10 pixels
+- set threshold 121
+- findBlobsThenParticleMovement
+-  (300 iterations of particle movement will happen)
 
 *psi files will appear in tmp directory at each iteration
 
