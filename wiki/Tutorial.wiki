@@ -1,5 +1,5 @@
 #summary Blob detection Tutorial
 
-[Blob Detection Tutorial]
+[BlobDetectionTutorial Blob Detection Tutorial]
 
-[Marking Multi-sized Blobs]
+[MarkingMultisizedBlobsTutorial Marking Multi-sized Blobs]
