@@ -1,5 +1,8 @@
 This page is under construction
 
+
+Uses connected components on thresholded images to locate blobs. Then uses a gradient decent (with particle repulsion) approach to locate the darkest point on each blob.
+
 ----------------------------
   * for larger blobs:
   * open image stack
