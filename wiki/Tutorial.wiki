@@ -1,4 +1,4 @@
-#summary Blob detection Tutorial
+#summary Tutorials
 
 [BlobDetectionTutorial Blob Detection Tutorial]
 
