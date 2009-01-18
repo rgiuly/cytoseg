@@ -25,3 +25,7 @@ Uses connected components on thresholded images to locate blobs. Then uses a gra
   * click automatic process
 
   * save particles to output.psi
+
+
+= See Also =
+http://blogs.mathworks.com/steve/2007/08/31/intensity-weighted-centroids/
