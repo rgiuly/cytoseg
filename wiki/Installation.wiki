@@ -1,9 +1,10 @@
+On Windows or Linux:
 
+Note: Currently an installation of MATLAB is required for some of the functions of cytoseg to work. In the future this dependency will be removed.
 
-Install pythonxy with all options
-www.pythonxy.com
-
-Unzip the source.zip file
-
-To start the program:
-python main.py
+Installation Instructions:
+  # Install [http://www.pythonxy.com pythonxy] with all options
+  # Install [http://mlabwrap.sourceforge.net/ mlabwrap] which interfaces python to MATLAB
+  # Unzip the source.zip file
+  # To start the program, enter the following command from inside the cytoseg folder:
+         {{{python main.py}}}
