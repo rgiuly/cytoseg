@@ -6,7 +6,7 @@ Uses connected components on thresholded images to locate blobs. Then uses a gra
 When objects are too close the connected components analysis alone will often consider them one blob (picture of this). The particle simulation step enables detection of distinct objects even if they are one connected component (picture of this).
 
 ----------------------------
-  * for larger blobs:
+=Detecting Larger Blobs in Sample Dataset=
   * open image stack
   * set particle radius 10 pixels
   * set threshold 121
@@ -15,8 +15,10 @@ When objects are too close the connected components analysis alone will often co
 
   * psi files will appear in tmp directory at each iteration
 
+
+
 ----------------------------
-  * for smaller blobs:
+=Detecting Smaller Blobs in Sample Dataset=
   * set min blob size 6
   * set max blob size 5  (which means 53)
   * set threshold 121
