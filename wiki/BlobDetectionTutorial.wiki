@@ -1,4 +1,3 @@
-
 = Blob detection Tutorial =
 
  # Set the imageStackPath text box to the tif stack you want to open. For example:  c:\your_folder\
@@ -16,9 +15,13 @@ http://cytoseg.googlecode.com/svn/wiki/cytoseg_screenshot.png
 A new file will be created that has spheres inserted at blob centers
 
 
+
+
 Result shown in IMOD
 
 http://cytoseg.googlecode.com/svn/wiki/imod_blob_screenshot.png
+
+
 
 
 Result shown in IMOD 3D model view
