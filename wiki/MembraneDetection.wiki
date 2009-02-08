@@ -4,6 +4,12 @@
 
 http://cytoseg.googlecode.com/svn/wiki/membrane_demo__raw_data.png
 
-= Probability of Membrane Pixel =
+= Cytoseg-generated Membrane Probability Image =
+Note the image is cleaner and features are easier to discern in isosurface view.
 
 http://cytoseg.googlecode.com/svn/wiki/membrane_demo__membrane_probability_derivative_wasnt_really_working.png
+
+
+
+
+(Data viewed using 3D Slicer)
