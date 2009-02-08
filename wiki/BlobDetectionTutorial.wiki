@@ -1,5 +1,6 @@
 = Blob detection Tutorial =
  # If necessary, download and install [http://bio3d.colorado.edu/imod/ IMOD].
+ # Start cytoseg. (Inside the cytoseg folder, type python main.py at a command prompt in Windows or Linux)
  # Set the imageStackPath text box to the tif stack you want to open. For example:  c:\your_folder\
  # Press "Load Image Stack"
  # Select "startDefiningBoxAtMouseLocation"
