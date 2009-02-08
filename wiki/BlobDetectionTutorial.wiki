@@ -13,6 +13,7 @@ To insert into an existing IMOD file:
  # Using IMOD, create and save a model file.
  # File -> Insert into an existing IMOD model file.
  # Pick the existing IMOD file. A new file will be created with the detected points inserted.
+ # Use IMOD to open the newly created file.
 
 http://cytoseg.googlecode.com/svn/wiki/cytoseg_screenshot.png
 
