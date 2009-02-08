@@ -1,6 +1,7 @@
 This page is under construction
 
 http://cytoseg.googlecode.com/svn/wiki/3Dview_after_particle_movement2.png
+(Output visualized using [http://www.slicer.org/ 3D Slicer], a free visualization tool.)
 
 Uses connected components on thresholded images to locate blobs. Then uses a gradient decent (with particle repulsion) approach to locate the darkest point on each blob.
 
