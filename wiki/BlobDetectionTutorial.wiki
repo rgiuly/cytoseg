@@ -16,14 +16,14 @@ A new file will be created that has spheres inserted at blob centers
 
 
 
----
+<br>
 Result shown in IMOD:
 
 http://cytoseg.googlecode.com/svn/wiki/imod_blob_screenshot.png
 
 
 
----
+<br>
 Result shown in IMOD 3D model view:
 
 http://cytoseg.googlecode.com/svn/wiki/imod_blob_3D_view_screenshot.png
