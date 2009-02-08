@@ -9,7 +9,7 @@
 In this tutorial the blob positions are inserted into an existing [http://bio3d.colorado.edu/imod/ IMOD] model file. IMOD is a freely available program.
 
 To insert into an existing IMOD file:
- # Using [IMOD], create and save a model file.
+ # Using IMOD, create and save a model file.
  # File -> Insert into an existing IMOD model file.
  # Pick the existing IMOD file. A new file will be created with the detected points inserted.
 
