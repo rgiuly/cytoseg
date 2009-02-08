@@ -1,0 +1,9 @@
+#summary Membrane Detection
+
+= Raw Data =
+
+http://cytoseg.googlecode.com/svn/wiki/membrane_demo__raw_data.png
+
+= Probability of Membrane Pixel =
+
+http://cytoseg.googlecode.com/svn/wiki/membrane_demo__membrane_probability_derivative_wasnt_really_working.png
