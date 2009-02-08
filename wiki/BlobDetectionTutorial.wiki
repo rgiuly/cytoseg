@@ -6,9 +6,12 @@
  # Use the mouse to draw a box (from top left corner to bottom right) that defines the region where you want blob detection to occur.
  # Press "Mark Blobs"
 
+In this tutorial the blob positions are inserted into an existing [IMOD http://bio3d.colorado.edu/imod/] model file. IMOD is a freely available program.
+
 To insert into an existing IMOD file:
- # File -> Insert into IMOD file
- # Pick an existing IMOD file
+ # Using [IMOD], create and save a model file.
+ # File -> Insert into an existing IMOD model file.
+ # Pick the existing IMOD file. A new file will be created with the detected points inserted.
 
 http://cytoseg.googlecode.com/svn/wiki/cytoseg_screenshot.png
 
