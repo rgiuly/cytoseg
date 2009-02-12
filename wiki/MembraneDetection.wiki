@@ -16,4 +16,4 @@ http://cytoseg.googlecode.com/svn/wiki/membrane_demo__membrane_probability_deriv
 
 
 = References =
-Andres, Köthe1, Helmstaedter2, Denk and Hamprecht. Segmentation of SBFSEM Volume Data of Neural Tissue by Hierarchical Classification. 2008: Springer.
+  * Andres, Köthe, Helmstaedter, Denk and Hamprecht. Segmentation of SBFSEM Volume Data of Neural Tissue by Hierarchical Classification. 2008: Springer.
