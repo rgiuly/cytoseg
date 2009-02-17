@@ -1,5 +1,9 @@
 #summary Membrane Detection with SBFSEM
 
+= Blog =
+
 = Testing Pixel Classifier on SBFSEM Data 2/17/2009 =
+
+Ideally the probability image (lower image) should show the membranes in white and everything else in black. It seems that currently the classifier is picking up higher frequency components than it should be - like the border between the membrane and the intracellular region, rather than the membrane itself.
 
 http://cytoseg.googlecode.com/svn/wiki/SBFSEM_test_2009_02_17.PNG
