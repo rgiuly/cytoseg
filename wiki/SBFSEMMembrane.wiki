@@ -1,13 +1,5 @@
 #summary Membrane Detection with SBFSEM
 
-= Introduction =
+= Testing Pixel Classifier on SBFSEM Data 2/17/2009 =
 
-Add your content here.
-
-
-= Details =
-
-Add your content here.  Format your content with:
-  * Text in *bold* or _italic_
-  * Headings, paragraphs, and lists
-  * Automatic links to other wiki pages
+http://cytoseg.googlecode.com/svn/wiki/SBFSEM_test_2009_02_17.PNG
