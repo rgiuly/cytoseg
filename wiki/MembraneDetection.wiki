@@ -1,8 +1,6 @@
 #summary Membrane Detection
 
-[ElectronTomographyMembrane Membrane Detection with Electron Tomography Data]
 
-[SBFSEM Membrane Detection with SBFSEM]
 
 
 = Raw Data =
