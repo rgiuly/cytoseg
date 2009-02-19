@@ -4,9 +4,8 @@
 
 = Testing Pixel Classifier on SBFSEM Data 2/17/2009 =
 
-This is a test of one stage of a two stage process. Stage-one should detect salient voxels (those that represent membranes). Stage-two should detect shapes such as closed contours or possibly surfaces in 3D that represent membranes.
-
-Ideally the membrane voxel probability image (lower image) should show the membranes in white and everything else in black. It seems that currently the classifier is picking up higher frequency components than it should be - like the border between the membrane and the intracellular region, rather than the membrane itself.
+This is a test of a process to enhance membranes and filter out other features in the image. 
+Ideally the membrane voxel probability image (lower image) should show the membranes in lighter gray values and everything else in black. It seems that currently the classifier is  responding more to the borders between the membrane and the intracellular region, rather than the membrane itself. So, the classifier will need to be modified to respond more to the actual membranes.
 
 http://cytoseg.googlecode.com/svn/wiki/SBFSEM_test_2009_02_17.PNG
 
