@@ -8,7 +8,7 @@ function labelMatrix1D = watershedWrapper(volume1D,d1,d2,d3,connectivity)
     volume = reshape(volume1D, d1,d2,d3);
 
     labelMatrix = watershed(volume, connectivity);
-    sliceView(labelMatrix);
+    %could view the labelMatrix here
     labelMatrix1D = labelMatrix(:);
     
     

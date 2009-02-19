@@ -42,7 +42,7 @@ import wx
 
 #from mlabwrap import mlab
 
-import pickle
+import cPickle
 
 import copy
 
@@ -60,6 +60,14 @@ import geometry
 
 #from sets import Set
 
+#import scipy
+
+import obj_tools
+
+from scipy import ndimage
+
+from tree import *
+
 global settings
 settings = {}
 
@@ -69,7 +77,7 @@ if hostname == "panther":
         #defaultPath = "O:\\images\\LFong\\cropped\\8bit_smaller\\"
         #defaultPath = "O:\\images\\LFong\\tif_8bit_partial\\"
         #defaultPath = "O:\\images\\LFong\\tif_8bit_partial\\"
-        defaultPath = "O:\\images\\LFong\\tif_8bit_20_images\\"
+        #defaultPath = "O:\\images\\LFong\\tif_8bit_20_images\\"
         #defaultPath = "O:\\images\\LFong\\tif_8bit_10_images\\"
         #defaultPath = "O:\\images\\denk\\smallcube2\\"
         #defaultPath = "O:\\images\\denk\\smallcube_region2\\"
@@ -78,6 +86,12 @@ if hostname == "panther":
         #defaultPath = "O:\\images\\test_watershed\\"
         #defaultPath = "O:\\images\\test_watershed\\original\\"
         #defaultPath = "I:\\ncmir_data\\caulobacter\\approximately_cubical_volume\\"
+        #defaultPath = "O:\\images\\HPFcere_vol\\HPF_rotated_tif\\seg3D\\tifs\\"
+        #defaultPath = "O:\\images\\3D-blob-data\\"
+        #defaultPath = "O:\\images\\3D-blob-data\\crop\\"
+        defaultPath = "O:\\images\\HPFcere_vol\\HPF_rotated_tif\\seg3D\\tifs\\cropped\\"
+        #defaultPath = ""
+        
         defaultOutputPath = "O:\\temp\\output\\" 
 else:
         #defaultPath = "/crbsdata1/rgiuly/input/cb017_NA1000_set2/cropped204x150/"
@@ -140,6 +154,11 @@ class odict(UserDict):
 
 
 class OrderedDictionaryFixedKeyList(odict):
+    def __init__(self, keyList):
+        odict.__init__(self)
+        for key in keyList:
+            odict.__setitem__(self, key, None)
+        
     def __setitem__(self, key, item):
         if key not in self._keys:
             raise KeyError, "The key %s does not exist and OrderedDictionaryFixedKeyList does not allow adding a key with __setitem__." % key
@@ -152,7 +171,7 @@ def initialize():
     global settings
     try:
         settingsFile = open('settings.pickle')
-        settings = pickle.load(settingsFile)
+        settings = cPickle.load(settingsFile)
         print 'settings'
         print settings
     except IOError, (errno, strerror):
@@ -171,7 +190,7 @@ def writeSettings():
     outputFile = open('settings.pickle', 'wb')
     print 'writing settings to settings.pickle'
     print settings
-    pickle.dump(settings, outputFile)
+    cPickle.dump(settings, outputFile)
     
 
 def array2image(a):
@@ -190,15 +209,6 @@ def array2image(a):
 #label = Label(root, text="test")
 #label.pack()
 
-def getNode(node, nameList):
-    currentNode = node
-    #print 'nameList'
-    #print nameList
-    for name in nameList:
-        #print name
-        currentNode = currentNode.getChild(name)
-    return currentNode
-    
 
 class Blob:
 #    def __init__(self, center=None, size=None, points=[], color=[100,0,0]):
@@ -210,8 +220,9 @@ class Blob:
         
         self._points = []
         self._color = [100,0,0]
+        self._probability = 0
         
-        self.averageValueFromTrainingLabelVolume = None
+        #self.averageValueFromTrainingLabelVolume = None
     
     def points(self):
         return self._points
@@ -224,7 +235,16 @@ class Blob:
     
     def color(self):
         return self._color
+    
+    def setColor(self, color):
+        self._color = color
 
+    def probability(self):
+        return self._probability
+
+    def setProbability(self, p):
+        self._probability = p
+    
     def __repr__(self):
         return "Blob_with_%d_points" % len(self.points())
     
@@ -248,6 +268,7 @@ class Blob:
     def numPoints(self):
         return len(self.points())
 
+  
 
 
 # todo: make this a superclass of Particle class
@@ -270,103 +291,6 @@ class Box:
         
     def shape(self):
         return array(self.cornerB) - array(self.cornerA)
-
-
-# represents a piece of data
-# (can be used for gui components)
-class DataNode:
-    
-    
-    
-    def __init__(self, name, type, params, valueToSave):
-        self.name = name
-        self.type = type
-        self.params = params
-        self.valueToSave = valueToSave
-        self.children = []
-        self.guiComponent = None
-    
-    def __setstate__(self, dict):
-        self.__dict__ = dict
-        self.guiComponent = None
-    
-    
-    def __getstate__(self):
-        result = self.__dict__.copy()
-        del result['guiComponent']
-        return result
-        
-    def get(self):
-        self.valueToSave = self.guiComponent.GetValue()  #todo: you should really always use set method so this should not be necessary 
-        return self.guiComponent.GetValue()
-    
-    def set(self, value):
-        self.valueToSave = value
-        self.guiComponent.SetValue(value)
-
-    # shows children of node
-    def __str__(self):
-        result = '%s (' % self.name 
-        for child in self.children:
-            result += child.__str__() 
-        result += ')'
-        return result
-    
-    def addChild(self, node):
-        self.children.append(node)
-
-    def insertChildAt(self, node, index):
-        self.children.insert(index, node)
-
-    def addChildren(self, nodeList):
-        for node in nodeList:
-            self.addChild(node)
-    
-    def insertChildrenAt(self, nodeList, index):
-        for i in range(len(nodeList)):
-            node = nodeList[i]
-            self.insertChildAt(node, index + i)
-
-    
-    def getChild(self, name):
-        for child in self.children:
-            if child.name == name:
-                return child
-        raise Exception, ("error: tried to access node named %s but it wasn't there. (parent node %s.)" % (name, self.name))
-               
-
-
-    def test_old(self):
-        n1 = DataNode("root","root",10)
-        print 'n1 type'
-        print type(n1)
-        n2 = DataNode("b","boolean",20)
-        n3 = DataNode("c","slider",30)
-        n4 = DataNode("d","slider",40)
-        n5 = DataNode("e","slider",50)
-
-        n1.addChild(n2)
-        n1.addChild(n3)
-        n2.addChild(n4)
-        n2.addChild(n5)
-        
-        print 'children types'
-        for x in n1.children:
-            print type(x)
-        f = open("temp.pickle", "w")
-        pickle.dump(n1, f)
-        f.close()
-
-        f = open("temp.pickle", "r")
-        loadedData = pickle.load(f)
-        print "data loaded from file"
-        print loadedData
-        f.close()
-        
-        print 'testing get node'
-        print getNode(loadedData, ('particleMotionTool', 'd'))
-        
-        return n1
 
 
 
@@ -399,65 +323,50 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
     def __init__(self, settingsTree):
         
         self.mainDoc = Document()
-        createSampleVolumes(self.mainDoc.volumeDict)
-        
+        sampleVolumes = createSampleVolumes()
+
+        # initialize data tree
         self.mainDoc.dataRootNode.addChildren((
                     DataNode('Volumes', 'type of node', None, None),
                     DataNode('Blobs', 'type of node', None, None)))
         volumesNode = getNode(self.mainDoc.dataRootNode, ('Volumes',))
         volumesNode.addChildren((
-                    DataNode('test volume 1', 'type of node', None, None),
-                    DataNode('test volume 2', 'type of node', None, None)))
-        self.selectedDataTreeControlItem = None
+                    DataNode('test volume 1', 'type of node', None, sampleVolumes[0]),
+                    DataNode('test volume 2', 'type of node', None, sampleVolumes[1])))
+        #self.selectedDataTreeControlItem = None
+
+        #self.selectedVolumeTreeControlItem = None
+
+        self.getCurrentVolumeCache = None
+        self.getCurrentBlobCache = None # todo: not using this yet, something to do would be to start using it to cache getCurrentBlob result
         
         self.mouseClickCallbackDict = odict()
-        #self.mouseClickCallbackDict['item1'] = self.makeParticleAtMouseLocation
-        #self.mouseClickCallbackDict['item2'] = self.old_onClickedImage
         
         self.mouseClickCallbackDict['makeParticleAtMouseLocation'] = self.makeParticleAtMouseLocation
-        #self.mouseClickCallbackDict['updatePointFeaturesAtMouseLocation'] = self.updatePointFeaturesAtMouseLocation
-        #self.mouseClickCallbackDict['updateBlobFeaturesAtMouseLocation'] = self.updateBlobFeaturesAtMouseLocation
         self.mouseClickCallbackDict['startDefiningBoxAtMouseLocation'] = self.startDefiningBoxAtMouseLocation
-        #self.mouseClickCallbackDict['printBlobNameAtMouseLocation'] = self.printBlobNameAtMouseLocation
-        
-        
-        #self.onOpenDocument(None)
         
         self.currentSubgroupIndex = -1  
         self.totals = []     
         self.childFrames = []
         
-        #wx.Frame.__init__(self, None, title="Loading Images")
-        
         wx.Frame.__init__(self, None, -1, 'Cytoseg - Main Window',
                           size=(800, 800))
         
-        self.Move((700,100))
+        self.Move((750,100))
         self.SetSize((400,200))
         
         self.Bind(wx.EVT_CLOSE, self.onExit)
                 
-        #self.panel = wx.Panel(self)
-        #self.panel = wx.ScrolledWindow(self, -1)
         self.panel = wx.ScrolledWindow(self, id=-1, pos=wx.DefaultPosition,
                                        size=wx.DefaultSize, style=wx.HSCROLL | wx.VSCROLL,
                                        name="scrolledWindow")
         self.panel.SetScrollbars(1, 1, 1600, 1400)
-        #self.panel.FitInside()
         fgs = wx.FlexGridSizer(cols=2, hgap=10, vgap=10)
         
         imageLabel = wx.StaticText(self.panel, -1, "Image")
         fgs.Add(imageLabel)
         
-        #self.Bind(wx.EVT_PAINT, self.onPaint)
-        
-        
         for name in filenames:
-            #img1 = wx.Image(name, wx.BITMAP_TYPE_ANY)
-            #w = img1.GetWidth()
-            #h = img1.GetHeight()
-            #img2 = img1.Scale(w/2, h/2)
-            
             height = 200
             width = 100
 
@@ -468,8 +377,6 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
             image.SetData(array.tostring())
 
             bitmap = image.ConvertToBitmap()# wx.BitmapFromImage(image)
-            #bitmap.SetWidth(500)
-            #bitmap.SetHeight(500)
 
             # todo: rename sb1 to something like staticBitmapForXYView
             self.sb1 = wx.StaticBitmap(self.panel, -1, wx.BitmapFromImage(image))
@@ -478,70 +385,33 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
             self.sb1.Bind(wx.EVT_LEFT_UP, self.onButtonUp)
 
             fgs.Add(self.sb1)
-            #fgs.Add(self.sb2)
-            
            
             
-            #label1 = wx.StaticText(self.panel, -1, "text1")
-            #text1 = wx.TextCtrl(self.panel, -1, "text2", size=(175, -1))
-            #text1.SetInsertionPoint(0)
-            #label2 = wx.StaticText(self.panel, -1, "text3")
-            #text2 = wx.TextCtrl(self.panel, -1, "text4", size=(175, -1))
-            
-            #sizer = wx.FlexGridSizer(cols=2, hgap=6, vgap=6)
-            #sizer.AddMany([basicLabel, basicText, pwdLabel, pwdText])
-            #fgs.AddMany([label1, text1, label2, text2])
-            #panel.SetSizer(sizer)
-
-            #self.button = wx.Button(self.panel, -1, "Hello", pos=(50, 20))
-            #self.Bind(wx.EVT_BUTTON, eval('self.OnClick'), self.button)
-            #self.button.SetDefault()
-
-            #self.panel.SetSizerAndFit(self.fgs)
-            #self.Fit()
 
         self.settingsTree = settingsTree
  
         self.generateComponents(settingsTree, 0, [], None, None, None)
+
         self.refreshGUI()
         
-        treeControl = getNode(self.settingsTree, ('particleMotionTool','dataTree')).guiComponent
-        #self.generateTreeControl(self.dataRootNode, treeControl.GetRootItem(), [])
-        #self.refreshTreeControl(self.dataRootNode, treeControl)
-        #self.refreshTreeControl(self.dataRootNode, treeControl)
-        self.refreshTreeControl()
-
         
         print 'timer start controls frame'
         self.startTimer()
         
         self.makeNewSubgroup()
         
-        #dc = wx.ClientDC(self)
-        #dc.DrawEllipse(200,200,100,100)
         
         self.panel.SetSizer(fgs)
-        #self.panel.SetSizerAndFit(self.fgs)
-        #self.Fit()
-        
-        #self.onOpenImageStack(None)
-        #self.onReadClassificationFile(None)
 
-        #print "self.mainDoc.volumes"
-        #print self.mainDoc.volumes
-        self.loadedVolumeBoxInFullVolumeCoords = Box((0,0,0),self.getCurrentVolume().shape)
+        #self.loadedVolumeBoxInFullVolumeCoords = Box((0,0,0), self.getCurrentVolume().shape)
+        self.loadedVolumeBoxInFullVolumeCoords = Box((0,0,0), (0,0,0))
 
 
         self.drawingSelectionBox = False
-        #self._selectionBoxInLoadedVolumeCoords = Box([0,0,0], [0,0,0])
         self.selectionBoxInFullVolumeCoords = Box([0,0,0], [0,0,0])
                 
         self.derivativeHasBeenComputed = False
 
-    #def onPaint(self, event):
-        #print "onPaint"
-        
-        #self.beepSound = wx.Sound("beep.wav")
 
         self.setControlEnable(('particleMotionTool','loadPartialImageStack'), False)
         
@@ -637,27 +507,27 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
     
     def onSaveDocument(self, event):
         f = open("c:\\temp\\document.pickle", "wb")
-        pickle.dump(self.mainDoc, f)
+        cPickle.dump(self.mainDoc, f)
         f.close()
 
     def onOpenDocument(self, event):
         f = open("c:\\temp\\document.pickle")
-        self.mainDoc = pickle.load(f)
+        self.mainDoc = cPickle.load(f)
         f.close()
         self.refreshGUI()
 
         
-    def onSaveVolumes(self, event):
-        f = open("c:\\temp\\volumes.pickle", "wb")
-        pickle.dump(self.mainDoc.volumeDict, f)
-        f.close()
+    #def onSaveVolumes(self, event):
+    #    f = open("c:\\temp\\volumes.pickle", "wb")
+    #    cPickle.dump(self.mainDoc.volumeDict, f)
+    #    f.close()
 
-    def onOpenVolumes(self, event):
-        #global volumes
-        f = open("c:\\temp\\volumes.pickle")
-        self.mainDoc.volumeDict = pickle.load(f)
-        f.close()
-        self.GUI()
+    #def onOpenVolumes(self, event):
+    #    #global volumes
+    #    f = open("c:\\temp\\volumes.pickle")
+    #    self.mainDoc.volumeDict = cPickle.load(f)
+    #    f.close()
+    #    self.GUI()
 
 
     def refreshListBox(self, listBoxNode, dictionary):
@@ -676,7 +546,7 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
 
     def refreshGUI(self):
         #self.refreshBlobList()
-        self.refreshTreeControl()
+        self.refreshTreeControls()
         self.refreshVolumeList()
         self.refreshMouseClickCallbackList()
 
@@ -686,9 +556,10 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
     #    self.refreshListBox(listBoxNode, dictionary)
 
     def refreshVolumeList(self):
-        listBoxNode = getNode(self.settingsTree, ('particleMotionTool','volumeList'))
-        dictionary = self.mainDoc.volumeDict
-        self.refreshListBox(listBoxNode, dictionary)
+        pass
+        #listBoxNode = getNode(self.settingsTree, ('particleMotionTool','volumeList'))
+        #dictionary = self.mainDoc.volumeDict
+        #self.refreshListBox(listBoxNode, dictionary)
 
 
     def refreshMouseClickCallbackList(self):
@@ -720,18 +591,54 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
     
     def addVolume(self, volume, name):
         
-        # todo: delete this code that deals with the list box. use tree instead.
-        self.mainDoc.volumeDict[name] = volume
-        node = getNode(self.settingsTree, ('particleMotionTool','volumeList'))
-        #node.params['items'].insert(0, name)
-        listBox = node.guiComponent
-        listBox.InsertItems([name],0)  # todo: regenerate the whole list based on the entries in the volumes dictionary
+        ## todo: delete this code that deals with the list box. use tree instead.
+        #self.mainDoc.volumeDict[name] = volume
+        #node = getNode(self.settingsTree, ('particleMotionTool','volumeList'))
+        ##node.params['items'].insert(0, name)
+        #listBox = node.guiComponent
+        #listBox.InsertItems([name],0)  # todo: regenerate the whole list based on the entries in the volumes dictionary
         
-        
-        #newVolumeNode = DataNode(name, None, None, volume)
-        #volumesNode = getNode(self.dataRootNode, ('Volumes',)).valueToSave = volume 
-        #volumesNode.addChild(newVolumeNode)
+        # todo: could set node type to volume
+        newVolumeNode = DataNode(name, None, None, volume)
+        volumesNode = getNode(self.mainDoc.dataRootNode, ('Volumes',)) 
+        volumesNode.addChild(newVolumeNode)
 
+
+    def getVolume(self, name):
+        node = getNode(self.mainDoc.dataRootNode, ('Volumes', name))
+        return node.valueToSave
+
+    # gets object and refreshes the tree gui component if needed
+    def getPersistentObject(self, pathToNode):
+        if self.mainDoc.dataTree.subtreeExists(pathToNode):
+            doRefresh = False
+        else:
+            doRefresh = True
+            
+        node = self.mainDoc.dataTree.getSubtree(pathToNode)
+        
+        if doRefresh:
+            self.refreshTreeControls()
+        
+        return node.valueToSave
+
+
+    def getPersistentVolume(self, name):
+        return self.getPersistentObject(('Volumes', name))
+
+
+    #def getBlob(self, name):
+    #    node = getNode(self.mainDoc.dataRootNode, ('Blobs', name))
+    #    return node.valueToSave
+
+    def getPersistentBlob(self, name):
+        return self.getPersistentObject(('Blobs', name))
+
+
+    def addVolumeAndRefreshDataTree(self, volume, name):
+        
+        self.addVolume(volume, name)
+        self.refreshTreeControls()
 
     #def addBlobAndRefresh(self, blob, nameList):
     #    
@@ -742,14 +649,34 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
     #    path = nameList[0:-1]
     #    parentNode = getNode(self.dataTree, path)
     
-    def addBlobAndRefreshDataTree(self, blob, parentNode, name):
-         newNode = DataNode(name, 'blob', None, blob)
-         parentNode.addChild(newNode)
-         self.refreshTreeControl()
+    def addBlob(self, blob, parentNode, name):
+        newNode = DataNode(name, 'blob', None, blob)
+        parentNode.addChild(newNode)
 
-    #def getGUIComponent(self, nameList):
-    #    node = getNode(self.settingsTree, nameList)
-    #    return node.guiComponent
+    #def addBlobAndRefreshDataTree(self, blob, parentNode, name):
+    #    self.addBlob(blob, parentNode, name)
+    #    self.refreshTreeControls()
+
+    def addPersistentBlobAndRefreshDataTree(self, blob, name):
+        newNode = DataNode(name, 'blob', None, blob)
+        self.addPersistentSubtreeAndRefreshDataTree(('Blobs',), newNode)
+
+    def addPersistentVolumeAndRefreshDataTree(self, volume, name):
+        newNode = DataNode(name, 'volume', None, volume)
+        self.addPersistentSubtreeAndRefreshDataTree(('Volumes',), newNode)
+
+
+    def addPersistentSubtreeAndRefreshDataTree(self, parentNodePath, node):
+        #newNode = DataNode(name, 'blob', None, blob)
+        #blobsNode = getNode(self.mainDoc.dataRootNode, ('Blobs',))
+        #parentNode = getNode(self.mainDoc.dataRootNode, parentNodePath)
+        self.mainDoc.dataTree.setSubtree(parentNodePath, node)
+        self.refreshTreeControls()
+   
+
+    def getGUIComponent(self, nameList):
+        node = getNode(self.settingsTree, nameList)
+        return node.guiComponent
 
     def setValue(self, nameList, value):
         node = getNode(self.settingsTree, nameList)
@@ -869,22 +796,27 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         global particleGroup
         global blobs
         
-        v = self.getCurrentVolumeForProcessing()
+        # todo: eventually put this code back in so the selection box will work
+        # v = self.getCurrentVolumeForProcessing()
+        
+        v = self.getCurrentVolume()
         
         blobs = findBlobs(v, (getNode(self.settingsTree, ('particleMotionTool','grayThreshold'))).get())
 
         #cornerA, cornerB = self.cornersOf3DWindow()
         #offset = self.selectionRectangleCornerA + cornerA
         
-        box = self.selectedBoxCornersInLoadedVolumeCoordinates()
-        offset = box.cornerA
+        # todo: eventually put this code back in so the selection box will work
+        if 0:
+            box = self.selectedBoxCornersInLoadedVolumeCoordinates()
+            offset = box.cornerA
+            
+            moveBlobs(blobs, offset)
         
-        moveBlobs(blobs, offset)
-        
-        particleGroup = generateParticleGroupFromBlobs(blobs)
+        particleGroup = generateParticleGroupFromBlobs(blobs, self.settingsTree)
         print particleGroup
         for i in range(0,(getNode(self.settingsTree, ('particleMotionTool','iterationsOfParticleMovement'))).get()):
-            total = updateParticlePositions(self.getCurrentVolume(), self.settingsTree)
+            total = updateParticlePositions(self.getCurrentVolume(), self.settingsTree, array([0,0,0]))
             print i
             print total
             filename = (getNode(self.settingsTree, ('particleMotionTool','tempPath'))).get() + 'temporary%d.psi' % i
@@ -903,7 +835,7 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         ###f = open('%s.pointList' % form['saveToTextBox'].value)
         f = open('%s.pointList' % 'output')
     
-        pointList = pickle.load(f)
+        pointList = cPickle.load(f)
         f.close()
         
         # todo make these part of a global document and don't have individual global variables for blobs, particles, edges
@@ -912,7 +844,7 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         global edges
         
         f = open('%s.blobs' % 'output')
-        blobs = pickle.load(f)
+        blobs = cPickle.load(f)
         f.close()
         
         particles = []
@@ -924,7 +856,7 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         ###f = open('%s.edges' % form['saveToTextBox'].value)
         f = open('%s.edges' % 'output')
     
-        edges = pickle.load(f)
+        edges = cPickle.load(f)
         f.close()
 
 #    def onLoadBlobsAndParticlesAndEdges(self, event):
@@ -953,7 +885,7 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         #drawParticlesInVolume(red, particles)
         
         # todo: this shouldn't change the volume, but i have it here temporarily to display results
-        drawParticlesInVolume(self.getCurrentVolume(), particleGroup.getAll(), settingsTree)
+        drawParticlesInVolume(self.getCurrentVolume(), particleGroup.getAll(), self.settingsTree)
         
         #writeTiffStack(old_gui.saveImageStackPathText.get(), volume) 
         writeTiffStack((getNode(self.settingsTree, ('particleMotionTool','tempPath'))).get(), self.getCurrentVolume())
@@ -963,9 +895,13 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         #return (double(self.scaleFactor.get())/100.0,double(self.scaleFactor.get())/100.0,1.0)
         return (1,1,1)
         
-    def saveParticlesToPSIButton(self, event):
+    def onSaveParticlesToPSI(self, event):
         filename = "output.psi"
         saveParticlesToPSI(filename, self.scaleFactorsFromGUI())
+
+    def onSaveParticlesToFCSV(self, event):
+        filename = "output.fcsv"
+        saveParticlesToFCSV(filename, self.scaleFactorsFromGUI())
         
     def plotBlobSizesButton(self, event):
         plotBlobSizes(blobs)
@@ -974,18 +910,39 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         self.mainDoc.volumeDict['Temporary'] = copy.deepcopy(self.getCurrentVolume())
         
     def onWatershed(self, event):
-        self.addVolume(watershed(self.getCurrentVolume(), 26), 'Watershed')
+        self.addVolumeAndRefreshDataTree(watershed(self.getCurrentVolume(), 26), 'Watershed')
                             
-    def onDataTreeSelectionChanged(self, event):
-        self.selectedDataTreeControlItem = event.GetItem()
-                            
+    def onBlobSelectionChanged(self, event):
+        pass
+        #print "onBlobSelectionChanged"
+        #self.selectedDataTreeControlItem = event.GetItem()
 
-    def getSelectedDataNode(self):
+    def onVolumeSelectionChanged(self, event):
+        #print "onVolumeSelectionChanged"
+        self.getCurrentVolumeCache = None
+        v = self.getCurrentVolume()
+        if v != None:
+            self.loadedVolumeBoxInFullVolumeCoords = Box((0,0,0), v.shape)
+            zSlider = self.getGUIComponent(('imageControls','zIndex'))
+            zSlider.SetRange(0, v.shape[2]-1)        
+        
+        #self.selectedVolumeTreeControlItem = event.GetItem()
+
+
+    def getSelectedBlobNode(self):
         dataTreeNode = getNode(self.settingsTree, ('particleMotionTool','dataTree'))
         dataTreeControl = dataTreeNode.guiComponent
-        if self.selectedDataTreeControlItem != None:
-            item = self.selectedDataTreeControlItem
-            #dataNode = dataTreeControl.GetItemData(item)
+        return self.getSelectedDataNode(dataTreeControl)
+
+    def getSelectedVolumeNode(self):
+        dataTreeNode = getNode(self.settingsTree, ('particleMotionTool','dataTreeForVolumeSelection'))
+        dataTreeControl = dataTreeNode.guiComponent
+        return self.getSelectedDataNode(dataTreeControl)
+        
+    def getSelectedDataNode(self, dataTreeControl):
+        #print len(dataTreeControl.GetSelections())
+        if len(dataTreeControl.GetSelections()) > 0:  # note: GetSelections() may be a slow operation requiring O(n) time where n is number of items in the tree
+            item = dataTreeControl.GetSelection()
             dataNode = dataTreeControl.GetPyData(item)
             return dataNode
         else:
@@ -1015,7 +972,7 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         #self.drawViews(volume, (1,1,1), threshold)
         if (getNode(self.settingsTree, ('particleMotionTool','moveParticlesAlongGradient'))).get():  
         
-            total = updateParticlePositions(self.getCurrentVolume(), settingsTree, self.loadedVolumeBoxInFullVolumeCoords.cornerA)
+            total = updateParticlePositions(self.getCurrentVolume(), self.settingsTree, self.loadedVolumeBoxInFullVolumeCoords.cornerA)
             
             self.totals.append(total);
             if len(self.totals) > 100:
@@ -1030,7 +987,7 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
                 #print "average %f, current total %f" % (average, total)
         
         if (getNode(self.settingsTree, ('particleMotionTool','visualsEnabled'))).get():
-            self.drawViews(self.getCurrentVolume(), threshold)
+            self.displayXYView(self.getCurrentVolume(), threshold)
         
         global globalCount
         #print globalCount
@@ -1056,11 +1013,35 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
 #        #print itemString
 #        return self.mainDoc.volumes[itemString]
 
-    def getCurrentVolume(self):
-        listNode = getNode(self.settingsTree, ('particleMotionTool','volumeList'))
-        dictionary = self.mainDoc.volumeDict
-        return self.getAccordingToListBoxSelection(listNode, dictionary)
+#    def getCurrentVolume(self):
+#        listNode = getNode(self.settingsTree, ('particleMotionTool','volumeList'))
+#        dictionary = self.mainDoc.volumeDict
+#        return self.getAccordingToListBoxSelection(listNode, dictionary)
 
+    def getCurrentVolume(self):
+
+        #print "getCurrentVolume"
+
+        
+        if self.getCurrentVolumeCache != None:
+            return self.getCurrentVolumeCache
+        else:
+        
+            node = self.getSelectedVolumeNode()
+            if node != None:
+                #print "getCurrentVolume", node.valueToSave
+                returnValue = node.valueToSave
+            else:
+                #print "getCurrentVolume", None
+                returnValue = None
+            
+            self.getCurrentVolumeCache = returnValue
+            return returnValue
+
+#    def getCurrentBlob(self):
+#        self.getSelectedTreeControlObject('dataTree')
+#
+#    def getSelectedTreeControlObject(self, treeControlName):
     def getCurrentBlob(self):
         #listNode = getNode(self.settingsTree, ('particleMotionTool','blobList'))
         #dictionary = self.mainDoc.blobDict
@@ -1072,7 +1053,9 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         #dataNode = dataTreeControl.GetItemData(item)
         #return dataNode.valueToSave
         
-        node = self.getSelectedDataNode()
+        print "getCurrentBlob"
+        
+        node = self.getSelectedBlobNode()
         if node != None:
             #print "node"
             #print node
@@ -1083,28 +1066,7 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
             return None
         
         
-    # returns item of a dictionary according to the key specified with a list box
-    def getAccordingToListBoxSelection(self, listNode, dictionary):
-        itemString = self.getSelectedString(listNode)
-        if itemString == None:
-            return None
-        else:
-            return dictionary[itemString]
 
-    # returns the string that is selected in a list box
-    def getSelectedString(self, listNode):
-        
-        listBox = listNode.guiComponent
-        selectionList = listBox.GetSelections()
-
-        # if no item is selected return None
-        if len(selectionList) < 1:
-            return None
-        
-        itemNumber = selectionList[0]
-        itemString = listBox.GetString(itemNumber)
-        
-        return itemString
 
 #    def getCurrentVolumeName(self, listNode):
         
@@ -1150,7 +1112,6 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
 
     #def topLeftCornerOfWindowInVolumeCoordinates():
     def cornersOf3DWindow(self):
-        volume = self.getCurrentVolume()
         
         # todo: variable name full volume should be loaded volume
         positionInFullVolume = numpy.array( 
@@ -1167,13 +1128,17 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         half = numpy.array([sizeX, sizeY, 0]) / 2
         cornerA = positionInFullVolume - half
         cornerB = positionInFullVolume + half
+
+        volume = self.getCurrentVolume()
         
-        cornerA = insideLimits(volume.shape, cornerA)
-        cornerB = insideLimits(volume.shape, cornerB)
+        # if there is a current volume, restrict the size of the view so it is inside of the current volume
+        if volume != None:
+            cornerA = insideLimits(volume.shape, cornerA)
+            cornerB = insideLimits(volume.shape, cornerB)
         
         return Box(cornerA, cornerB)
     
-    
+    # todo: it's probably better to represent the displayedRegionBox as a rectangle and a z position
     def getXYImage(self, volume, displayedRegionBox):
         box = displayedRegionBox
         
@@ -1184,32 +1149,51 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         return imageArray.T
 
 
-    def drawViews(self, volume, threshold):
+    def displayXYView(self, volume, threshold):
+        bitmap = self.makeXYView(volume, threshold, self.cornersOf3DWindow())
+        self.sb1.SetBitmap(bitmap)
+        self.sb1.Refresh()
 
-        global globalCount
-        
-        image = self.getXYImage(volume, self.cornersOf3DWindow())
-        
-        colorImageShape = [image.shape[0],image.shape[1],3]
-        
-        if threshold != None: image = (image < threshold) * 150
-        
-        max = image.max()
-        min = image.min()
-        
-        normalizedImage = (image - min) * (255.0 / (max - min)) 
 
-        a = numpy.zeros(colorImageShape,numpy.int8)
-        a[:,:,0] = normalizedImage
-        a[:,:,1] = normalizedImage
-        a[:,:,2] = normalizedImage
+
+    def makeXYView(self, volume, threshold, displayedRegionBox):
+
+        #global globalCount
+
+        #print "drawViews volume ", volume
         
-        imageShape = a.shape
-        
-        image = wx.EmptyImage(imageShape[1],imageShape[0])
-        image.SetData(a.tostring())
-        
-        image.Rescale(self.zoomFactor() * image.GetWidth(), self.zoomFactor() * image.GetHeight(), wx.IMAGE_QUALITY_NORMAL)
+        if volume == None:
+            
+            image = wx.EmptyImage(10,100)
+            
+        else:
+            
+            image = self.getXYImage(volume, displayedRegionBox)
+            
+            colorImageShape = [image.shape[0],image.shape[1],3]
+            
+            if threshold != None: image = (image < threshold) * 150
+
+            if self.getValue(('imageControls', 'normalizeImageOtherwiseNormalizeVolume')):
+                max = image.max()
+                min = image.min()
+            else:
+                max = volume.max()
+                min = volume.min()
+            
+            normalizedImage = (image - min) * (255.0 / (max - min)) 
+    
+            a = numpy.zeros(colorImageShape,numpy.int8)
+            a[:,:,0] = normalizedImage
+            a[:,:,1] = normalizedImage
+            a[:,:,2] = normalizedImage
+            
+            imageShape = a.shape
+            
+            image = wx.EmptyImage(imageShape[1],imageShape[0])
+            image.SetData(a.tostring())
+            
+            image.Rescale(self.zoomFactor() * image.GetWidth(), self.zoomFactor() * image.GetHeight(), wx.IMAGE_QUALITY_NORMAL)
 
         bitmap = wx.BitmapFromImage(image)
 
@@ -1217,17 +1201,26 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         self.drawParticles(dc)
 
         if (getNode(self.settingsTree, ('particleMotionTool','drawBlobs'))).get():
-            self.drawBlobs(dc)
+            z = displayedRegionBox.cornerA[2]
+            #print "z", z
+            #print "(getNode(self.settingsTree, ('imageControls','zIndex'))).get()", (getNode(self.settingsTree, ('imageControls','zIndex'))).get()
+            self.drawBlobs(dc, z)
         
         #if (getNode(self.settingsTree, ('particleMotionTool','selectABox'))).get():
         #    self.drawSelectionBox(dc)
         if self.getSelectedMouseClickCallback() == self.startDefiningBoxAtMouseLocation:
             self.drawSelectionBox(dc)
         
+        #self.image = image
+        #self.bitmap = bitmap
+        #self.a = a
+
+        #self.sb1.SetBitmap(bitmap)
+        #self.sb1.Refresh()
+
         
-        self.sb1.SetBitmap(bitmap)
-        
-        self.sb1.Refresh()
+        #return image
+        return bitmap
 
     
         if 0:
@@ -1371,6 +1364,7 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
                 
             listBox = wx.ListBox(panel, -1, (20, 20), (200, height), [], wx.LB_SINGLE)
             #listBox.SetSelection(node.valueToSave)
+            listBox.InsertItems(node.params['items'], 0)
             container.AddMany([label, listBox])
             node.guiComponent = listBox
             
@@ -1378,14 +1372,17 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         elif node.type == 'treeControl':
             
             #tree = wx.TreeCtrl(panel, size=(200, 200), style=wx.TR_MULTIPLE)
-            tree = wx.TreeCtrl(panel, size=(200, 200))
+            tree = wx.TreeCtrl(panel, size=(300, 200))
             #root = tree.AddRoot("wx.Object")
             #self.AddTreeNodes(root, data.tree)
             #item = "test item"
             #tree.AppendItem(root, item)
             
             # todo: currently this will always call the same callback, even if you have multiple tree, you may want to make this so different trees call different callbacks
-            self.Bind(wx.EVT_TREE_SEL_CHANGED, self.onDataTreeSelectionChanged, tree)
+            #self.Bind(wx.EVT_TREE_SEL_CHANGED, self.onDataTreeSelectionChanged, tree)
+
+            self.Bind(wx.EVT_TREE_SEL_CHANGED, eval('self.' + node.params['selectionCallback']), tree)
+            
 
             container.AddMany([label, tree])
             node.guiComponent = tree
@@ -1423,9 +1420,12 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
 #        for childSettingsNode in settingsNode.children:
 #            self.createTreeControlNodeForDataNode(childSettingsNode, appendToNewListAndReturnList(path, (settingsNode.name)))
 
+    def refreshTreeControls(self):
+        self.refreshTreeControl('dataTree')
+        self.refreshTreeControl('dataTreeForVolumeSelection')
 
-    def refreshTreeControl(self):
-        treeControl = getNode(self.settingsTree, ('particleMotionTool','dataTree')).guiComponent
+    def refreshTreeControl(self, treeControlName):
+        treeControl = getNode(self.settingsTree, ('particleMotionTool',treeControlName)).guiComponent
         treeControl.DeleteAllItems()
         treeControl.AddRoot("wx.Object")
         self.generateTreeControlRecursively(self.mainDoc.dataRootNode, treeControl.GetRootItem(), [])
@@ -1457,7 +1457,7 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         v = loadImageStack(path, subvolumeBox)
 
         #self.addVolume(v, 'Original')
-        self.addVolume(v, 'Preview')
+        self.addVolumeAndRefreshDataTree(v, 'Preview')
         listBox = getNode(self.settingsTree, ('particleMotionTool','volumeList')).guiComponent
         listBox.SetStringSelection('Preview')
 
@@ -1479,9 +1479,18 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         ##print m.dwAvailPhys/(1024**2)
         
         # v is a volume
+        
+        # load the volume
         v = loadImageStack((getNode(self.settingsTree, ('particleMotionTool','imageStackPath'))).get(), subvolumeBox)
         
-        self.addVolume(v, newVolumeName)
+        self.addVolumeAndRefreshDataTree(v, newVolumeName)
+        
+        # select the volume that was loaded
+        dataTreeNode = getNode(self.settingsTree, ('particleMotionTool','dataTreeForVolumeSelection'))
+        dataTreeControl = dataTreeNode.guiComponent
+        selectTreeControlNode(dataTreeControl, ('Volumes', newVolumeName))
+        
+        #todo: remove this code that deals with the list box
         listBox = getNode(self.settingsTree, ('particleMotionTool','volumeList')).guiComponent
         listBox.SetStringSelection(newVolumeName)
         
@@ -1533,6 +1542,31 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         # todo: this is being done temporarily to prevent user from getting weird results with coordinates because i haven't tested things for multiple loads
         self.setControlEnable(('particleMotionTool','loadImageStack'), False)
         self.setControlEnable(('particleMotionTool','previewImageStack'), False)
+
+    # returns item of a dictionary according to the key specified with a list box
+    def getAccordingToListBoxSelection(self, listNode, dictionary):
+        itemString = self.getSelectedString(listNode)
+        if itemString == None:
+            return None
+        else:
+            return dictionary[itemString]
+
+    # returns the string that is selected in a list box
+    def getSelectedString(self, listNode):
+        
+        listBox = listNode.guiComponent
+        selectionList = listBox.GetSelections()
+
+        # if no item is selected return None
+        if len(selectionList) < 1:
+            return None
+        
+        itemNumber = selectionList[0]
+        itemString = listBox.GetString(itemNumber)
+        
+        return itemString
+
+
 
     def getSelectedMouseClickCallback(self):
         listNode = getNode(self.settingsTree, ('particleMotionTool','mouseClickCallbackList'))
@@ -1704,6 +1738,26 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         
         dialog.Destroy()
 
+    def onSaveCurrentlyDisplayedVolume(self, event):
+        print "onSaveCurrentlyDisplayedVolume"
+        v = self.getCurrentVolume()
+        if v == None:
+            print "cannot save, no volume is selected"
+        else:
+            dialog = wx.DirDialog(self, "Save Volume to Image Stack: Select Folder", os.getcwd(), style=wx.OPEN)
+            if dialog.ShowModal() == wx.ID_OK:
+                print dialog.GetPath()
+                #print type(dialog.GetPath())
+                #print os.path.join(dialog.GetPath(), "file")
+                for i in range(v.shape[2]):
+                    filename = os.path.join(dialog.GetPath(), "out%04d.bmp" % i)
+                    box = copy.deepcopy(self.cornersOf3DWindow())
+                    box.cornerA[2] = i
+                    box.cornerB[2] = i
+                    bitmap = self.makeXYView(v, None, box)
+                    print filename, " total:", v.shape[2]
+                    bitmap.SaveFile(filename, wx.BITMAP_TYPE_BMP)
+            dialog.Destroy()
 
     def onMenuInsertIntoIMODFile(self, event):
         
@@ -1733,6 +1787,11 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
 
     def onMenuExit(self, event):
         self.onExit(None)
+
+
+    def onDisplayXYView(self, event):
+        self.displayXYView(self.getCurrentVolume(), None)
+
 
 
     def drawSelectionBox(self, dc):
@@ -1819,7 +1878,7 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
                     
                     volume[x,y,z] = distance(eigenValues, eigAtSelectedPoint)
         
-        self.addVolume(volume, 'eigenValueStructureTensorView')
+        self.addVolumeAndRefreshDataTree(volume, 'eigenValueStructureTensorView')
         file.close()
         
 
@@ -1992,32 +2051,71 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
 #        volume[p[0]+1, p[1]+1, p[2]-1]
 
 
-    
-    def drawBlobs(self, dc):
-        node = self.getSelectedDataNode()
+    def onSaveBlobsToOBJFile(self, event):
+        self.renderBlobs()
+
+    # write blobs to files
+    def renderBlobs(self):
+        node = self.getSelectedBlobNode()
         if node != None:
-            self.drawBlobsRecursive(node, dc)
+            self.renderBlobsRecursive(node)
         
 
-    def drawBlobsRecursive(self, dataNode, dc):
+    def renderBlobsRecursive(self, dataNode):
         
         if dataNode.type == 'blob':
-            self.drawBlob(dataNode.valueToSave, dc)
+            blob = dataNode.valueToSave
+            useThreshold = self.getValue(('particleMotionTool', 'useFacesProbabilityThreshold'))
+            if not(useThreshold) or numpy.log(blob.probability()) >= ((double(self.getValue(('particleMotionTool','facesProbabilityThreshold'))) - 150) / 10.0):
+                self.renderBlob(blob, dataNode.name)
+
+        for child in dataNode.children:
+            self.renderBlobsRecursive(child)
+
+    def renderBlob(self, blob, name):
+        list = []
+        for labeledPoint in blob.points():
+            list.append(labeledPoint.loc)
+        
+        obj_tools.makeOBJFile(list, "c:\\temp\\faces\\face_%s.obj" % name)
+
+
+
+
+    
+    def drawBlobs(self, dc, z):
+        # z specifies the height of the x-y plane to be rendered
+        
+        #print "drawBlobs"
+        node = self.getSelectedBlobNode()
+        if node != None:
+            self.drawBlobsRecursive(node, dc, z)
+        
+
+    def drawBlobsRecursive(self, dataNode, dc, z):
+        
+        if dataNode.type == 'blob':
+            blob = dataNode.valueToSave
+            useThreshold = self.getValue(('particleMotionTool', 'useFacesProbabilityThreshold'))
+            if not(useThreshold) or numpy.log(blob.probability()) >= ((double(self.getValue(('particleMotionTool','facesProbabilityThreshold'))) - 150) / 10.0):
+                self.drawBlob(blob, dc, z)
         
         for child in dataNode.children:
-            self.drawBlobsRecursive(child, dc)
+            self.drawBlobsRecursive(child, dc, z)
 
-
-    def drawBlob(self, blob, dc):
+    # draws blob on an XY plane
+    def drawBlob(self, blob, dc, z):
 
         f = self.zoomFactor()
         
-        if blob.averageValueFromTrainingLabelVolume == None:
-            averageValue = 0
-        else:
-            averageValue = blob.averageValueFromTrainingLabelVolume
+        #if blob.averageValueFromTrainingLabelVolume == None:
+        #    averageValue = 0
+        #else:
+        #    averageValue = blob.averageValueFromTrainingLabelVolume
         
-        pen = wx.Pen([0, averageValue * 200.0, 200], 1)
+        
+        pen = wx.Pen(blob.color(), 1)
+        brush = wx.Brush(blob.color())
 
         #for key in self.mainDoc.blobDictionary:
         
@@ -2028,14 +2126,18 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         #todo: if getCurrentBlob not equal to None
         #blob = self.getCurrentBlob()
 
+        dc.SetPen(pen)
+        #dc.SetBrush(wx.TRANSPARENT_BRUSH)
+        dc.SetBrush(brush)
+
         #if blob != None:
         for p in blob.points():
              # if particle is close to current z plane, show it
-             if p.loc[2] == (getNode(self.settingsTree, ('imageControls','zIndex'))).get():
-                 dc.SetPen(pen)
-                 dc.SetBrush(wx.TRANSPARENT_BRUSH)
+             if p.loc[2] == z:
+
                  x, y = self.fullVolumeXYToScreenXY((p.loc[0], p.loc[1]))
-                 dc.DrawEllipse(x - f*1, y - f*1, 2*f*1, 2*f*1)
+                 #x, y = (p.loc[0], p.loc[1])
+                 dc.DrawRectangle(x - f*1, y - f*1, f*2, f*2)
                      
     
 adjacentOffsets = [array([-1, -1, +1]),
@@ -2113,19 +2215,22 @@ def makeDefaultGUITree():
     #print type(n1)
     
 
-    imageControlsNode = DataNode("imageControls","group",{'caption' : 'imageControls', 'position' : (700,500), 'size' : (500,400)},None)
+    imageControlsNode = DataNode("imageControls","group",{'caption' : 'imageControls', 'position' : (750,500), 'size' : (500,400)},None)
     imageControlsNode.addChildren((
                     DataNode("xIndex","slider",{'caption' : 'X', 'max' : 300},0),
                     DataNode("yIndex","slider",{'caption' : 'Y', 'max' : 300},0),
                     DataNode("zIndex","slider",{'caption' : 'Z', 'max' : 300},0),
 
-                    DataNode("zoom","slider",{'caption' : 'Zoom', 'max' : 800},200),
+                    DataNode("zoom","slider",{'caption' : 'Zoom', 'max' : 800},100),
                     DataNode("imageWindowSizeX","slider",{'caption' : 'Window Width', 'max' : 10000},300),
-                    DataNode("imageWindowSizeY","slider",{'caption' : 'Window Height', 'max' : 10000},300)))
+                    DataNode("imageWindowSizeY","slider",{'caption' : 'Window Height', 'max' : 10000},300),
+                    DataNode("normalizeImageOtherwiseNormalizeVolume","boolean",{'caption' : 'normalizeImageOtherwiseNormalizeVolume'},False)))
                     
 
-    particleMotionToolNode = DataNode("particleMotionTool","group",{'caption' : 'particleMotionTool', 'position' : (100,100), 'size' : (600,800)},None)
+    particleMotionToolNode = DataNode("particleMotionTool","group",{'caption' : 'particleMotionTool', 'position' : (100,100), 'size' : (650,800)},None)
     particleMotionToolNode.addChildren((
+                    DataNode("displayXYView","button",{'caption' : 'displayXYView'},'onDisplayXYView'),
+                    DataNode("saveBlobsToOBJFile","button",{'caption' : 'saveBlobsToOBJFile'},'onSaveBlobsToOBJFile'),
                     DataNode("makeNewSubgroup","button",{'caption' : 'Make New Subgroup'},'onMakeNewSubgroup'),
                     DataNode("menuOpen","menuItem",{'caption' : 'Open'},'onMenuOpen'),
                     DataNode("menuSave","menuItem",{'caption' : 'Save'},'onMenuSave'),
@@ -2133,10 +2238,15 @@ def makeDefaultGUITree():
                     DataNode("menuInsertIntoIMODFile","menuItem",{'caption' : 'Insert into IMOD File'},'onMenuInsertIntoIMODFile'),
                     DataNode("menuExit","menuItem",{'caption' : 'Exit'},'onMenuExit'),
 
-                    DataNode("dataTree","treeControl",{'caption' : 'treeControl'},None),
-                    DataNode("volumeList","listBox",{'caption' : 'volumeList'},0),
+                    DataNode("dataTree","treeControl",{'caption' : 'treeControl', 'selectionCallback' : 'onBlobSelectionChanged'},None),
+                    DataNode("dataTreeForVolumeSelection","treeControl",{'caption' : 'Volume Selector', 'selectionCallback' : 'onVolumeSelectionChanged'},None),
+                    #DataNode("timerUpdateDisplay","boolean",{'caption' : 'timerUpdateDisplay'},False),
+                    DataNode("visualsEnabled","boolean",{'caption' : 'Visuals Enabled'},True),
+                    DataNode("volumeList","listBox",{'caption' : 'volumeList', 'items' : ()},0),
                     #DataNode("blobList","listBox",{'caption' : 'blobList'},0),
-                    DataNode("mouseClickCallbackList","listBox",{'caption' : 'mouseClickCallbackList', 'height' : 200},0), 
+                    DataNode("mouseClickCallbackList","listBox",{'caption' : 'mouseClickCallbackList', 'height' : 200, 'items' : ()},0), 
+
+                    DataNode("saveCurrentlyDisplayedVolume","button",{'caption' : 'saveCurrentlyDisplayedVolume'},'onSaveCurrentlyDisplayedVolume'),
 
                     #DataNode("selectABox","boolean",{'caption' : 'Select a Box'},True),
                     DataNode("drawBlobs","boolean",{'caption' : 'Select a Box'},True),
@@ -2144,33 +2254,33 @@ def makeDefaultGUITree():
 
                     DataNode("previewImageStack","button",{'caption' : 'Preview Image Stack'},'onPreviewImageStack'),
                     DataNode("loadImageStack","button",{'caption' : 'Load Image Stack'},'onLoadImageStack'),
+                    DataNode("imageStackPath","text",{'caption' : 'Image Stack Path'},defaultPath),
                     DataNode("loadPartialImageStack","button",{'caption' : 'Load Partial Image Stack'},'onLoadPartialImageStack'),
 
                     DataNode("saveDocument","button",{'caption' : 'saveDocument'},'onSaveDocument'),
                     DataNode("openDocument","button",{'caption' : 'openDocument'},'onOpenDocument'),
 
-                    DataNode("saveVolumes","button",{'caption' : 'saveVolumes'},'onSaveVolumes'),
-                    DataNode("openVolumes","button",{'caption' : 'openVolumes'},'onOpenVolumes'),
+                    #DataNode("saveVolumes","button",{'caption' : 'saveVolumes'},'onSaveVolumes'),
+                    #DataNode("openVolumes","button",{'caption' : 'openVolumes'},'onOpenVolumes'),
                     
 
                     DataNode("findBlobsThenParticleMovement","button",{'caption' : 'findBlobsThenParticleMovement'},'findBlobsThenParticleMovement'),
                     DataNode("readIMODFile","button",{'caption' : 'readIMODFile'},'readIMODFile'),
-                    DataNode("saveParticlesToPSI","button",{'caption' : 'Save particles to output.psi'},'saveParticlesToPSIButton'),
-                    DataNode("visualsEnabled","boolean",{'caption' : 'Visuals Enabled'},True),
+                    DataNode("saveParticlesToPSI","button",{'caption' : 'Save particles to output.psi'},'onSaveParticlesToPSI'),
+                    DataNode("saveParticlesToFCSV","button",{'caption' : 'Save particles to output.fcsv'},'onSaveParticlesToFCSV'),
 
                     DataNode("copyCurrentToTemporary","button",{'caption' : 'copyCurrentToTemporary'},'copyCurrentToTemporary'),
                     DataNode("watershed","button",{'caption' : 'Watershed'},'onWatershed'),
 
-                    DataNode("imageStackPath","text",{'caption' : 'Image Stack Path'},defaultPath),
                     DataNode("tempPath","text",{'caption' : 'Temporary Files Path'},defaultOutputPath),
                     DataNode("thresholdEnabled","boolean",{'caption' : 'Threshold Enabled'},False),
-                    DataNode("grayThreshold","slider",{'caption' : 'Gray Threshold', 'max' : 300},25),
+                    DataNode("grayThreshold","slider",{'caption' : 'Gray Threshold', 'max' : 300},121),
                     #DataNode("makeNewParticles","boolean",{'caption' : 'Make New Particles'},False),
                     DataNode("trackParticle","boolean",{'caption' : 'Track Particle'},False),
                     DataNode("selectParticle","boolean",{'caption' : 'Select Particle'},False),
                     DataNode("moveParticlesAlongGradient","boolean",{'caption' : 'Move Particles along Gradient'},False),
                     DataNode("grayGradientForce","slider",{'caption' : 'Force from Gray Gradient', 'max' : 300},90),
-                    DataNode("particleRadius","slider",{'caption' : 'Particle Radius', 'max' : 300},9),
+                    DataNode("particleRadius","slider",{'caption' : 'Particle Radius', 'max' : 300},5),
                     DataNode("minimumBlobSize","slider",{'caption' : 'Min Blob Size', 'max' : 300},80),
                     DataNode("maximumBlobSize","slider",{'caption' : 'Max Blob Size', 'max' : 300},10),
                     DataNode("iterationsOfParticleMovement","slider",{'caption' : 'iterationsOfParticleMovement', 'max' : 300},300),
@@ -2187,7 +2297,7 @@ def makeDefaultGUITree():
                     DataNode("loadParticlesAndEdges","button",{'caption' : 'Load Particles and Edges'},'onLoadBlobsAndParticlesAndEdges'),
                     DataNode("display3D","button",{'caption' : 'Display 3D'},'display3D'),
                     DataNode("drawParticlesInVolume","button",{'caption' : 'Draw Particles in Volume'},'drawParticlesInVolumeButton'),
-                    #DataNode("saveParticlesToPSI","button",{'caption' : 'Save particles to output.psi'},'saveParticlesToPSIButton'),
+                    #DataNode("saveParticlesToPSI","button",{'caption' : 'Save particles to output.psi'},'onSaveParticlesToPSI'),
                     DataNode("plotBlobSizes","button",{'caption' : 'Plot blob sizes'},'plotBlobSizesButton'),
                     #DataNode("derivative","button",{'caption' : 'Derivative'},'derivative'),
                     DataNode("structureTensorView","button",{'caption' : 'structureTensorView'},'onStructureTensorView'),
@@ -2218,11 +2328,11 @@ def makeDefaultGUITree():
     for x in rootNode.children:
         print type(x)
     f = open("temp.pickle", "w")
-    pickle.dump(rootNode, f)
+    cPickle.dump(rootNode, f)
     f.close()
 
     f = open("temp.pickle", "r")
-    loadedData = pickle.load(f)
+    loadedData = cPickle.load(f)
     print "data loaded from file"
     print loadedData
     f.close()
@@ -2469,6 +2579,7 @@ class Edge:
     node1 = None ########################################## is this a member variable???????? or a class variable?????????????????
     node2 = None
 
+
 class Document:
     # could have file name for image data here also
     #blobs = None 
@@ -2478,26 +2589,28 @@ class Document:
         print ""
         
     def __init__(self):
-        self.volumeDict = odict()
+        #self.volumeDict = odict()
         #self.blobDict = odict()
-        self.dataRootNode = DataNode('dataRootNode', 'type of node', None, None)
-        
+        self.dataTree = PersistentDataTree(DataNode('dataRootNode', 'type of node', None, None), 'c:\\temp\\cytoseg_data\\')
+        self.dataRootNode = self.dataTree.rootNode
+
     
 def volumeOfSphere(radius):
     return (4/3)*3.14*radius*radius*radius
 
-def generateParticleGroupFromBlobs(blobs):
+# todo: the parameter should be particle radius rather than settingsTree
+def generateParticleGroupFromBlobs(blobs, settingsTree):
     pg = ParticleGroup()
     
     for b in blobs:
         subgroup = []
         #if b.size > 20000:
         #    continue
-        numParticles = round(1.1 * b.size / volumeOfSphere(getNode(settingsTree, ('particleMotionTool','particleRadius')).get()))
+        numParticles = round(1.1 * b.size() / volumeOfSphere(getNode(settingsTree, ('particleMotionTool','particleRadius')).get()))
         print "numParticles"
         print numParticles
         for i in range(0,numParticles):
-            p = makeParticle(b.center)
+            p = makeParticle(b.center())
             subgroup.append(p)
             #subgroup.append(p.makeCopyWithUniqueID())
         pg.addSubgroup(subgroup)
@@ -2551,7 +2664,7 @@ def automaticProcess(volume, pathToImages, grayThreshold, minSize, maxSize, useS
 
 def writeDocument(doc, filename):
     f = open(filename, "w")
-    pickle.dump(doc, f)
+    cPickle.dump(doc, f)
     f.close()
 
 
@@ -2567,16 +2680,16 @@ def old_writeDocument(doc, baseFilename):
     print "writing files %s.pointList and %s.edges" % (baseFilename, baseFilename)
 
     f = open("%s.blobs" %baseFilename, "w")
-    pickle.dump(doc.blobs, f)
+    cPickle.dump(doc.blobs, f)
     f.close()
 
     # todo: don't save this, just save the blobs and you will know what the points are by finding the blobs that are large enough
     f = open("%s.pointList" %baseFilename, "w")
-    pickle.dump(pointList, f)
+    cPickle.dump(pointList, f)
     f.close()
         
     f = open("%s.edges" %baseFilename, "w")
-    pickle.dump(doc.edges, f)
+    cPickle.dump(doc.edges, f)
     f.close()
 
 
@@ -2592,7 +2705,7 @@ def loadBlobsAndParticlesAndEdges(filename):
     global edges
     
     f = open(filename)
-    doc = pickle.load(f)
+    doc = cPickle.load(f)
     f.close()
     
     # todo: there should be one global variable, the document, with members blobs, particleGroup, edges
@@ -2768,7 +2881,7 @@ def imageStackShape(path):
     if len(fileList) == 0:
         raise Exception, "There is no image stack in the folder %s" % path
     
-    filename = path + fileList[0]    
+    filename = os.path.join(path, fileList[0])    
      
     # from the PIL documentation:
     # "This is a lazy operation; the actual image data is not read from the file until you try to process the data"
@@ -2816,7 +2929,7 @@ def loadImageStack(path, subvolumeBox):
         #else:
         #        filename = "/ncmir_data/caulobacter/bmp/c%03d.bmp" % i
         
-        filename = path + fileList[i]    
+        filename = os.path.join(path, fileList[i])    
             
         #surface1 = pygame.image.load(filename)
         #array3dFromSurface = pygame.surfarray.array3d(surface1)
@@ -2836,7 +2949,7 @@ def loadImageStack(path, subvolumeBox):
         print im1.size[0] * im1.size[1]
         
         if im1.size[0] * im1.size[1] != array2d.shape[0]:
-            print 'error: problem loading the image %s. possible problem: it has to be 8bit to work' % filename
+            raise Exception, "problem loading the image %s. possible problem: it has to be 8bit to work" % filename
         else:
                    
             array2d.shape = im1.size[1], im1.size[0]
@@ -3001,6 +3114,9 @@ def findBlobs(volume, grayThreshold):
 
 
 def watershed(volume, connectivity):
+
+    print "os.getcwd()"
+    print os.getcwd()
     
     from mlabwrap import mlab
     watershedVolumeFlattenedArray = mlab.watershedWrapper(volume.flatten(),volume.shape[2],volume.shape[1],volume.shape[0],connectivity)
@@ -3122,6 +3238,29 @@ def saveParticlesToPSI(filename, scaleFactors):
 
 
 
+def saveParticlesToFCSV(filename, scaleFactors):
+    
+    particles = particleGroup.getAll()
+    
+    file = open(filename,'w')
+
+    # x and y coordinates are negated for Slicer3D (so coordinates will match with the image stack)
+    factors = array([-scaleFactors[0], -scaleFactors[1], scaleFactors[2]])
+    
+    useIntegers = False
+    centers = []
+    separator = ","
+    prefix = "label,"
+    suffix = ",0,1"
+    for p in particles:
+        centers.append(p.loc)
+    writePointListText(centers, file, factors, useIntegers, separator, prefix, suffix)
+    
+    file.close()
+
+
+
+
 def writePointList(points, file):
     # save as list of lists because pickling the list of numpy or Numeric arrays doesn't seem to work
     pointList = []
@@ -3130,14 +3269,14 @@ def writePointList(points, file):
         for i in range(0,len(p)):
             coordinateList.append(float(p[i]))
         pointList.append(coordinateList)
-    pickle.dump(pointList, file)
+    cPickle.dump(pointList, file)
 
 
 
 def readPointList(file):
     points = []
     
-    pointList = pickle.load(file)
+    pointList = cPickle.load(file)
     
    
     for coordinateList in pointList:
@@ -3149,11 +3288,15 @@ def readPointList(file):
     return points
 
 
-def writePointListText(points, file, scaleFactors=(1,1,1), useIntegers=False, separator=","):
+def writePointListText(points, file, scaleFactors=(1,1,1), useIntegers=False, separator=",", prefix="", suffix=""):
     # save to comma separated value file
     for p in points:
-        for i in range(0,len(p)):
+
+        file.write(prefix)
             
+        # for each coordinate
+        for i in range(0,len(p)):
+        
             value = p[i] * scaleFactors[i]
             
             if useIntegers:
@@ -3168,6 +3311,8 @@ def writePointListText(points, file, scaleFactors=(1,1,1), useIntegers=False, se
                 text = "%f" % num
                 
             file.write(text)
+
+        file.write(suffix)
         file.write("\n")
 
 
@@ -3329,7 +3474,7 @@ def fillSphere(volume, center, radius):
                     
             
     
-
+# todo: radius should be a parameter rather than settingsTree
 def drawParticlesInVolume(volume, particles, settingsTree):
     count = 0
     for p in particles:
@@ -3359,7 +3504,7 @@ def plotBlobSizes(blobs):
     blobIndices = arange(0,len(blobs),1)
     blobSizes = zeros(len(blobs))
     for i in range(0,len(blobs)):
-        blobSizes[i] = blobs[i].size
+        blobSizes[i] = blobs[i].size()
         
     pylab.plot(blobIndices, blobSizes, linewidth=1.0)
     pylab.grid(True)
@@ -3402,8 +3547,8 @@ def writeTiffStack(path, volume):
 
         #a[:,:] = 
         a[:,:] = volume[:,:,i]
-        
-        image = Image.fromstring("L", (a.shape[1],a.shape[0]), a.tostring())
+        aTransposed = a.T
+        image = Image.fromstring("L", (aTransposed.shape[1],aTransposed.shape[0]), aTransposed.tostring())
         
         
         fullName = path + ('output%0.3d' % i) + '.bmp'
@@ -3521,9 +3666,9 @@ def updateParticlePositions(volume, settingsTree, offsetOfLoadedVolumeInFullVolu
     if 1:
         #for particle in selectedParticles:
         
-        #for particles in particleGroup.getSubgroups():
-        lastGroup = [particleGroup.getSubgroups()[-1]]
-        for particles in lastGroup:
+        for particles in particleGroup.getSubgroups():
+        #lastGroup = [particleGroup.getSubgroups()[-1]]
+        #for particles in lastGroup:
             for particle in particles:   
     
                 xr = array([int(floor(particle.loc[0])), int(floor(particle.loc[1])), int(floor(particle.loc[2]))]) - offsetOfLoadedVolumeInFullVolume 
@@ -3562,7 +3707,7 @@ def updateParticlePositions(volume, settingsTree, offsetOfLoadedVolumeInFullVolu
                 for j in range(0,len(particles)):
                     #print "id %d %d" % (particle.id, particles[j].id)
                     if particle.id != particles[j].id: 
-                        dist = distance(particle.loc, particles[j].loc)
+                        dist = geometry.distance(particle.loc, particles[j].loc)
                         #magnitude = 1000000.0/pow(dist,2)
                         
                         #magnitude = 100.0/pow(dist,2)
@@ -3695,25 +3840,32 @@ from socket import gethostname; hostname = gethostname()
 #volumes = {}
 #volumes = odict()
 
-borderWidthForFeatures = 1
+borderWidthForFeatures = 3
     
 
-def createSampleVolumes(volumes):
+def createSampleVolumes():
     
-    volumes['ExampleVolume1'] = numpy.ones((20,70,15)) * 100
+    volumes = []
+    
+    v = numpy.ones((20,70,15)) * 100
     # make the array a gradient
-    for i in range(0,volumes['ExampleVolume1'].shape[0]):
-        for j in range(0,volumes['ExampleVolume1'].shape[1]):
-            for k in range(0,volumes['ExampleVolume1'].shape[2]):
-                volumes['ExampleVolume1'][i,j,k] = (i + j + k) * 10
+    for i in range(0,v.shape[0]):
+        for j in range(0,v.shape[1]):
+            for k in range(0,v.shape[2]):
+                v[i,j,k] = (i + j + k*5) * 10
     
+    volumes.append(v)
     
-    volumes['ExampleVolume2'] = numpy.ones((40,140,30)) * 100
+    v = numpy.ones((40,140,30)) * 100
     # make the array a gradient
-    for i in range(0,volumes['ExampleVolume2'].shape[0]):
-        for j in range(0,volumes['ExampleVolume2'].shape[1]):
-            for k in range(0,volumes['ExampleVolume2'].shape[2]):
-                volumes['ExampleVolume2'][i,j,k] = (i + j + k) * 1
+    for i in range(0,v.shape[0]):
+        for j in range(0,v.shape[1]):
+            for k in range(0,v.shape[2]):
+                v[i,j,k] = (i + j + k*5) * 1
+    
+    volumes.append(v)
+    
+    return volumes
 
 
 ###table = StarControl(volume)
@@ -3806,24 +3958,6 @@ def drawEdges(edges):
         pygame.draw.line(screen,(200,0,200),(x1,y1),(x2,y2),1)
 
 
-def gaussian(x, amplitude, sigma):
-    return amplitude * exp(-pow(x, 2) / (2*pow(sigma,2)))
-
-# 3D gaussian
-global defaultType
-defaultType = numpy.float32
-def gaussianVolume(shape, position, amplitude, sigma):
-    # sigma is fatness
-    volume = zeros(shape, defaultType)
-    for x in range(0, shape[0]):
-        for y in range(0, shape[1]):
-            for z in range(0, shape[2]):
-                dist = geometry.distance(position, array([x,y,z]))
-                #volume[x,y,z] = dist * 20
-                volume[x,y,z] = gaussian(dist, amplitude, sigma)
-    return volume
-            
-
 def at(volume, point):
     return volume[point[0],point[1],point[2]]
 
@@ -3834,12 +3968,72 @@ def isInsideVolumeWithBorder(volume, point, border):
     else:
         return False
 
+
+def makeEnlargedVolume(volume, factor):
+    
+    inputShape = volume.shape
+    
+    if type(factor) != type(1):
+        raise Exception, "Non-integer %s used. Please use an integer." % factor
+    
+    Nx = ((inputShape[0]-1)*factor + 1) # new number of samples in x direction
+    Ny = ((inputShape[1]-1)*factor + 1) # new number of samples in y direction
+    Nz = ((inputShape[2]-1)*factor + 1) # new number of samples in z direction
+
+    #todo: use this
+    #    coords = mgrid[0:inputShape[0]-1:Nx*1j,
+    #                   0:inputShape[1]-1:Ny*1j,
+    #                   0:inputShape[2]-1:Nz*1j]
+    
+    ivals, jvals, kvals = mgrid[0:inputShape[0]-1:Nx*1j,
+                                0:inputShape[1]-1:Ny*1j,
+                                0:inputShape[2]-1:Nz*1j]
+    
+    
+    coords = array([ivals, jvals, kvals])
+    
+    newVolume = ndimage.map_coordinates(volume, coords, order=1)
+    #newVolume = ndimage.map_coordinates(volume, coords)
+    
+    return newVolume
     
      
     
+def logStart(s):
+    print "starting " + s
+
+def logFinished(s):
+    print "finished " + s
+
+
+def selectTreeControlNode(treeControl, nodePath):
+    item = getTreeControlNode(treeControl, nodePath)
+    treeControl.SelectItem(item)
+
+
+def getTreeControlNode(treeControl, nodePath):
+    currentItem = treeControl.GetRootItem()
+    
+    for name in nodePath:
+        currentItem = getTreeControlChildWithText(treeControl, currentItem, name)
+    
+    return currentItem
+
+
+def getTreeControlChildWithText(treeControl, parentItem, text):
+    item, cookie = treeControl.GetFirstChild(parentItem)
+    while item:
+        dataNode = treeControl.GetPyData(item)
+        if dataNode.name == text:
+            return item
+        item, cookie = treeControl.GetNextChild(parentItem, cookie)
+    raise Exception, "Item with text %s not found." % text
+
+
+
 ####################################################
 
-print sys.argv    
+print sys.argv
     
     
     
