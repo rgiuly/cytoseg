@@ -5,6 +5,6 @@ Note: Currently an installation of MATLAB is required for some of the functions 
 Installation Instructions:
   # Install [http://www.pythonxy.com pythonxy] with all options
   # Install [http://mlabwrap.sourceforge.net/ mlabwrap] which interfaces python to MATLAB
-  # Unzip the source.zip file
+  # Download cytoseg from svn (see http://code.google.com/p/cytoseg/source/checkout)
   # To start the program, enter the following command from inside the cytoseg folder:
-         {{{python main.py}}}
+         {{{python cytoseg_classify.py}}}
