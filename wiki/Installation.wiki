@@ -10,7 +10,7 @@ Installation Instructions (Windows):
          {{{python cytoseg_classify.py}}}
 
 
-Installation Instructions (Ubuntu Linux):
+Installation Instructions (Ubuntu Linux): [Instructions not yet complete]
   # Install the following modules with synaptic: python, python-numpy, python-wxgtk, python-scipy
   # Install [http://mlabwrap.sourceforge.net/ mlabwrap] which interfaces python to MATLAB
   # Download cytoseg from svn (see http://code.google.com/p/cytoseg/source/checkout)
