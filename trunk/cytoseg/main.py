@@ -19,38 +19,7 @@
 #THE SOFTWARE.
 
 
-from cs import *
+#from cs import *
+from cytoseg_classify import *
 
-app = wx.PySimpleApp()
-frm = ControlsFrame(makeDefaultGUITree())
-frm.Show()
-
-
-
-#print 'settings test'
-#print settings
-count = 0
-#old_gui = old_GUI(settingsTree)
-
-
-    
-#root.update() # fix geometry
-
-##try:
-##while 0:
-
-
-        
-##except TclError:
-##    #print 'test output'
-##    
- ##   settings['defaultPath'] = old_gui.imageStackPathText.get()
-##    settings['temporaryFolder'] = old_gui.saveImageStackPathText.get() 
-##        
-##    writeSettings();
-##    pass # to avoid errors when the window is closed
-
-
-
-app.MainLoop()
-   
+startClassificationControlsFrame()
