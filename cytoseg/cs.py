@@ -68,6 +68,12 @@ from scipy import ndimage
 
 from tree import *
 
+import filters
+
+from containers import *
+
+from point_set import *
+
 global settings
 settings = {}
 
@@ -98,89 +104,22 @@ else:
         defaultPath = "/crbsdata1/rgiuly/input/triple_tilt/cb024/tifs_small/"
         defaultOutputPath = "/tmp/"
  
-from UserDict import UserDict
-
-# from http://code.activestate.com/recipes
-class odict(UserDict):
-    def __init__(self, dict = None):
-        self._keys = []
-        UserDict.__init__(self, dict)
-
-    def __delitem__(self, key):
-        UserDict.__delitem__(self, key)
-        self._keys.remove(key)
-
-    def __setitem__(self, key, item):
-        UserDict.__setitem__(self, key, item)
-        if key not in self._keys: self._keys.append(key)
-
-    def clear(self):
-        UserDict.clear(self)
-        self._keys = []
-
-    def copy(self):
-        dict = UserDict.copy(self)
-        dict._keys = self._keys[:]
-        return dict
-
-    def items(self):
-        return zip(self._keys, self.values())
-
-    def keys(self):
-        return self._keys
-
-    def popitem(self):
-        try:
-            key = self._keys[-1]
-        except IndexError:
-            raise KeyError('dictionary is empty')
-
-        val = self[key]
-        del self[key]
-
-        return (key, val)
-
-    def setdefault(self, key, failobj = None):
-        UserDict.setdefault(self, key, failobj)
-        if key not in self._keys: self._keys.append(key)
-
-    def update(self, dict):
-        UserDict.update(self, dict)
-        for key in dict.keys():
-            if key not in self._keys: self._keys.append(key)
-
-    def values(self):
-        return map(self.get, self._keys)
 
 
-class OrderedDictionaryFixedKeyList(odict):
-    def __init__(self, keyList):
-        odict.__init__(self)
-        for key in keyList:
-            odict.__setitem__(self, key, None)
-        
-    def __setitem__(self, key, item):
-        if key not in self._keys:
-            raise KeyError, "The key %s does not exist and OrderedDictionaryFixedKeyList does not allow adding a key with __setitem__." % key
-        else:
-            UserDict.__setitem__(self, key, item)
+#def initialize():
+#    global settings
+#    try:
+#        settingsFile = open('settings.pickle')
+#        settings = cPickle.load(settingsFile)
+#        print 'settings'
+#        print settings
+#    except IOError, (errno, strerror):
+#        print "I/O error(%s): %s while reading settings file" % (errno, strerror)
+#    except:
+#        print "Unexpected error:", sys.exc_info()[0]
+#        raise
 
- 
 
-def initialize():
-    global settings
-    try:
-        settingsFile = open('settings.pickle')
-        settings = cPickle.load(settingsFile)
-        print 'settings'
-        print settings
-    except IOError, (errno, strerror):
-        print "I/O error(%s): %s while reading settings file" % (errno, strerror)
-    except:
-        print "Unexpected error:", sys.exc_info()[0]
-        raise
-    
-    
 
 def setToDefaultSettings():
     settings['defaultPath'] = 'c:/'
@@ -210,65 +149,6 @@ def array2image(a):
 #label.pack()
 
 
-class Blob:
-#    def __init__(self, center=None, size=None, points=[], color=[100,0,0]):
-    def __init__(self, center=None, size=None):
-        self._center = center
-        self._size = size
-        #self._points = points
-        #self._color = color
-        
-        self._points = []
-        self._color = [100,0,0]
-        self._probability = 0
-        
-        #self.averageValueFromTrainingLabelVolume = None
-    
-    def points(self):
-        return self._points
-    
-    def center(self):
-        return self._center
-    
-    def setPoints(self, points):
-        self._points = points 
-    
-    def color(self):
-        return self._color
-    
-    def setColor(self, color):
-        self._color = color
-
-    def probability(self):
-        return self._probability
-
-    def setProbability(self, p):
-        self._probability = p
-    
-    def __repr__(self):
-        return "Blob_with_%d_points" % len(self.points())
-    
-    def setCenter(self, centerPoint):
-        self._center = centerPoint
-
-    def size(self):
-        return self._size
-    
-    def setSize(self, size):
-        self._size = size
-    
-    def addToSize(self, value):
-        self._size += value
-    
-    #def addToSize(self, value):
-    #    self._size += value
-    
-    
-    # this is sort of like size() but size can be set to anything so there is no guarantee they will be the same.
-    def numPoints(self):
-        return len(self.points())
-
-  
 
 
 # todo: make this a superclass of Particle class
@@ -416,6 +296,10 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         self.setControlEnable(('particleMotionTool','loadPartialImageStack'), False)
         
         self.currentFilename = "untitled.cytoseg"
+
+
+        #test_itkToNumpy2D()
+        
         
     def selectionBoxInLoadedVolumeCoords(self):
         a = self.selectionBoxInFullVolumeCoords.cornerA - self.loadedVolumeBoxInFullVolumeCoords.cornerA
@@ -928,6 +812,30 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         
         #self.selectedVolumeTreeControlItem = event.GetItem()
 
+    def onHessian(self, event):
+
+        volume = self.getCurrentVolume()
+        if volume == None:
+            print "error: no volume selected"
+            return
+
+        filteredVolumes = {'xx':None, 'yy':None, 'xy':None, 'yx':None}
+        for key in filteredVolumes:
+            filteredVolumes[key] = zeros(volume.shape)
+
+        for z in range(volume.shape[2]): 
+            hessian = filters.secondDerivatives2D(volume[:,:,z])
+            for item in hessian.items():
+                key = item[0]
+                filteredVolumes[key][:,:,z] = hessian[key]
+
+        for item in hessian.items():
+            key = item[0]
+            self.addVolumeAndRefreshDataTree(filteredVolumes[key], 'SecondDerivatives2D' + key)
+
+    def onEigenValueContourDetector(self, event):
+        print "EigenValueContourDetector", self.getValue(('particleMotionTool','eigenValueContourDetectorSigma'))
+        
 
     def getSelectedBlobNode(self):
         dataTreeNode = getNode(self.settingsTree, ('particleMotionTool','dataTree'))
@@ -2262,7 +2170,10 @@ def makeDefaultGUITree():
 
                     #DataNode("saveVolumes","button",{'caption' : 'saveVolumes'},'onSaveVolumes'),
                     #DataNode("openVolumes","button",{'caption' : 'openVolumes'},'onOpenVolumes'),
-                    
+
+                    DataNode("hessian","button",{'caption' : 'hessian'},'onHessian'),
+                    DataNode("eigenValueContourDetector","button",{'caption' : 'eigenValueContourDetector'},'onEigenValueContourDetector'),
+                    DataNode("eigenValueContourDetectorSigma","slider",{'caption' : 'eigenValueContourDetectorSigma', 'max' : 100},50),
 
                     DataNode("findBlobsThenParticleMovement","button",{'caption' : 'findBlobsThenParticleMovement'},'findBlobsThenParticleMovement'),
                     DataNode("readIMODFile","button",{'caption' : 'readIMODFile'},'readIMODFile'),
@@ -2944,9 +2855,9 @@ def loadImageStack(path, subvolumeBox):
         #a = a.T
         #array2d = a
         print "loading image index %d, number of images %d" % (i, numImages)
-        print 'array2d shape'
-        print array2d.shape
-        print im1.size[0] * im1.size[1]
+        #print 'array2d shape'
+        #print array2d.shape
+        #print im1.size[0] * im1.size[1]
         
         if im1.size[0] * im1.size[1] != array2d.shape[0]:
             raise Exception, "problem loading the image %s. possible problem: it has to be 8bit to work" % filename
@@ -2989,8 +2900,8 @@ def loadImageStack(path, subvolumeBox):
             
     
             #volume[:,:,i] = array2d.T
-            print "i shape cornerA cornerB" 
-            print (i, array2d.shape, box.cornerA, box.cornerB)
+            #print "i shape cornerA cornerB" 
+            #print (i, array2d.shape, box.cornerA, box.cornerB)
             
             volume[:,:,i-box.cornerA[2]] = array2d[box.cornerA[0]:box.cornerB[0], box.cornerA[1]:box.cornerB[1]] 
             ##todo: make the lines below work
@@ -3781,34 +3692,34 @@ def updateParticlePositions(volume, settingsTree, offsetOfLoadedVolumeInFullVolu
     
          
 
-###pygame.init()
-
-A = zeros((3,3,3))
-A[2] = [[1,3,4],[2,4,2],[3,4,5]]
-print A
-
-size = width, height = 1000, 760
-speed = [1, 1]
-black = 0, 0, 0
-
-###screen = pygame.display.set_mode(size)
-
-
-
-
-
-
-#ball = pygame.image.load("ball.bmp")
-
-
-RED = 0
-GREEN = 1
-BLUE = 2
-
-from socket import gethostname; hostname = gethostname()
-
-#########################################################################
-#########################################################################
+####pygame.init()
+#
+#A = zeros((3,3,3))
+#A[2] = [[1,3,4],[2,4,2],[3,4,5]]
+#print A
+#
+#size = width, height = 1000, 760
+#speed = [1, 1]
+#black = 0, 0, 0
+#
+####screen = pygame.display.set_mode(size)
+#
+#
+#
+#
+#
+#
+##ball = pygame.image.load("ball.bmp")
+#
+#
+#RED = 0
+#GREEN = 1
+#BLUE = 2
+#
+#from socket import gethostname; hostname = gethostname()
+#
+##########################################################################
+##########################################################################
 
 
 
@@ -4029,6 +3940,36 @@ def getTreeControlChildWithText(treeControl, parentItem, text):
         item, cookie = treeControl.GetNextChild(parentItem, cookie)
     raise Exception, "Item with text %s not found." % text
 
+#def test_itkToNumpy2D():
+#    print "starting itkToNumpy2D test"
+#    itkToNumpy2D(None)
+#    print "ending itkToNumpy2D test"
+#
+#def itkToNumpy2D(itkArray):
+#    #
+#    #  Example on the use of the CannyEdgeDetectionImageFilter
+#    #
+#    
+#    import itk
+#      
+#    #variance = 2.0
+#    
+#    #reader = itk.ImageFileReader.IF2.New(FileName="O:\\images\\3D-blob-data\\caulobacter0000.bmp")
+#    #filter  = itk.CannyEdgeDetectionImageFilter.IF2IF2.New(reader, Variance=variance)
+#    #reader.SetPixel([0,0],1)
+#    #print "reader", reader
+#    #outputCast = itk.RescaleIntensityImageFilter.IF2IUC2.New(reader, OutputMinimum=0, OutputMaximum=255)
+#    #itk.write(outputCast, "c:\\temp\\itktest.jpg")
+#
+#    InternalPixelType = itk.F
+#    Dimension = 2
+#    ImageType = itk.Image[ InternalPixelType, Dimension ]
+#    image = ImageType.New()
+#    image.SetSize([10,10])
+#    image.SetIndex([0,0])
+#    image.SetPixel([0,0], 0)
+
+
 
 
 ####################################################
@@ -4057,7 +3998,7 @@ count = 0
 
 #setToDefaultSettings()
 #writeSettings()
-initialize() 
+#initialize() 
 dn = DataNode("test_name", "test_type", "test_params", "test_value")
 #settingsTree = dn.makeGUITree()
 
