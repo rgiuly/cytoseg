@@ -4,7 +4,7 @@ Note: Currently an installation of MATLAB is required for some of the functions 
 
 Installation Instructions (Windows):
   # Install [http://www.pythonxy.com pythonxy] with all options
-  # Install [http://mlabwrap.sourceforge.net/ mlabwrap] which interfaces python to MATLAB
+  # Optional: Install [http://mlabwrap.sourceforge.net/ mlabwrap] which interfaces python to MATLAB
   # Download cytoseg from svn (see http://code.google.com/p/cytoseg/source/checkout)
   # To start the program, enter the following command from inside the cytoseg folder:
          {{{python main.py}}}
@@ -12,7 +12,7 @@ Installation Instructions (Windows):
 ----
 Installation Instructions (Ubuntu Linux, Instructions not yet complete)
   # Install the following modules with synaptic: python, python-numpy, python-wxgtk, python-scipy
-  # Install [http://mlabwrap.sourceforge.net/ mlabwrap] which interfaces python to MATLAB
+  # Optional: Install [http://mlabwrap.sourceforge.net/ mlabwrap] which interfaces python to MATLAB
   # Download cytoseg from svn (see http://code.google.com/p/cytoseg/source/checkout)
   # To start the program, enter the following command from inside the cytoseg folder:
          {{{python main.py}}}
