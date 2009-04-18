@@ -9,7 +9,7 @@ Installation Instructions (Windows):
   # To start the program, enter the following command from inside the cytoseg folder:
          {{{python main.py}}}
 
-
+----
 Installation Instructions (Ubuntu Linux, Instructions not yet complete)
   # Install the following modules with synaptic: python, python-numpy, python-wxgtk, python-scipy
   # Install [http://mlabwrap.sourceforge.net/ mlabwrap] which interfaces python to MATLAB
