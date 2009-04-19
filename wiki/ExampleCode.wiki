@@ -1,5 +1,6 @@
 = Example Code =
 
+file: cytoseg/testing/load_stack.py
 
 {{{
 import sys
