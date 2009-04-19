@@ -6,6 +6,8 @@ To run this sample:
 python load_stack.py
 from the folder: cytoseg/testing/
 
+In the dataTreeForVolumeSelection tree, select numpyArray (in the Volumes folder)
+
 ----
 file: cytoseg/testing/load_stack.py
 
