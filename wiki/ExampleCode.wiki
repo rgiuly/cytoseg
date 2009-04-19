@@ -2,7 +2,10 @@
 
 This example initializes the GUI and then reads an image stack.
 
+
+
 To run this sample:
+
 python load_stack.py
 from the folder: cytoseg/testing/
 
