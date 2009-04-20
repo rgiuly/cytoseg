@@ -11,7 +11,7 @@ Installation Instructions (Windows):
 
 ----
 Installation Instructions (Ubuntu Linux, Instructions not yet complete)
-  # Install the following modules with synaptic: python, python-numpy, python-wxgtk, python-scipy, python-opencv, python-matplotlib, python-tk
+  # Install the following modules with synaptic: python, python-numpy, python-wxgtk, python-scipy, python-opencv, python-matplotlib
   # Visit http://code.enthought.com/projects/mayavi/docs/development/html/mayavi/installation.html to get the most recent version of mayavi2 and install it
   # Optional: Install [http://mlabwrap.sourceforge.net/ mlabwrap] which interfaces python to MATLAB
   # Download cytoseg from svn (see http://code.google.com/p/cytoseg/source/checkout)
