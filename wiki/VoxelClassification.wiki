@@ -17,7 +17,7 @@ A window will pop up when this file runs.
 Processing takes some time and the console output will report progress.
 
 Note:
-To use the full gui, you'll need to resize the window labeled ParticleMotionTool, this will make scroll bars appear. (This is a work around for a bug - the scroll bars don't appear at startup.)
+To use the full gui, you'll need to resize the window labeled `ParticleMotionTool`, this will make scroll bars appear. (This is a work around for a bug - the scroll bars don't appear at startup.)
 
 To view output as it is generated,
    * make sure data tree for volume selection is set to outputDataLabel1_ProbabilityVolume
