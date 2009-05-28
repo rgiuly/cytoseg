@@ -7,8 +7,14 @@ from geometry import *
 import statistics
 import os
 import threading
+try:
+    import orange, orngTree, orngEnsemble
+    print "orange loaded"
+except ImportError:
+    print "orange data mining tool not loaded" 
 
 from filters import *
+from volume3d_util import *
 
 cubeSizeNames = ('3X3', '5X5', '7x7')
 cubeOffsets = (1, 2, 3)
@@ -72,7 +78,7 @@ def makeClassifyGUITree():
     #print node
     node.insertChildrenAt((
                     DataNode("facesProbabilityThreshold","slider",{'caption' : 'facesProbabilityThreshold', 'max' : 300},0),
-                    DataNode("useFacesProbabilityThreshold","boolean",{'caption' : 'useFacesProbabilityThreshold'},True),
+                    DataNode("useFacesProbabilityThreshold","boolean",{'caption' : 'useFacesProbabilityThreshold'},False),
                     DataNode("displayPixelFeature","boolean",{'caption' : 'displayPixelFeature'},False),
                     #DataNode("learnFeaturesOfMembraneVoxels","button",{'caption' : 'step 1. learnFeaturesOfMembraneVoxels'},'old_onLearnFeaturesOfMembraneVoxels'),
                     #DataNode("classifyVoxelsOfCurrentImage","button",{'caption' : 'step 2. classifyVoxelsOfCurrentImage'},'old_onClassifyVoxelsOfCurrentImage'),
@@ -90,7 +96,7 @@ def makeClassifyGUITree():
                     DataNode("makePointFeatureViewer","button",{'caption' : 'makePointFeatureViewer'},'onMakePointFeatureViewer'),
                     DataNode("makeFaceFeatureViewer","button",{'caption' : 'makeFaceFeatureViewer'},'onMakeFaceFeatureViewer'),
                     DataNode("makeBubblePhantom","button",{'caption' : 'Make Bubble Phantom'},'onMakeBubblePhantom')),
-                     10)
+                     11)
     
     return rootNode
 
@@ -114,6 +120,7 @@ class ClassificationControlsFrame(ControlsFrame):
 
     def __init__(self, settingsTree):
         ControlsFrame.__init__(self, settingsTree)
+        print "ClassificationControlsFrame init"
         
         self.mouseClickCallbackDict['updatePointFeaturesAtMouseLocation'] = self.updatePointFeaturesAtMouseLocation
         self.mouseClickCallbackDict['printBlobNameAtMouseLocation'] = self.printBlobNameAtMouseLocation
@@ -162,8 +169,8 @@ class ClassificationControlsFrame(ControlsFrame):
         currentStep = 0
         
         
-        
         if 0:
+            print "running step", currentStep
             if currentStep == 0:
                 # uses training data
                 self.learnFeaturesOfMembraneVoxels(voxelTrainingImageFilePath, voxelTrainingLabelFilePath, "c:\\temp\\output.tab")

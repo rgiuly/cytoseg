@@ -19,7 +19,8 @@
 #THE SOFTWARE.
 
 import copy
-import numpy
+import numpy.linalg
+from numpy import *
 
 #define MIN(x,y) (x < y ? x : y)
 #define MAX(x,y) (x > y ? x : y)
@@ -70,4 +71,12 @@ def insidePolygon(polygonPoints,p):
     
 def distance(vector1,vector2):
     return numpy.linalg.norm(vector2-vector1)
+
+
+def centerPoint(point1, point2):
+    return (array(point1) + array(point2)) / 2.0
+
+
+def unitVectorFromPoints(startPoint, endPoint):
+    return (endPoint - startPoint) / distance(startPoint, endPoint)
 
