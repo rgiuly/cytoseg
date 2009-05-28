@@ -21,7 +21,7 @@ To use the full gui, you'll need to resize the window labeled `ParticleMotionToo
 
 To view output as it is generated,
    * make sure data tree for volume selection is set to `outputDataLabel1_ProbabilityVolume`
-   * adjust zIndex in the imageControls window
+   * adjust zIndex in the `imageControls` window
 
 When processing completes, to save the the output to an image stack:
    * make sure data tree for volume selection is set to `outputDataLabel1_ProbabilityVolume`
