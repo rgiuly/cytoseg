@@ -74,36 +74,14 @@ from containers import *
 
 from point_set import *
 
+from default_path import *
+
 global settings
 settings = {}
 
-from socket import gethostname; hostname = gethostname()
-if hostname == "panther":
-        import orange, orngTree, orngEnsemble
-        #defaultPath = "O:\\images\\LFong\\cropped\\8bit_smaller\\"
-        #defaultPath = "O:\\images\\LFong\\tif_8bit_partial\\"
-        #defaultPath = "O:\\images\\LFong\\tif_8bit_partial\\"
-        #defaultPath = "O:\\images\\LFong\\tif_8bit_20_images\\"
-        #defaultPath = "O:\\images\\LFong\\tif_8bit_10_images\\"
-        #defaultPath = "O:\\images\\denk\\smallcube2\\"
-        #defaultPath = "O:\\images\\denk\\smallcube_region2\\"
-        #defaultPath = "O:\\images\\denk\\70x70x70_cube\\"
-        #defaultPath = "O:\\images\\LFong\\one_file\\8bit\\"
-        #defaultPath = "O:\\images\\test_watershed\\"
-        #defaultPath = "O:\\images\\test_watershed\\original\\"
-        #defaultPath = "I:\\ncmir_data\\caulobacter\\approximately_cubical_volume\\"
-        #defaultPath = "O:\\images\\HPFcere_vol\\HPF_rotated_tif\\seg3D\\tifs\\"
-        #defaultPath = "O:\\images\\3D-blob-data\\"
-        #defaultPath = "O:\\images\\3D-blob-data\\crop\\"
-        defaultPath = "O:\\images\\HPFcere_vol\\HPF_rotated_tif\\seg3D\\tifs\\cropped\\"
-        #defaultPath = ""
-        
-        defaultOutputPath = "O:\\temp\\output\\" 
-else:
-        #defaultPath = "/crbsdata1/rgiuly/input/cb017_NA1000_set2/cropped204x150/"
-        defaultPath = "/crbsdata1/rgiuly/input/triple_tilt/cb024/tifs_small/"
-        defaultOutputPath = "/tmp/"
- 
+orangeEnabled = False
+if orangeEnabled: import orange, orngTree, orngEnsemble
+
 
 
 #def initialize():
@@ -151,14 +129,6 @@ def array2image(a):
 
 
 
-# todo: make this a superclass of Particle class
-# (could call this AnnotatedPoint)
-class LabeledPoint:
-    def __init__(self, location):
-        self.loc = location
-        self.adjacentNonzeroPoints = []
-        self.adjacentNonzeroValues = []
-        self.adjacentNonzeroValueSet = set()
         
 class Box:
     def __init__(self,cornerA,cornerB):
@@ -171,6 +141,9 @@ class Box:
         
     def shape(self):
         return array(self.cornerB) - array(self.cornerA)
+
+
+
 
 
 
@@ -202,7 +175,7 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
     
     def __init__(self, settingsTree):
         
-        self.mainDoc = Document()
+        self.mainDoc = Document(cytosegDataFolder)
         sampleVolumes = createSampleVolumes()
 
         # initialize data tree
@@ -214,7 +187,13 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
                     DataNode('test volume 1', 'type of node', None, sampleVolumes[0]),
                     DataNode('test volume 2', 'type of node', None, sampleVolumes[1])))
         #self.selectedDataTreeControlItem = None
-
+        blobsNode = getNode(self.mainDoc.dataRootNode, ('Blobs',))
+        testBlob = Blob()
+        testBlob.setColor((255, 255, 0))
+        testPoints = [LabeledPoint((1, 1, 0)), LabeledPoint((10, 10, 10)), LabeledPoint((20, 20, 0)), LabeledPoint((30, 30, 0)), LabeledPoint((40, 40, 0))]
+        testBlob.setPoints(testPoints)
+        blobsNode.addChild(DataNode('test point set', 'type of node', None, testBlob))
+        
         #self.selectedVolumeTreeControlItem = None
 
         self.getCurrentVolumeCache = None
@@ -537,24 +516,32 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         newNode = DataNode(name, 'blob', None, blob)
         parentNode.addChild(newNode)
 
-    #def addBlobAndRefreshDataTree(self, blob, parentNode, name):
-    #    self.addBlob(blob, parentNode, name)
-    #    self.refreshTreeControls()
+    def addBlobAndRefreshDataTree(self, blob, parentNode, name):
+        self.addBlob(blob, parentNode, name)
+        self.refreshTreeControls()
+
+    def addPersistentBlob(self, blob, name):
+        newNode = DataNode(name, 'blob', None, blob)
+        self.addPersistentSubtree(('Blobs',), newNode)
 
     def addPersistentBlobAndRefreshDataTree(self, blob, name):
-        newNode = DataNode(name, 'blob', None, blob)
-        self.addPersistentSubtreeAndRefreshDataTree(('Blobs',), newNode)
+        self.addPersistentBlob(blob, name)
+        self.refreshTreeControls()
 
     def addPersistentVolumeAndRefreshDataTree(self, volume, name):
         newNode = DataNode(name, 'volume', None, volume)
         self.addPersistentSubtreeAndRefreshDataTree(('Volumes',), newNode)
 
 
+    def addPersistentSubtree(self, parentNodePath, node):
+        self.mainDoc.dataTree.setSubtree(parentNodePath, node)
+
+
     def addPersistentSubtreeAndRefreshDataTree(self, parentNodePath, node):
         #newNode = DataNode(name, 'blob', None, blob)
         #blobsNode = getNode(self.mainDoc.dataRootNode, ('Blobs',))
         #parentNode = getNode(self.mainDoc.dataRootNode, parentNodePath)
-        self.mainDoc.dataTree.setSubtree(parentNodePath, node)
+        self.addPersistentSubtree(parentNodePath, node)
         self.refreshTreeControls()
    
 
@@ -866,7 +853,7 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         
         self.t1 = wx.Timer(self, id=1)
         self.Bind(wx.EVT_TIMER, self.onTimerEvent, id=1)
-        self.t1.Start(50)
+        self.t1.Start(200)
         
         
     def onTimerEvent(self, evt):
@@ -1700,7 +1687,14 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
     def onDisplayXYView(self, event):
         self.displayXYView(self.getCurrentVolume(), None)
 
-
+    
+    def onPrintValuesXYView(self, event):
+        
+        imageArray = self.getXYImage(self.getCurrentVolume(), self.cornersOf3DWindow())
+        for x in range(imageArray.shape[0]):
+            for y in range(imageArray.shape[1]):
+                print imageArray[x, y]
+    
 
     def drawSelectionBox(self, dc):
         box = self.getSelectionBoxInFullVolumeCoords()
@@ -1974,7 +1968,7 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         if dataNode.type == 'blob':
             blob = dataNode.valueToSave
             useThreshold = self.getValue(('particleMotionTool', 'useFacesProbabilityThreshold'))
-            if not(useThreshold) or numpy.log(blob.probability()) >= ((double(self.getValue(('particleMotionTool','facesProbabilityThreshold'))) - 150) / 10.0):
+            if not(useThreshold) or numpy.log(blob.probability()) >= self.facesProbabilityThreshold():
                 self.renderBlob(blob, dataNode.name)
 
         for child in dataNode.children:
@@ -1997,19 +1991,39 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         #print "drawBlobs"
         node = self.getSelectedBlobNode()
         if node != None:
+            #print "drawing blobs recursive"
             self.drawBlobsRecursive(node, dc, z)
         
 
+    def facesProbabilityThreshold(self):
+        return (double(self.getValue(('particleMotionTool','facesProbabilityThreshold'))) - 150) / 10.0
+
+
     def drawBlobsRecursive(self, dataNode, dc, z):
         
-        if dataNode.type == 'blob':
+        if isinstance(dataNode.valueToSave, Blob):
             blob = dataNode.valueToSave
             useThreshold = self.getValue(('particleMotionTool', 'useFacesProbabilityThreshold'))
-            if not(useThreshold) or numpy.log(blob.probability()) >= ((double(self.getValue(('particleMotionTool','facesProbabilityThreshold'))) - 150) / 10.0):
+            if not(useThreshold) or numpy.log(blob.probability()) >= self.facesProbabilityThreshold():
+                print "log of probability threshold", self.facesProbabilityThreshold(), "log of probability", numpy.log(blob.probability()), "probability", blob.probability()
                 self.drawBlob(blob, dc, z)
         
+        if dataNode.enableRecursiveRendering:
+            for child in dataNode.children:
+                self.drawBlobsRecursive(child, dc, z)
+
+
+    def renderPointSetsInVolumeRecursive(self, volume, dataNode):
+        
+        if isinstance(dataNode.valueToSave, Blob):
+            pointSet = dataNode.valueToSave
+            useThreshold = self.getValue(('particleMotionTool', 'useFacesProbabilityThreshold'))
+            if not(useThreshold) or numpy.log(pointSet.probability()) >= self.facesProbabilityThreshold():
+                renderPointSetInVolume(volume, pointSet)
+        
         for child in dataNode.children:
-            self.drawBlobsRecursive(child, dc, z)
+            self.renderPointSetsInVolumeRecursive(volume, child)
+
 
     # draws blob on an XY plane
     def drawBlob(self, blob, dc, z):
@@ -2041,13 +2055,24 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         #if blob != None:
         for p in blob.points():
              # if particle is close to current z plane, show it
+             #print p.loc
              if p.loc[2] == z:
-
                  x, y = self.fullVolumeXYToScreenXY((p.loc[0], p.loc[1]))
+                 #print x, y
                  #x, y = (p.loc[0], p.loc[1])
-                 dc.DrawRectangle(x - f*1, y - f*1, f*2, f*2)
+                 if f < 1: offset = 1
+                 else: offset = f
+                 dc.DrawRectangle(x - offset*1, y - offset*1, offset*2, offset*2)
                      
     
+def renderPointSetInVolume(volume, pointSet):
+    
+    for labeledPoint in pointSet.points():
+        loc = labeledPoint.loc
+        #volume[loc[0], loc[1], loc[2]] = 200
+        volume[loc[0], loc[1], loc[2]] = pointSet.probability() * 255.0 * 6.0
+
+
 adjacentOffsets = [array([-1, -1, +1]),
                    array([-1, +0, +1]),
                    array([-1, +1, +1]),
@@ -2130,8 +2155,8 @@ def makeDefaultGUITree():
                     DataNode("zIndex","slider",{'caption' : 'Z', 'max' : 300},0),
 
                     DataNode("zoom","slider",{'caption' : 'Zoom', 'max' : 800},100),
-                    DataNode("imageWindowSizeX","slider",{'caption' : 'Window Width', 'max' : 10000},300),
-                    DataNode("imageWindowSizeY","slider",{'caption' : 'Window Height', 'max' : 10000},300),
+                    DataNode("imageWindowSizeX","slider",{'caption' : 'Window Width', 'max' : 10000},800),
+                    DataNode("imageWindowSizeY","slider",{'caption' : 'Window Height', 'max' : 10000},800),
                     DataNode("normalizeImageOtherwiseNormalizeVolume","boolean",{'caption' : 'normalizeImageOtherwiseNormalizeVolume'},False)))
                     
 
@@ -2139,6 +2164,7 @@ def makeDefaultGUITree():
     particleMotionToolNode.addChildren((
                     DataNode("displayXYView","button",{'caption' : 'displayXYView'},'onDisplayXYView'),
                     DataNode("saveBlobsToOBJFile","button",{'caption' : 'saveBlobsToOBJFile'},'onSaveBlobsToOBJFile'),
+                    DataNode("printValuesXYView","button",{'caption' : 'printValuesXYView'},'onPrintValuesXYView'),
                     DataNode("makeNewSubgroup","button",{'caption' : 'Make New Subgroup'},'onMakeNewSubgroup'),
                     DataNode("menuOpen","menuItem",{'caption' : 'Open'},'onMenuOpen'),
                     DataNode("menuSave","menuItem",{'caption' : 'Save'},'onMenuSave'),
@@ -2499,10 +2525,12 @@ class Document:
     def dummyFunction():
         print ""
         
-    def __init__(self):
+    def __init__(self, pathToDataTreeFolder):
         #self.volumeDict = odict()
         #self.blobDict = odict()
-        self.dataTree = PersistentDataTree(DataNode('dataRootNode', 'type of node', None, None), 'c:\\temp\\cytoseg_data\\')
+        
+        # pathToDataTreeFolder in windows could be 'c:\\temp\\cytoseg_data\\'
+        self.dataTree = PersistentDataTree(DataNode('dataRootNode', 'type of node', None, None), pathToDataTreeFolder)
         self.dataRootNode = self.dataTree.rootNode
 
     
@@ -3313,7 +3341,7 @@ def stringsWithImageFileExtensions(listOfStrings):
     #todo: string comparison should ignore case
     result = []
     for s in listOfStrings:
-        if (s.find('.tif') != -1) or (s.find('.bmp') != -1) or (s.find('.pgm') != -1):
+        if (s.find('.tif') != -1) or (s.find('.bmp') != -1) or (s.find('.pgm') != -1) or (s.find('.gif') != -1):
             result.append(s)
     return result
 
@@ -3358,12 +3386,6 @@ def fillCube(volume, center, edgeWidth):
     #print "ending access"
     
 
-def isInsideVolume(volume, point):
-    s = volume.shape
-    if point[0] < s[0] and point[1] < s[1] and point[2] < s[2] and point[0] >= 0 and point[1] >= 0 and point[2] >= 0:
-        return True
-    else:
-        return False
 
 def structureTensor(xG, yG, zG):
     # xG = x gradient
@@ -3462,7 +3484,33 @@ def writeTiffStack(path, volume):
         image = Image.fromstring("L", (aTransposed.shape[1],aTransposed.shape[0]), aTransposed.tostring())
         
         
-        fullName = path + ('output%0.3d' % i) + '.bmp'
+        fullName = os.path.join(path, ('output%0.3d' % i) + '.bmp')
+        print fullName
+        image.save(fullName)
+
+
+def writeTiffStackRGB(path, redVolume, greenVolume, blueVolume):
+    
+    if redVolume != None:
+        volumeShape = redVolume.shape
+    elif greenVolume != None:
+        volumeShape = greenVolume.shape
+    elif blueVolume != None:
+        volumeShape = blueVolume
+    else:
+        raise Exception, "At least one of the volumes should be a 3D array (all of them are None)."
+    
+    a = numpy.zeros((volumeShape[1], volumeShape[0], 3), dtype=int8)
+    
+    # todo: check to make sure the three volumes have the same dimensions
+    for imageIndex in range(redVolume.shape[2]):
+        
+        if redVolume != None: a[:,:,0] = redVolume[:,:,imageIndex].T
+        if greenVolume != None: a[:,:,1] = greenVolume[:,:,imageIndex].T
+        if blueVolume != None: a[:,:,2] = blueVolume[:,:,imageIndex].T
+        image = Image.fromarray(a, 'RGB')
+        
+        fullName = os.path.join(path, ('output%0.3d' % imageIndex) + '.bmp')
         print fullName
         image.save(fullName)
         
@@ -3868,9 +3916,6 @@ def drawEdges(edges):
 
         pygame.draw.line(screen,(200,0,200),(x1,y1),(x2,y2),1)
 
-
-def at(volume, point):
-    return volume[point[0],point[1],point[2]]
 
 def isInsideVolumeWithBorder(volume, point, border):
     s = volume.shape

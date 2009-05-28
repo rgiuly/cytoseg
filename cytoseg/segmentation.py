@@ -1,8 +1,11 @@
 from numpy import *
 import heapq
 from collections import defaultdict
+from volume3d_util import *
 
-adjacentIndexOffsets = ((-1,1),(-1,-1),(1,-1),(1,1))
+adjacentIndexOffsets = ((-1,1),(-1,-1),(1,-1),(1,1)) #todo: these probably should be (1, 0), (-1, 0), etc.
+adacentIndexOffsets3D = (array((1, 0, 0)), array((0, 1, 0)), array((0, 0, 1)),
+                         array((-1, 0, 0)), array((0, -1, 0)), array((0, 0, -1)))
 
 def dijkstra(seedImage):
     """
@@ -28,4 +31,28 @@ def dijkstra(seedImage):
             if adjacentI >= 0 and adjacentI < seedImage.shape[0] and adjacentJ >= 0 and adjacentJ < seedImage.shape[1]:                adjNewDistance = distanceImage[i, j] + 1                 adjSavedDistance = distanceImage[adjacentI, adjacentJ]                if adjSavedDistance == NOT_VISITED or adjNewDistance < adjSavedDistance:                    distanceImage[adjacentI, adjacentJ] = adjNewDistance                    heapq.heappush(queue, (adjNewDistance,(adjacentI, adjacentJ)))
     return distanceImage
 
+
+def floodFill(volume, startPoint):
+    """
+    Floods the volume starting at the startPoint and returns a list of points
+    that represent all of the flooded voxels.
+    """
+
+    visitedDict = {}
+    visitedList = []
+    pointsThatNeedToBeVisited = [array(startPoint)]
+    startPointValue = volume[startPoint[0], startPoint[1], startPoint[2]]
     
+    while len(pointsThatNeedToBeVisited) > 0:
+        point = pointsThatNeedToBeVisited.pop()
+        visitedDict[(point[0], point[1], point[2])] = True
+        visitedList.append(point)
+        for offset in adacentIndexOffsets3D:
+            newPoint = point + offset
+            i, j, k = newPoint
+            if isInsideVolume(volume, newPoint):
+                if (volume[i, j, k] == startPointValue) and (not ((i, j, k) in visitedDict)):
+                    pointsThatNeedToBeVisited.append(newPoint)
+        
+    return visitedList
+

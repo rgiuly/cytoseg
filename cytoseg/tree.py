@@ -18,6 +18,7 @@ class DataNode:
         self.valueToSave = valueToSave
         self.children = []
         self.guiComponent = None
+        self.enableRecursiveRendering = True
     
     def __setstate__(self, dict):
         self.__dict__ = dict
@@ -166,6 +167,7 @@ class PersistentDataTree:
         parent = getNode(self.rootNode, pathToSubtree[0:-1])
         parent.addChild(nodeFromFile)
 
+
     # todo: this could be a slow operation, it would be good to make it fast
     # todo: give an informative error message if the node is not found, mention the pathToSubtree and the path on disk (the file path)
     def getSubtree(self, pathToSubtree):
@@ -181,6 +183,9 @@ class PersistentDataTree:
 
 
     def setSubtree(self, pathToParent, newNode):
+        """
+        Adds newNode to subtree and saves to file
+        """
         parent = getNode(self.rootNode, pathToParent)
         parent.addChild(newNode)
         self.writeSubtree(pathToParent + (newNode.name,))
