@@ -10,4 +10,4 @@ voxelTrainingImageFilePath - set this to the path of the image stack that will t
 voxelTrainingLabelFilePath - set this to the path of the training pixel stack. This stack should have pixels with value 1 were the membrane is and 0 where it is not.
 inputImageFilePath - set this to the path of the image stack you wish to use as a input data set
 
-http://cytoseg.googlecode.com/svn/
+http://cytoseg.googlecode.com/svn/trunk/cytoseg/docs/voxel_classification_progress.PNG
