@@ -1,4 +1,8 @@
-svn/trunk/cytoseg/testing/voxel_classification.py
+
+To run this example
+
+   * change directory to cytoseg/testing/
+   * run the command voxel_classification.py
 
 In this example variables are set to the following default values:
 
