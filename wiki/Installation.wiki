@@ -4,6 +4,7 @@ Note: Currently an installation of MATLAB is required for some of the functions 
 
 Installation Instructions (Windows):
   # Install [http://www.pythonxy.com pythonxy] with all options
+  # Install orange for python http://www.ailab.si/Orange/downloads.asp
   # Optional: Install [http://mlabwrap.sourceforge.net/ mlabwrap] which interfaces python to MATLAB (only needed for blob detection)
   # Download cytoseg from svn (see http://code.google.com/p/cytoseg/source/checkout)
   # To start the program, enter the following command from inside the cytoseg folder:
@@ -14,6 +15,7 @@ Installation Instructions (Ubuntu Linux, Instructions not yet complete)
   # Install the following modules with synaptic: python, python-numpy, python-wxgtk, python-scipy, python-opencv, python-matplotlib
   # Visit http://code.enthought.com/projects/mayavi/docs/development/html/mayavi/installation.html to get the most recent version of mayavi2 and install it
   # Visit http://paulnovo.org/node/2 and follow instructions to install python itk packages
+  # Install orange for python http://www.ailab.si/Orange/downloads.asp
   # Optional: Install [http://mlabwrap.sourceforge.net/ mlabwrap] which interfaces python to MATLAB (only needed for blob detection)
   # Download cytoseg from svn (see http://code.google.com/p/cytoseg/source/checkout)
   # To start the program, enter the following command from inside the cytoseg folder:
