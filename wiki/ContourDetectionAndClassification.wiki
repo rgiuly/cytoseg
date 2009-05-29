@@ -3,7 +3,7 @@ To run this example
    * change directory to cytoseg/testing/
    * run the command python find_contours.py
 
-In this example, probabilityFunction defines the probability that the contour belongs to a give class based on a set of features:
+In this example, probabilityFunction defines the probability that the contour belongs to a given class based on a set of features:
 
 {{{
 def probabilityFunction(features):
@@ -15,11 +15,6 @@ def probabilityFunction(features):
     return overlapValue * perimeterValue * grayValueMatch * areaMatch
 }}}
 
-You can edit voxel_classification.py to change these parameters:
-
-   * voxelTrainingImageFilePath - set this to the path of the image stack that will train the classifier
-   * voxelTrainingLabelFilePath - set this to the path of the training pixel stack. This stack should have pixels with value 1 were the membrane is and 0 where it is not.
-   * inputImageFilePath - set this to the path of your input data set
 
 A window will pop up when this file runs.
 
