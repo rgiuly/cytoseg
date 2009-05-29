@@ -23,13 +23,10 @@ Processing takes some time and the console output will report progress.
 Note:
 To use the full gui, you'll need to resize the window labeled `ParticleMotionTool`, this will make scroll bars appear. (This is a work around for a bug - the scroll bars don't appear at startup.)
 
-To view output as it is generated,
-   * make sure data tree for volume selection is set to `outputDataLabel1_ProbabilityVolume`
+To view output after processing completes:
+   * make sure the contours item is selected in the "dataTree"
+   * make sure the InputVolume item is selected in the "volumeDataTree"
    * adjust zIndex in the `imageControls` window
-
-When processing completes, to save the the output to an image stack:
-   * make sure data tree for volume selection is set to `outputDataLabel1_ProbabilityVolume`
-   * press `saveCurrentlyDisplayedVolume` button, you will have to scroll down to find it
 
 
 
