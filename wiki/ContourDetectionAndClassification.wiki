@@ -24,8 +24,8 @@ Note:
 To use the full gui, you'll need to resize the window labeled `ParticleMotionTool`, this will make scroll bars appear. (This is a work around for a bug - the scroll bars don't appear at startup.)
 
 To view output after processing completes:
-   * make sure the contours item is selected in the "dataTree"
-   * make sure the InputVolume item is selected in the "volumeDataTree"
+   * make sure the contours item is selected in the `dataTree`
+   * make sure the InputVolume item is selected in the `dataTreeForVolumeSelection`
    * adjust zIndex in the `imageControls` window
 
 
