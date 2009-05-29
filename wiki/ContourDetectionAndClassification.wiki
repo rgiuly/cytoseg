@@ -6,9 +6,13 @@ To run this example
 In this example variables are set to the following default values:
 
 {{{
-voxelTrainingImageFilePath = "data/membrane_training/image"
-voxelTrainingLabelFilePath = "data/membrane_training/label"
-inputImageFilePath = "data/membrane"
+def probabilityFunction(features):
+    amplitude = 1
+    overlapValue = gaussian(1.0 - features['ellipseOverlap'], amplitude, 0.2)
+    perimeterValue = gaussian(abs(11.0 - features['perimeter']), amplitude, 2.0)
+    grayValueMatch = gaussian(abs(0.8 - features['averageGrayValue']), amplitude, 0.25)
+    areaMatch = gaussian(abs(60 - math.sqrt(features['contourArea'])), amplitude, 10)
+    return overlapValue * perimeterValue * grayValueMatch * areaMatch
 }}}
 
 You can edit voxel_classification.py to change these parameters:
