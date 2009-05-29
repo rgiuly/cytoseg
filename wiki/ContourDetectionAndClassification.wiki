@@ -3,7 +3,7 @@ To run this example
    * change directory to cytoseg/testing/
    * run the command python find_contours.py
 
-In this example variables are set to the following default values:
+In this example, probabilityFunction defines the probability that the contour belongs to a give class based on a set of features:
 
 {{{
 def probabilityFunction(features):
