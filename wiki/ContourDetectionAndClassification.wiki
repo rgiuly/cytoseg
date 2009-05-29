@@ -25,7 +25,7 @@ To use the full gui, you'll need to resize the window labeled `ParticleMotionToo
 
 To view output after processing completes:
    * make sure the contours item is selected in the `dataTree`
-   * make sure the InputVolume item is selected in the `dataTreeForVolumeSelection`
+   * make sure the `InputVolume` item is selected in the `dataTreeForVolumeSelection`
    * adjust zIndex in the `imageControls` window
 
 
