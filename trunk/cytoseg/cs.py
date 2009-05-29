@@ -2005,7 +2005,7 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
             blob = dataNode.valueToSave
             useThreshold = self.getValue(('particleMotionTool', 'useFacesProbabilityThreshold'))
             if not(useThreshold) or numpy.log(blob.probability()) >= self.facesProbabilityThreshold():
-                print "log of probability threshold", self.facesProbabilityThreshold(), "log of probability", numpy.log(blob.probability()), "probability", blob.probability()
+                #print "log of probability threshold", self.facesProbabilityThreshold(), "log of probability", numpy.log(blob.probability()), "probability", blob.probability()
                 self.drawBlob(blob, dc, z)
         
         if dataNode.enableRecursiveRendering:
