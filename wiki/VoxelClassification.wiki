@@ -34,4 +34,4 @@ When processing completes, to save the the output to an image stack:
 
 
 
-http://cytoseg.googlecode.com/svn/trunk/cytoseg/docs/voxel_classification_progress.PNG
+http://cytoseg.googlecode.com/svn/trunk/cytoseg/docs/voxel_classification_progress.png
