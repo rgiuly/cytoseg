@@ -33,4 +33,4 @@ When processing completes, to save the the output to an image stack:
 
 
 
-http://cytoseg.googlecode.com/svn/trunk/cytoseg/docs/contour_detection.png
+http://cytoseg.googlecode.com/svn/trunk/cytoseg/docs/contour_classification.png
