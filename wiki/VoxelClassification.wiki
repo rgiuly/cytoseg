@@ -1,9 +1,5 @@
 To run this example
 
-   * set up data folder:
-    * For linux make sure you have a folder named /home/user/temp/output/
-    * Or, edit default_path.py to set the data folder
-
    * change directory to cytoseg/testing/
    * run the command voxel_classification.py
 
