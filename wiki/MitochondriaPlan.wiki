@@ -1,3 +1,3 @@
-http://cytoseg.googlecode.com/svn/wiki/object_and_seed_detection_framework.png
+http://cytoseg.googlecode.com/svn/docs/object_and_seed_detection_framework.png
 
-http://cytoseg.googlecode.com/svn/wiki/automatically_seeded_object_segmentation.png
+http://cytoseg.googlecode.com/svn/docs/automatically_seeded_object_segmentation.png
