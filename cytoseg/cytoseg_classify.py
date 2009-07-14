@@ -141,14 +141,14 @@ class ClassificationControlsFrame(ControlsFrame):
 
         if 0:
             # display volumes
-            self.getPersistentVolume('test_Original')
-            self.getPersistentVolume('voxelClassificationOnTestVolume_ProbabilityVolume')
-            self.getPersistentVolume('forFaceTraining_ProbabilityVolume')
+            self.getPersistentVolume_old('test_Original')
+            self.getPersistentVolume_old('voxelClassificationOnTestVolume_ProbabilityVolume')
+            self.getPersistentVolume_old('forFaceTraining_ProbabilityVolume')
                         
             for i in range(3):
-                self.getPersistentVolume('%s_0Gradient_blur%d' % ('test', i))
-                self.getPersistentVolume('%s_1Gradient_blur%d' % ('test', i))
-                self.getPersistentVolume('%s_2Gradient_blur%d' % ('test', i))
+                self.getPersistentVolume_old('%s_0Gradient_blur%d' % ('test', i))
+                self.getPersistentVolume_old('%s_1Gradient_blur%d' % ('test', i))
+                self.getPersistentVolume_old('%s_2Gradient_blur%d' % ('test', i))
 
 
     def runClassificationSequence(self):
@@ -650,7 +650,7 @@ class ClassificationControlsFrame(ControlsFrame):
         logFinished("add blobs to tree")
 
 
-        superVoxelDict = computeSuperVoxelFeatures(self.getPersistentVolume(watershedVolumeName))
+        superVoxelDict = computeSuperVoxelFeatures(self.getPersistentVolume_old(watershedVolumeName))
 
         return (blobDict, superVoxelDict)
 
@@ -688,13 +688,13 @@ class ClassificationControlsFrame(ControlsFrame):
             if useOriginalForWatershed:
                 volumeForWatershed = originalVolume
             else:
-                volumeForWatershed = self.getPersistentVolume(volumeForWatershedName)
+                volumeForWatershed = self.getPersistentVolume_old(volumeForWatershedName)
 
 
             # generates watershed transform and blob of pixels between watershed regions, saves watershed transform and blob
             self.calculateBorderBlobs(volumeForWatershed, originalVolumeName, prefix+'Watershed', prefix+'inbetweenPoints')  
 
-            self.calculateDerivatives(self.getPersistentVolume(originalVolumeName), generatedDataIdentifier)
+            self.calculateDerivatives(self.getPersistentVolume_old(originalVolumeName), generatedDataIdentifier)
 
 
         if doPart[1]:
@@ -721,7 +721,7 @@ class ClassificationControlsFrame(ControlsFrame):
 
             # set blob colors
             for key in blobDict:
-                value = calculateAverageValue(blobDict[key], self.getPersistentVolume(membraneLabelVolumeName))
+                value = calculateAverageValue(blobDict[key], self.getPersistentVolume_old(membraneLabelVolumeName))
                 blobDict[key].setColor(faceBlobColorBasedOnAverageValue(value, salientLabelValue))
         
         
@@ -763,7 +763,7 @@ class ClassificationControlsFrame(ControlsFrame):
             elif sourceType == 'imageFile':
                 #self.onLoadImageStack(None)
                 # todo: the volume should come from the data tree rather than this dictionary and the dictionary for volumes should nolonger exist
-                #originalVolume = self.getPersistentVolume('LoadedVolume')
+                #originalVolume = self.getPersistentVolume_old('LoadedVolume')
                 originalVolume = loadImageStack(self.testImageFilePath, None)            
                 self.addPersistentVolumeAndRefreshDataTree(originalVolume, originalVolumeName)
 
@@ -776,11 +776,11 @@ class ClassificationControlsFrame(ControlsFrame):
             if useOriginalForWatershed:
                 volumeForWatershed = originalVolume
             else:
-                volumeForWatershed = self.getPersistentVolume(volumeForWatershedName)
+                volumeForWatershed = self.getPersistentVolume_old(volumeForWatershedName)
             
             self.calculateBorderBlobs(volumeForWatershed, originalVolumeName, prefix+'Watershed', prefix+'inbetweenPoints')  
 
-            self.calculateDerivatives(self.getPersistentVolume(originalVolumeName), generatedDataIdentifier)
+            self.calculateDerivatives(self.getPersistentVolume_old(originalVolumeName), generatedDataIdentifier)
 
 
         if doPart[1]:
@@ -799,7 +799,7 @@ class ClassificationControlsFrame(ControlsFrame):
                 if len(key) == 2:
                     faceDict[key] = blobDict[key]
             # todo: remove the volumeDict and use the data tree instead
-            self.classifyFaces(inputFileIdentifier, faceDict, self.getPersistentVolume(originalVolumeName), self.getPersistentVolume(volumeForWatershedName), superVoxelDict)
+            self.classifyFaces(inputFileIdentifier, faceDict, self.getPersistentVolume_old(originalVolumeName), self.getPersistentVolume_old(volumeForWatershedName), superVoxelDict)
 
         logFinished("findAndClassifyFaces")        
 
@@ -861,7 +861,7 @@ class ClassificationControlsFrame(ControlsFrame):
 
         file = open(filename, "w")
         
-        sh = self.getPersistentVolume(originalVolumeName).shape
+        sh = self.getPersistentVolume_old(originalVolumeName).shape
 
         volume = numpy.zeros(sh)
         #selected x, y, and z
@@ -877,10 +877,10 @@ class ClassificationControlsFrame(ControlsFrame):
         facesNode = getNode(self.getBlobsNode(), (facesNodeName,))
         for faceNode in facesNode.children:
             faceBlob = faceNode.valueToSave
-            d = getFaceFeatures(identifier, faceBlob, self.getPersistentVolume(originalVolumeName), self.getPersistentVolume(probabilityVolumeName), superVoxelDict, self)
+            d = getFaceFeatures(identifier, faceBlob, self.getPersistentVolume_old(originalVolumeName), self.getPersistentVolume_old(probabilityVolumeName), superVoxelDict, self)
             
             # assume it is a salient face if average value is greater than a certain number
-            averageValue = calculateAverageValue(faceBlob, self.getPersistentVolume(membraneLabelVolumeName))
+            averageValue = calculateAverageValue(faceBlob, self.getPersistentVolume_old(membraneLabelVolumeName))
             self.writeExample(file, d, faceBlobSalientBasedOnAverageValue(averageValue, salientLabelValue))
             #print "faceBlobSalientBasedOnAverageValue(averageValue)"
             #print faceBlobSalientBasedOnAverageValue(averageValue)
@@ -1316,9 +1316,9 @@ def getFaceFeatures(gradientIdentifier, faceBlob, originalVolume, probabilityVol
     
     f['logDifference'] = log(1 + abs(sv[0].size() - sv[1].size()))
 
-    xGradientVolume = gui.getPersistentVolume(gradientIdentifier + "_" + '0Gradient_blur%d' % 1)
-    yGradientVolume = gui.getPersistentVolume(gradientIdentifier + "_" + '1Gradient_blur%d' % 1)
-    zGradientVolume = gui.getPersistentVolume(gradientIdentifier + "_" + '2Gradient_blur%d' % 1)
+    xGradientVolume = gui.getPersistentVolume_old(gradientIdentifier + "_" + '0Gradient_blur%d' % 1)
+    yGradientVolume = gui.getPersistentVolume_old(gradientIdentifier + "_" + '1Gradient_blur%d' % 1)
+    zGradientVolume = gui.getPersistentVolume_old(gradientIdentifier + "_" + '2Gradient_blur%d' % 1)
 
     grayValues = []
     gradientMagnitudes = []

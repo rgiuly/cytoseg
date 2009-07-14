@@ -40,7 +40,7 @@ def floodFill(volume, startPoint):
 
     visitedDict = {}
     visitedList = []
-    pointsThatNeedToBeVisited = [array(startPoint)]
+    pointsThatNeedToBeVisited = [(startPoint[0], startPoint[1], startPoint[2])]
     startPointValue = volume[startPoint[0], startPoint[1], startPoint[2]]
     
     while len(pointsThatNeedToBeVisited) > 0:
@@ -48,7 +48,8 @@ def floodFill(volume, startPoint):
         visitedDict[(point[0], point[1], point[2])] = True
         visitedList.append(point)
         for offset in adacentIndexOffsets3D:
-            newPoint = point + offset
+            newPointNumpyArray = array(point) + offset
+            newPoint = (newPointNumpyArray[0], newPointNumpyArray[1], newPointNumpyArray[2])
             i, j, k = newPoint
             if isInsideVolume(volume, newPoint):
                 if (volume[i, j, k] == startPointValue) and (not ((i, j, k) in visitedDict)):
