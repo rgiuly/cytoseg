@@ -1,16 +1,9 @@
 
 import os
 
-defaultTemporaryFolder = os.tempnam()
-os.mkdir(defaultTemporaryFolder)
-driveName = "/folder_not_set/"
-cytosegDataFolder = defaultTemporaryFolder
-contourOutputTemporaryFolder = defaultTemporaryFolder
-defaultPath = "/folder_not_set/"
-defaultOutputPath = defaultTemporaryFolder
 
 from socket import gethostname; hostname = gethostname()
-if hostname == "panther_test":
+if hostname == "panther":
         driveName = "o:"
         cytosegDataFolder = "c:/shared/cytoseg_data"
         contourOutputTemporaryFolder = "c:/temp/contour_output"
@@ -42,4 +35,12 @@ elif hostname == "user-desktop":
         #defaultPath = "/crbsdata1/rgiuly/input/cb017_NA1000_set2/cropped204x150/"
         defaultPath = "/crbsdata1/rgiuly/input/triple_tilt/cb024/tifs_small/"
         defaultOutputPath = "/home/user/temp/output/"
+else:
+        defaultTemporaryFolder = os.tempnam()
+        os.mkdir(defaultTemporaryFolder)
+        driveName = "/folder_not_set/"
+        cytosegDataFolder = defaultTemporaryFolder
+        contourOutputTemporaryFolder = defaultTemporaryFolder
+        defaultPath = "/folder_not_set/"
+        defaultOutputPath = defaultTemporaryFolder
 

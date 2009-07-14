@@ -292,8 +292,8 @@ class ContourDetector:
     
                     progressLog("making point set")
     
-                    #contourObject = Contour(points=pointList)
-                    contourObject = Blob(points=pointList)
+                    contourObject = Contour(points=pointList)
+                    #contourObject = Blob(points=pointList)
                     contourResultList.append(contourObject)
                     
                     #print c

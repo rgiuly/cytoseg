@@ -486,7 +486,7 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         return node.valueToSave
 
 
-    def getPersistentVolume(self, name):
+    def getPersistentVolume_old(self, name):
         return self.getPersistentObject(('Volumes', name))
 
 
@@ -2001,7 +2001,7 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
 
     def drawBlobsRecursive(self, dataNode, dc, z):
         
-        if isinstance(dataNode.valueToSave, Blob):
+        if isinstance(dataNode.valueToSave, PointSet):
             blob = dataNode.valueToSave
             useThreshold = self.getValue(('particleMotionTool', 'useFacesProbabilityThreshold'))
             if not(useThreshold) or numpy.log(blob.probability()) >= self.facesProbabilityThreshold():
@@ -2013,16 +2013,17 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
                 self.drawBlobsRecursive(child, dc, z)
 
 
-    def renderPointSetsInVolumeRecursive(self, volume, dataNode):
+    def renderPointSetsInVolumeRecursive(self, volume, dataNode,
+                                         useProbabilityForIntensity=False):
         
-        if isinstance(dataNode.valueToSave, Blob):
+        if isinstance(dataNode.valueToSave, PointSet):
             pointSet = dataNode.valueToSave
             useThreshold = self.getValue(('particleMotionTool', 'useFacesProbabilityThreshold'))
             if not(useThreshold) or numpy.log(pointSet.probability()) >= self.facesProbabilityThreshold():
-                renderPointSetInVolume(volume, pointSet)
+                renderPointSetInVolume(volume, pointSet, useProbabilityForIntensity)
         
         for child in dataNode.children:
-            self.renderPointSetsInVolumeRecursive(volume, child)
+            self.renderPointSetsInVolumeRecursive(volume, child, useProbabilityForIntensity)
 
 
     # draws blob on an XY plane
@@ -2053,11 +2054,12 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         dc.SetBrush(brush)
 
         #if blob != None:
-        for p in blob.points():
+        for loc in blob.locations():
              # if particle is close to current z plane, show it
              #print p.loc
-             if p.loc[2] == z:
-                 x, y = self.fullVolumeXYToScreenXY((p.loc[0], p.loc[1]))
+        
+             if loc[2] == z:
+                 x, y = self.fullVolumeXYToScreenXY((loc[0], loc[1]))
                  #print x, y
                  #x, y = (p.loc[0], p.loc[1])
                  if f < 1: offset = 1
@@ -2065,12 +2067,15 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
                  dc.DrawRectangle(x - offset*1, y - offset*1, offset*2, offset*2)
                      
     
-def renderPointSetInVolume(volume, pointSet):
+def renderPointSetInVolume(volume, pointSet, useProbabilityForIntensity):
     
     for labeledPoint in pointSet.points():
         loc = labeledPoint.loc
-        #volume[loc[0], loc[1], loc[2]] = 200
-        volume[loc[0], loc[1], loc[2]] = pointSet.probability() * 255.0 * 6.0
+
+        if useProbabilityForIntensity:
+            volume[loc[0], loc[1], loc[2]] = pointSet.probability() * 255.0 * 6.0
+        else:
+            volume[loc[0], loc[1], loc[2]] = 255
 
 
 adjacentOffsets = [array([-1, -1, +1]),
@@ -3489,32 +3494,6 @@ def writeTiffStack(path, volume):
         image.save(fullName)
 
 
-def writeTiffStackRGB(path, redVolume, greenVolume, blueVolume):
-    
-    if redVolume != None:
-        volumeShape = redVolume.shape
-    elif greenVolume != None:
-        volumeShape = greenVolume.shape
-    elif blueVolume != None:
-        volumeShape = blueVolume
-    else:
-        raise Exception, "At least one of the volumes should be a 3D array (all of them are None)."
-    
-    a = numpy.zeros((volumeShape[1], volumeShape[0], 3), dtype=int8)
-    
-    # todo: check to make sure the three volumes have the same dimensions
-    for imageIndex in range(redVolume.shape[2]):
-        
-        if redVolume != None: a[:,:,0] = redVolume[:,:,imageIndex].T
-        if greenVolume != None: a[:,:,1] = greenVolume[:,:,imageIndex].T
-        if blueVolume != None: a[:,:,2] = blueVolume[:,:,imageIndex].T
-        image = Image.fromarray(a, 'RGB')
-        
-        fullName = os.path.join(path, ('output%0.3d' % imageIndex) + '.bmp')
-        print fullName
-        image.save(fullName)
-        
-        
 class TimerHandler(wx.EvtHandler):
 
     #def OnTimerEvent(self, evt):

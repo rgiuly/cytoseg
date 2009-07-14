@@ -60,7 +60,7 @@ class DataNode:
         """Add a list of objects as children. A DataNode is created for each object."""
         count = 0
         for object in objectList:
-            node = DataNode(count, 'object-type', {}, object)
+            node = DataNode(str(count), 'object-type', {}, object)
             self.addChild(node)
             count += 1
 
@@ -139,7 +139,10 @@ class PersistentDataTree:
         node = getNode(self.rootNode, pathToSubtree)
         filename = makeFilenameFromNodePath(pathToSubtree)
         f = open(os.path.join(self.rootFolderPath, filename), "wb")
-        cPickle.dump(node, f)
+        #cPickle.dump(node, f)
+        pickler = cPickle.Pickler(f)
+        pickler.fast = True
+        pickler.dump(node)
         f.close()
 
     # reads subtree from file and places it into tree which is specified by rootNode
@@ -199,7 +202,7 @@ class PersistentDataTree:
     ## puts volume in tree and writes it to disk
     #def writePersistentVolume(volume, name)
     #
-    #def getPersistentVolume(name)
+    #def getPersistentVolume_old(name)
 
 
 

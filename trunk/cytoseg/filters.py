@@ -240,4 +240,28 @@ def secondDerivatives2D(numpyArray2D):
 #    writer->SetFileName( outputFileName.c_str() );
 #    writer->Update();
 
+def dilateVolume2D(inputVolume):
+
+    InternalPixelType = itk.F
+    Dimension = 2
+    ImageType = itk.Image[InternalPixelType, Dimension]
+    converter = itk.PyBuffer[ImageType]
+    
+    outputVolume = zeros(inputVolume.shape)
+    
+    for z in range(inputVolume.shape[2]):
+        
+        array2d = inputVolume[:,:,z]
+        #image2d = converter.GetImageFromArray(array2d)
+        image2d = numpyToItk(array2d)
+        dim = 2
+        kernel = itk.strel(dim, 2)
+        dilateFilter = itk.GrayscaleDilateImageFilter[ImageType, ImageType, kernel].New(
+                        image2d, Kernel=kernel)
+        dilateFilter.Update()
+        #outputVolume[:,:,z] = converter.GetArrayFromImage(dilateFilter.GetOutput())
+        outputVolume[:,:,z] = itkToNumpy(dilateFilter.GetOutput())
+
+    return outputVolume
+
 

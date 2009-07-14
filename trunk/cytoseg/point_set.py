@@ -1,15 +1,9 @@
 # todo: make this a superclass of Particle class
 # (could call this AnnotatedPoint)
-class LabeledPoint:
-    def __init__(self, location):
-        self.loc = location
-        self.adjacentNonzeroPoints = []
-        self.adjacentNonzeroValues = []
-        self.adjacentNonzeroValueSet = set()
 
 
 
-class Blob:
+class PointSet:
 #    def __init__(self, center=None, size=None, points=[], color=[100,0,0]):
     def __init__(self, center=None, size=None, points=None):
         self._center = center
@@ -25,11 +19,27 @@ class Blob:
         self._color = [0, 255, 0]
         self._probability = 0
         self.features = {}
+        self.XMLTag = 'pointSet'
+        self.pointListXMLTag = 'points'
+        self.pointXMLFormatString = '%g %g %g, '
         
         #self.averageValueFromTrainingLabelVolume = None
     
     def points(self):
         return self._points
+    
+    def locations(self):
+        resultList = []
+        for object in self._points:
+            if isinstance(object, list):
+                resultList.append(object)
+            elif isinstance(object, tuple):
+                resultList.append(object)
+            elif isinstance(object, LabeledPoint):
+                resultList.append(object.loc)
+            else:
+                raise Exception, "Objects in the point list of the Blob should be list, tuple, or LabeledPoint class, not of type %s." % type(object)
+        return resultList
     
     def center(self):
         return self._center
@@ -88,18 +98,26 @@ class Blob:
                         self.addPoint(LabeledPoint((i, j, k)))
     
     
-    def getXMLVoxelList(self, doc):
+#    def getLocationsXML(self, doc):
+#
+#        text = ""
+#        for loc in self.locations():
+#            text += self.pointXMLFormatString % (loc[0], loc[1], loc[2])
+#        
+#        voxelsElement = doc.createElement(self.pointListXMLTag)
+#        voxelsText = doc.createTextNode(text)
+#        voxelsElement.appendChild(voxelsText)
+#        
+#        return voxelsElement
+
+
+    def getLocationsString(self):
 
         text = ""
-        for labeledPoint in self.points():
-            loc = labeledPoint.loc
-            text += "%d,%d,%d " % (loc[0], loc[1], loc[2])
+        for loc in self.locations():
+            text += self.pointXMLFormatString % (loc[0], loc[1], loc[2])
         
-        voxelsElement = doc.createElement("voxels")
-        voxelsText = doc.createTextNode(text)
-        voxelsElement.appendChild(voxelsText)
-        
-        return voxelsElement
+        return text
     
 
     def getAveragePointLocation(self):
@@ -109,6 +127,42 @@ class Blob:
             total += labeledPoint.loc
 
         return float(total) / float(numPoints())
+    
+
+    def getXMLObject(self, doc, nodeName):
+
+        #print dir(self)
+        objectElement = doc.createElement(self.XMLTag)
+        objectElement.setAttribute('name', nodeName)
+        objectElement.setAttribute('class', 'Vesicle')
+        objectElement.setAttribute('points', self.getLocationsString())
+
+        return objectElement
 
 
+class LabeledPoint:
+    def __init__(self, location):
+        self.loc = location
+        self.adjacentNonzeroPoints = []
+        self.adjacentNonzeroValues = []
+        self.adjacentNonzeroValueSet = set()
+
+
+
+class Blob(PointSet):
+
+    def __init__(self, center=None, size=None, points=None):
+        PointSet.__init__(self, center, size, points)
+        self.XMLTag = 'blob'
+        self.pointListXMLTag = 'voxels'
+        self.pointXMLFormatString = '%d, %d, %d '
+
+
+
+class Contour(PointSet):
+    def __init__(self, center=None, size=None, points=None):
+        PointSet.__init__(self, center, size, points)
+        self.XMLTag = 'Contour'
   
+
+
