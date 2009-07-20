@@ -1,25 +1,17 @@
+
 from numpy import *
 import numpy, Image
-
 from opencv import highgui
-
 from opencv import *
-
 from math import *
-
 from matplotlib.pyplot import plot
 from matplotlib.pyplot import show
-
 from filters import *
-
 from point_set import *
-
 import os
-
 from default_path import *
-
 from volume3d_util import *
-
+from tree import *
 import wx
 
 
@@ -106,7 +98,8 @@ class ContourDetector:
 
     def findContours(self):
         
-        contourList = self.opencvDetectContours()
+        contoursGroupedByImage = self.opencvDetectContours()
+        contourList = flattenTree(contoursGroupedByImage)
         
         # compute the average original volume value at contour points
         for contour in contourList:
@@ -123,7 +116,7 @@ class ContourDetector:
             color = 255.0 * array((1.0 - (p * 10.0), (p * 10.0), 0))
             contour.setColor(color)
         
-        return contourList
+        return contoursGroupedByImage
 
 
     def opencvDetectContours(self):
@@ -136,7 +129,7 @@ class ContourDetector:
         maxPerimeter = self.maxPerimeter
     
 
-        contourResultList = []
+        contourResultTree = GroupNode('contourResultTree')
     
         storage = cvCreateMemStorage(128000)
     
@@ -150,6 +143,8 @@ class ContourDetector:
             show()
         
         for imageIndex in range(originalVolume.shape[2]):
+
+            contoursInImage = GroupNode('image' + str(imageIndex))
             
             progressLog(("image index", imageIndex, "number of images:", originalVolume.shape[2])) 
             
@@ -294,7 +289,7 @@ class ContourDetector:
     
                     contourObject = Contour(points=pointList)
                     #contourObject = Blob(points=pointList)
-                    contourResultList.append(contourObject)
+                    contoursInImage.addChild(contourObject)
                     
                     #print c
                     if c.v_next != None: print "c.v_next", c.v_next
@@ -494,13 +489,15 @@ class ContourDetector:
         
             outputFilename = os.path.join(contourOutputTemporaryFolder, "result%04d.bmp" % imageIndex)
             highgui.cvSaveImage(outputFilename, resultContoursImage)
+
+            contourResultTree.addChild(contoursInImage)
         
             #print outputFilename
         print "output written to file stack"
         
         #highgui.cvWaitKey(0)
     
-        return contourResultList
+        return contourResultTree
         
     #findMitochondria()
 

@@ -5,38 +5,24 @@ class NodeDoesNotExist(Exception):
     pass
 
 
-# represents a piece of data
-# (can be used for gui components)
-class DataNode:
-    
-    
-    
-    def __init__(self, name, type, params, valueToSave):
+
+class Node:
+
+    def __init__(self, name):
         self.name = name
-        self.type = type
-        self.params = params
-        self.valueToSave = valueToSave
+
+
+
+# node with a list of children
+
+class GroupNode(Node):
+    
+    def __init__(self, name):
+
+        Node.__init__(self, name)
         self.children = []
-        self.guiComponent = None
         self.enableRecursiveRendering = True
     
-    def __setstate__(self, dict):
-        self.__dict__ = dict
-        self.guiComponent = None
-    
-    
-    def __getstate__(self):
-        result = self.__dict__.copy()
-        del result['guiComponent']
-        return result
-        
-    def get(self):
-        self.valueToSave = self.guiComponent.GetValue()  #todo: you should really always use set method so this should not be necessary 
-        return self.guiComponent.GetValue()
-    
-    def set(self, value):
-        self.valueToSave = value
-        self.guiComponent.SetValue(value)
 
     # shows children of node
     def __str__(self):
@@ -96,37 +82,7 @@ class DataNode:
             self.children.remove(childToRemove)
 
 
-    def test_old(self):
-        n1 = DataNode("root","root",10)
-        print 'n1 type'
-        print type(n1)
-        n2 = DataNode("b","boolean",20)
-        n3 = DataNode("c","slider",30)
-        n4 = DataNode("d","slider",40)
-        n5 = DataNode("e","slider",50)
 
-        n1.addChild(n2)
-        n1.addChild(n3)
-        n2.addChild(n4)
-        n2.addChild(n5)
-        
-        print 'children types'
-        for x in n1.children:
-            print type(x)
-        f = open("temp.pickle", "w")
-        cPickle.dump(n1, f)
-        f.close()
-
-        f = open("temp.pickle", "r")
-        loadedData = cPickle.load(f)
-        print "data loaded from file"
-        print loadedData
-        f.close()
-        
-        print 'testing get node'
-        print getNode(loadedData, ('particleMotionTool', 'd'))
-        
-        return n1
 
 class PersistentDataTree:
     
@@ -247,7 +203,88 @@ def createPathIfNeeded(rootNode, nodePath):
             currentNode = currentNode.getChild(name)
 
 
+def flattenTree(inputRootNode):
+    
+    resultList = []
+    flattenTreeHelper(inputRootNode, resultList)
+    return resultList
 
+
+def flattenTreeHelper(object, resultList):
+
+    if isinstance(object, GroupNode):
+        for o in object.children:
+            flattenTreeHelper(o, resultList)
+    else:
+        resultList.append(object)
+
+
+# represents a piece of data
+# (can be used for gui components)
+class DataNode(GroupNode):
+
+    def __init__(self, name, type, params, valueToSave):
+        
+        GroupNode.__init__(self, name)
+        
+        self.type = type
+        self.params = params
+        self.valueToSave = valueToSave
+        self.guiComponent = None
+
+
+    def __setstate__(self, dict):
+        self.__dict__ = dict
+        self.guiComponent = None
+    
+    
+    def __getstate__(self):
+        result = self.__dict__.copy()
+        del result['guiComponent']
+        return result
+        
+
+    def get(self):
+        self.valueToSave = self.guiComponent.GetValue()  #todo: you should really always use set method so this should not be necessary 
+        return self.guiComponent.GetValue()
+    
+
+    def set(self, value):
+        self.valueToSave = value
+        self.guiComponent.SetValue(value)
+
+
+    def test_old(self):
+        n1 = DataNode("root","root",10)
+        print 'n1 type'
+        print type(n1)
+        n2 = DataNode("b","boolean",20)
+        n3 = DataNode("c","slider",30)
+        n4 = DataNode("d","slider",40)
+        n5 = DataNode("e","slider",50)
+
+        n1.addChild(n2)
+        n1.addChild(n3)
+        n2.addChild(n4)
+        n2.addChild(n5)
+        
+        print 'children types'
+        for x in n1.children:
+            print type(x)
+        f = open("temp.pickle", "w")
+        cPickle.dump(n1, f)
+        f.close()
+
+        f = open("temp.pickle", "r")
+        loadedData = cPickle.load(f)
+        print "data loaded from file"
+        print loadedData
+        f.close()
+        
+        print 'testing get node'
+        print getNode(loadedData, ('particleMotionTool', 'd'))
+        
+        return n1
 
 
 

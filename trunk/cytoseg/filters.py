@@ -240,7 +240,7 @@ def secondDerivatives2D(numpyArray2D):
 #    writer->SetFileName( outputFileName.c_str() );
 #    writer->Update();
 
-def dilateVolume2D(inputVolume):
+def filterVolume2D(inputVolume, filterType, kernelSize=2):
 
     InternalPixelType = itk.F
     Dimension = 2
@@ -251,16 +251,24 @@ def dilateVolume2D(inputVolume):
     
     for z in range(inputVolume.shape[2]):
         
+        print "dilateVolume2D", z, "total", inputVolume.shape[2]
+        
         array2d = inputVolume[:,:,z]
         #image2d = converter.GetImageFromArray(array2d)
         image2d = numpyToItk(array2d)
         dim = 2
-        kernel = itk.strel(dim, 2)
-        dilateFilter = itk.GrayscaleDilateImageFilter[ImageType, ImageType, kernel].New(
-                        image2d, Kernel=kernel)
-        dilateFilter.Update()
+        kernel = itk.strel(dim, kernelSize)
+        
+        if filterType == 'dilate':
+            filter = itk.GrayscaleDilateImageFilter[ImageType, ImageType, kernel].New(
+                            image2d, Kernel=kernel)
+        elif filterType == 'erode':
+            filter = itk.GrayscaleErodeImageFilter[ImageType, ImageType, kernel].New(
+                            image2d, Kernel=kernel)
+
+        filter.Update()
         #outputVolume[:,:,z] = converter.GetArrayFromImage(dilateFilter.GetOutput())
-        outputVolume[:,:,z] = itkToNumpy(dilateFilter.GetOutput())
+        outputVolume[:,:,z] = itkToNumpy(filter.GetOutput())
 
     return outputVolume
 
