@@ -39,18 +39,19 @@ def differenceOfGaussians(volumeShape, sigma1, sigma2, amplitude1=1.0, amplitude
 
 
 def makeItkImage(dimensions, pixelType):
-    Dimension = 2
+
+    Dimension = len(dimensions)
     ImageType = itk.Image[pixelType, Dimension]
     
-    index = itk.Index[2]()
-    index.SetElement(0,0)
-    index.SetElement(1,0)
+    index = itk.Index[Dimension]()
+    for i in range(Dimension):
+        index.SetElement(i, 0)
     
-    size = itk.Size[2]()
-    size.SetElement(0, dimensions[0])
-    size.SetElement(1, dimensions[1])
+    size = itk.Size[Dimension]()
+    for i in range(Dimension):
+        size.SetElement(i, dimensions[i])
     
-    imageRegion = itk.ImageRegion[2]()
+    imageRegion = itk.ImageRegion[Dimension]()
     imageRegion.SetSize(size)
     imageRegion.SetIndex(index)
     
@@ -66,7 +67,48 @@ def makeItkImage(dimensions, pixelType):
     
     return image
 
+
 def numpyToItk(numpyArray):
+
+    Dimension = len(numpyArray.shape)
+
+    if Dimension == 2:
+        return numpyToItk2D(numpyArray)
+    elif Dimension == 3:
+        return numpyToItk3D(numpyArray)
+    else:
+        raise Exception,\
+         "Invalid dimension for numpyToItk: %d. Dimension should be 2 or 3" % Dimension
+
+
+def itkToNumpy(itkImage):
+
+    print dir(itkImage)
+    print dir(itkImage.__class__)
+    #Dimension = itkImage.GetImageDimension()
+    #print itkImage.__class__
+    
+    imageClass = itkImage.__class__
+    imagePointerClass2D = itk.Image[itk.F, 2].New().__class__
+    imagePointerClass3D = itk.Image[itk.F, 3].New().__class__
+    if imageClass == imagePointerClass2D:
+        Dimension = 2
+    elif imageClass == imagePointerClass3D:
+        Dimension = 3
+    else:
+        raise Exception, "invalid class %s needs to be %s or %s" %\
+            (imageClass, imagePointerClass2D, imagePointerClass3D)
+
+    if Dimension == 2:
+        return itkToNumpy2D(itkImage)
+    elif Dimension == 3:
+        return itkToNumpy3D(itkImage)
+    else:
+        raise Exception,\
+         "Invalid dimension for itkToNumpy: %d. Dimension should be 2 or 3" % Dimension
+
+
+def numpyToItk2D(numpyArray):
 
     itkImage = makeItkImage(numpyArray.shape, itk.F)
 
@@ -80,7 +122,7 @@ def numpyToItk(numpyArray):
     return itkImage
 
     
-def itkToNumpy(itkImage):
+def itkToNumpy2D(itkImage):
 
     region = itkImage.GetLargestPossibleRegion()
     size = region.GetSize()
@@ -93,6 +135,51 @@ def itkToNumpy(itkImage):
             index[0] = i
             index[1] = j
             numpyArray[i,j] = itkImage.GetPixel(index)
+
+    return numpyArray
+
+
+def numpyToItk3D(numpyArray):
+
+    itkImage = makeItkImage(numpyArray.shape, itk.F)
+
+    # create an index structure (initialize entries to None)
+    index = []
+    for i in range(len(numpyArray.shape)):
+        index.append(None)
+
+    for i in range(numpyArray.shape[0]):
+        for j in range(numpyArray.shape[1]):
+            for k in range(numpyArray.shape[2]):
+                index[0] = i
+                index[1] = j
+                index[2] = k
+                itkImage.SetPixel(index, numpyArray[i,j,k])
+
+    return itkImage
+
+    
+def itkToNumpy3D(itkImage):
+
+    region = itkImage.GetLargestPossibleRegion()
+    size = region.GetSize()
+    
+    numpyArray = zeros((size.GetElement(0),
+                        size.GetElement(1),
+                        size.GetElement(2)), dtype=float)
+
+    # create an index structure (initialize entries to None)
+    index = []
+    for i in range(len(numpyArray.shape)):
+        index.append(None)
+
+    for i in range(size.GetElement(0)):
+        for j in range(size.GetElement(1)):
+            for k in range(size.GetElement(2)):
+                index[0] = i
+                index[1] = j
+                index[2] = k
+                numpyArray[i,j,k] = itkImage.GetPixel(index)
 
     return numpyArray
 
@@ -240,6 +327,70 @@ def secondDerivatives2D(numpyArray2D):
 #    writer->SetFileName( outputFileName.c_str() );
 #    writer->Update();
 
+#def filterVolume2D(inputVolume, filterType, kernelSize=2):
+#
+#    InternalPixelType = itk.F
+#    Dimension = 2
+#    ImageType = itk.Image[InternalPixelType, Dimension]
+#    converter = itk.PyBuffer[ImageType]
+#    
+#    outputVolume = zeros(inputVolume.shape)
+#    
+#    for z in range(inputVolume.shape[2]):
+#        
+#        print "dilateVolume2D", z, "total", inputVolume.shape[2]
+#        
+#        array2d = inputVolume[:,:,z]
+#        #image2d = converter.GetImageFromArray(array2d)
+#        image2d = numpyToItk2D(array2d)
+#        dim = 2
+#        kernel = itk.strel(dim, kernelSize)
+#        
+#        if filterType == 'dilate':
+#            filter = itk.GrayscaleDilateImageFilter[ImageType, ImageType, kernel].New(
+#                            image2d, Kernel=kernel)
+#        elif filterType == 'erode':
+#            filter = itk.GrayscaleErodeImageFilter[ImageType, ImageType, kernel].New(
+#                            image2d, Kernel=kernel)
+#
+#        filter.Update()
+#        #outputVolume[:,:,z] = converter.GetArrayFromImage(dilateFilter.GetOutput())
+#        outputVolume[:,:,z] = itkToNumpy2D(filter.GetOutput())
+#
+#    return outputVolume
+
+
+def itkFilter(array, filterType, kernelSize=20, radius=1, sigma=1):
+
+    InternalPixelType = itk.F
+    Dimension = len(array.shape)
+    ImageType = itk.Image[InternalPixelType, Dimension]
+    
+    #image2d = converter.GetImageFromArray(array2d)
+    image = numpyToItk(array)
+    kernel = itk.strel(Dimension, kernelSize)
+    
+    if filterType == 'GrayscaleDilate':
+        filter = itk.GrayscaleDilateImageFilter[ImageType, ImageType, kernel].New(
+                        image, Kernel=kernel)
+    elif filterType == 'GrayscaleErode':
+        filter = itk.GrayscaleErodeImageFilter[ImageType, ImageType, kernel].New(
+                        image, Kernel=kernel)
+    elif filterType == 'Median':
+        filter = itk.MedianImageFilter[ImageType, ImageType].New(
+                        image, Radius=radius)
+    elif filterType == 'SmoothingRecursiveGaussian':
+        filter = itk.SmoothingRecursiveGaussianImageFilter[ImageType, ImageType].New(
+                        image, Sigma=sigma)
+    else:
+        raise Exception, "Invalid filter type: %s" % filterType
+
+    filter.Update()
+    #outputVolume[:,:,z] = converter.GetArrayFromImage(dilateFilter.GetOutput())
+
+    return itkToNumpy(filter.GetOutput())
+
+
 def filterVolume2D(inputVolume, filterType, kernelSize=2):
 
     InternalPixelType = itk.F
@@ -251,24 +402,10 @@ def filterVolume2D(inputVolume, filterType, kernelSize=2):
     
     for z in range(inputVolume.shape[2]):
         
-        print "dilateVolume2D", z, "total", inputVolume.shape[2]
+        print filterType, z, "total", inputVolume.shape[2]
         
         array2d = inputVolume[:,:,z]
-        #image2d = converter.GetImageFromArray(array2d)
-        image2d = numpyToItk(array2d)
-        dim = 2
-        kernel = itk.strel(dim, kernelSize)
-        
-        if filterType == 'dilate':
-            filter = itk.GrayscaleDilateImageFilter[ImageType, ImageType, kernel].New(
-                            image2d, Kernel=kernel)
-        elif filterType == 'erode':
-            filter = itk.GrayscaleErodeImageFilter[ImageType, ImageType, kernel].New(
-                            image2d, Kernel=kernel)
-
-        filter.Update()
-        #outputVolume[:,:,z] = converter.GetArrayFromImage(dilateFilter.GetOutput())
-        outputVolume[:,:,z] = itkToNumpy(filter.GetOutput())
+        outputVolume[:,:,z] = itkFilter(array2d, filterType, kernelSize=kernelSize)
 
     return outputVolume
 

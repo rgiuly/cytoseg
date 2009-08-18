@@ -1,11 +1,18 @@
+
+#from tree import Node
+
 # todo: make this a superclass of Particle class
 # (could call this AnnotatedPoint)
 
+from numpy import *
 
-
-class PointSet:
+#class PointSet(Node):
+class PointSet():
 #    def __init__(self, center=None, size=None, points=[], color=[100,0,0]):
     def __init__(self, center=None, size=None, points=None):
+        
+        #Node.__init__(self)
+        
         self._center = center
         self._size = size
         #self._points = points
@@ -126,7 +133,7 @@ class PointSet:
         for labeledPoint in self.points():
             total += labeledPoint.loc
 
-        return float(total) / float(numPoints())
+        return total / float(self.numPoints())
     
 
     def getXMLObject(self, doc, nodeName):
@@ -163,6 +170,16 @@ class Contour(PointSet):
     def __init__(self, center=None, size=None, points=None):
         PointSet.__init__(self, center, size, points)
         self.XMLTag = 'Contour'
-  
+
+
+
+class ProbabilityFilter():
+
+    def __init__(self, minimumRequiredProbability):
+        self.minimumRequiredProbability = minimumRequiredProbability
+
+    def isValid(self, node):
+        return node.valueToSave.probability() >= self.minimumRequiredProbability
+
 
 

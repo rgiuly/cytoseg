@@ -20,28 +20,23 @@
 
 
 import numpy
-
-
 from cytoseg_classify import *
 #from mitochondria import *
 from fill import *
-
-
 import sys
-
 from enthought.mayavi.scripts import mayavi2
-
 from default_path import *
-
 from contour_processing import *
-
 from xml.dom.minidom import Document
-
+#from pygraph import *
+from graph import *
 import os
+import colorsys
 
 
 
-def mitochondriaProbability(features):
+def mitochondriaProbability_old(features):
+
     amplitude = 1
     overlapValue = gaussian(1.0 - features['ellipseOverlap'], amplitude, 0.2)
     perimeterValue = gaussian(abs(250.0 - features['perimeter']), amplitude, 150)
@@ -50,7 +45,18 @@ def mitochondriaProbability(features):
     return overlapValue * perimeterValue * grayValueMatch * areaMatch
 
 
+def mitochondriaProbability(features):
+
+    amplitude = 1
+    overlapValue = gaussian(1.0 - features['ellipseOverlap'], amplitude, 0.2)
+    perimeterValue = gaussian(abs(81.0 - features['perimeter']), amplitude, 75)
+    grayValueMatch = gaussian(abs(1 - features['averageGrayValue']), amplitude, 0.25)
+    areaMatch = gaussian(abs(435 - math.sqrt(features['contourArea'])), amplitude, 300)
+    return overlapValue * perimeterValue * grayValueMatch * areaMatch
+
+
 def blankInnerCellProbability(features):
+
     amplitude = 1
     overlapValue = gaussian(1.0 - features['ellipseOverlap'], amplitude, 0.2)
     perimeterValue = gaussian(abs(250.0 - features['perimeter']), amplitude, 150)
@@ -60,6 +66,7 @@ def blankInnerCellProbability(features):
 
 
 def vesicleProbability(features):
+
     amplitude = 1
     overlapValue = gaussian(1.0 - features['ellipseOverlap'], amplitude, 0.2)
     perimeterValue = gaussian(abs(15 - features['perimeter']), amplitude, 5)
@@ -67,6 +74,20 @@ def vesicleProbability(features):
     areaMatch = gaussian(abs(70 - math.sqrt(features['contourArea'])), amplitude, 20)
     grayValueAtContourPointsMatch = gaussian(abs(160 - features['averageOriginalVolumeValueAtContourPoints']), amplitude, 160)
     return overlapValue * perimeterValue * grayValueMatch * areaMatch * grayValueAtContourPointsMatch
+
+
+def updateContourProbabilities(contoursGroupedByImage, probabilityFunction):
+
+    contourList = nonnullObjects(contoursGroupedByImage)
+    print "updateContourProbabilities"
+
+    for contour in contourList:
+
+        p = probabilityFunction(contour.features)
+        contour.setProbability(p)
+        print p
+        color = 255.0 * array((1.0 - (p * 10.0), (p * 10.0), 0))
+        contour.setColor(color)
 
 
 #def findContoursInVolume(gui, contourProbabilityFunction, originalVolumeName, filteredVolumeName, highProbabilityContoursNodeName):
@@ -121,7 +142,7 @@ def vesicleProbability(features):
 
 
 #@mayavi2.standalone
-def display3DContours(gui, inputVolumeName, highProbabilityContoursNodeName, displayParameters):
+def display3DContours(dataViewer, inputVolumeName, highProbabilityContoursNodeName, displayParameters):
     """Example showing how to view a 3D numpy array in mayavi2.
     """
     
@@ -142,7 +163,7 @@ def display3DContours(gui, inputVolumeName, highProbabilityContoursNodeName, dis
     # Make the data and add it to the pipeline.
     # todo: load this from the data tree of cytoseg
     #originalVolume = loadImageStack(driveName + "/images/HPFcere_vol/HPF_rotated_tif/median_then_gaussian_8bit", None)
-    originalVolume = gui.getPersistentVolume_old(inputVolumeName)
+    originalVolume = dataViewer.getPersistentVolume_old(inputVolumeName)
     #originalVolume = loadImageStack("O:/images/3D-blob-data/small_crop", None)
     #originalVolume = originalVolume[:,:,3:]
 
@@ -191,7 +212,7 @@ def display3DContours(gui, inputVolumeName, highProbabilityContoursNodeName, dis
     #ball = enthought_mlab.points3d(1, 1, 1, scale_factor=16, scale_mode='none', resolution=20, color=(1,0,0), name='ball')
 
     
-    node = gui.mainDoc.dataTree.getSubtree((highProbabilityContoursNodeName,))
+    node = dataViewer.mainDoc.dataTree.getSubtree((highProbabilityContoursNodeName,))
     #frm.refreshTreeControls()
     #contours = node.makeChildrenObjectList()
 
@@ -260,34 +281,110 @@ class CellComponentDetector:
 
         #contoursNode = frm.mainDoc.dataTree.getSubtree((highProbabilityContoursNodeName,))
         #contoursNode = frm.mainDoc.dataTree.getSubtree((contoursNodeName,))
-        contoursNode = self.gui.mainDoc.dataTree.getSubtree(pathToContoursNode)
-        originalVolume = self.gui.getPersistentVolume_old(self.originalVolumeName)
+        contoursNode = self.dataViewer.mainDoc.dataTree.getSubtree(pathToContoursNode)
+        originalVolume = self.dataViewer.getPersistentVolume_old(self.originalVolumeName)
         contourRenderingVolume = zeros(originalVolume.shape)
         contourProbabilityVolume = zeros(originalVolume.shape)
         tempVolume = array(originalVolume)
-        self.gui.renderPointSetsInVolumeRecursive(contourRenderingVolume, contoursNode)
-        self.gui.renderPointSetsInVolumeRecursive(contourProbabilityVolume, contoursNode,
-                                             useProbabilityForIntensity=True)
-        self.gui.renderPointSetsInVolumeRecursive(tempVolume, contoursNode)
-        self.gui.addVolume(contourRenderingVolume, 'ContourVolume')
-        self.gui.refreshTreeControls()
+        self.dataViewer.renderPointSetsInVolumeRecursive(contourRenderingVolume, contoursNode)
+        self.dataViewer.renderPointSetsInVolumeRecursive(contourProbabilityVolume, contoursNode,
+                                                  valueMode='probability')
+        self.dataViewer.renderPointSetsInVolumeRecursive(tempVolume, contoursNode)
+        self.dataViewer.addVolume(contourRenderingVolume, 'ContourVolume')
+        self.dataViewer.refreshTreeControls()
         writeTiffStackRGB(defaultOutputPath,
                           redVolume=contourRenderingVolume,
                           greenVolume=contourProbabilityVolume*6.0,
                           blueVolume=tempVolume)
 
 
-    def groupContours(self):
-        
-#        for contour1 in contoursGroupedByImage[i]:
-#            for contour2 in contoursGroupedByImage[i + 1]:
-#                edges.append(Edge(contourID1, contourID2))
+    def preclassificationFilter(self, dataViewer, numberOfLayersToProcess=None):
         pass
+        originalImageFilePath =\
+            "O:\images\HPFcere_vol\HPF_rotated_tif\padding_removed\8bit"
+
+        originalImageNodePath = ('Volumes', 'originalImage')
+
+        dataViewer.addVolumeAndRefreshDataTree(loadImageStack(originalImageFilePath, None),
+                                               voxelTrainingImageNodePath[1])
+
+        medianFilteredImage = itkFilter(originalImage, 'Median', radius=1)
+        blurredImage = itkFilter(medianFilteredImage, 'SmoothingRecursiveGaussian', sigma=1)
+
+
+    def classifyVoxels(self, dataViewer, numberOfLayersToProcess=None):
+        
+        voxelTrainingImageFilePath =\
+            "O:\\images\\HPFcere_vol\\HPF_rotated_tif\\three_compartment\\"
+        voxelTrainingLabelFilePath =\
+            "O:\\images\\HPFcere_vol\\HPF_rotated_tif\\three_compartment\\membrane_label_for_three_compartments\\"
+        #inputImageFilePath =\
+        #    driveName + "/images/HPFcere_vol/HPF_rotated_tif/median_then_gaussian_8bit"
+        exampleListFileName = os.path.join(cytosegDataFolder, "exampleList.tab")
+        
+        inputImage = self.dataViewer.getPersistentVolume_old(self.blurredVolumeName)
+
+        voxelTrainingImageNodePath = ('Volumes', 'voxelTrainingImage')
+        voxelTrainingLabelNodePath = ('Volumes', 'voxelTrainingLabel')
+        inputImageNodePath = ('Volumes', 'inputImage')
+    
+        dataViewer.addVolumeAndRefreshDataTree(loadImageStack(voxelTrainingImageFilePath, None),
+                                        voxelTrainingImageNodePath[1])
+    
+        dataViewer.addVolumeAndRefreshDataTree(loadImageStack(voxelTrainingLabelFilePath, None),
+                                        voxelTrainingLabelNodePath[1])
+        
+        #inputImage = loadImageStack(inputImageFilePath, None)
+        
+        if numberOfLayersToProcess != None:
+            inputImage = inputImage[:, :, 0:numberOfLayersToProcess]
+
+        dataViewer.addVolumeAndRefreshDataTree(inputImage, inputImageNodePath[1])
+    
+        # uses training data
+        print "learning features of training data"
+        dataViewer.learnFeaturesOfMembraneVoxels(voxelTrainingImageNodePath,
+                                          voxelTrainingLabelNodePath,
+                                          exampleListFileName)
+        
+        # uses test data, generates voxel probabilities
+        print "classifying voxels"
+        dataViewer.classifyVoxels('intermediateDataLabel1',
+                           self.filteredVolumeName,
+                           exampleListFileName,
+                           inputImageNodePath)
+
+
+    def groupContours(self, contoursGroupedByImage):
+        
+        #contourList = flattenTreeToNodes(contoursGroupedByImage)
+        contourList = nonnullObjectNodes(contoursGroupedByImage)
+
+        graph = Graph()
+        
+        for contour in contourList:
+            graph.add_node_object(contour)
+            #print contour.valueToSave.getAveragePointLocation()
+            print contour.name
+            contour.valueToSave.setColor((200, 100, 0))
+        
+        for imageIndex in range(len(contoursGroupedByImage.children) - 1):
+            for contourNode1 in contoursGroupedByImage.children[imageIndex].children:
+                contour1 = contourNode1.valueToSave
+                center1 = contour1.getAveragePointLocation()
+                for contourNode2 in contoursGroupedByImage.children[imageIndex + 1].children:
+                    contour2 = contourNode2.valueToSave
+                    center2 = contour2.getAveragePointLocation()
+                    if linalg.norm(center1 - center2) < 10.0:
+                        graph.add_edge(contourNode1.name, contourNode2.name)
+                    #print linalg.norm(center1 - center2)
+
+        return pygraph.algorithms.accessibility.connected_components(graph), graph
 
 
     def findBlobsMainFunction(self):
         
-        defaultStepNumber = 0
+        defaultStepNumber = -1
         #target = 'mitochondria'
         target = 'blankInnerCell'
         #target = 'vesicles'
@@ -295,7 +392,7 @@ class CellComponentDetector:
         displayParametersDict = {}
         displayParametersDict['mitochondria'] = ContourAndBlobDisplayParameters()
         displayParametersDict['mitochondria'].numberOfContoursToDisplay = 20
-        displayParametersDict['mitochondria'].contourProbabilityThreshold = 0.1
+        displayParametersDict['mitochondria'].contourProbabilityThreshold = 0
         displayParametersDict['blankInnerCell'] = ContourAndBlobDisplayParameters()
         displayParametersDict['blankInnerCell'].numberOfContoursToDisplay = 20
         displayParametersDict['blankInnerCell'].contourProbabilityThreshold = 0.1
@@ -304,8 +401,14 @@ class CellComponentDetector:
         displayParametersDict['vesicles'].contourSegmentTubeRadius = 0.1
         displayParametersDict['vesicles'].contourCenterMarkerSize = 0.5
         displayParametersDict['vesicles'].contourProbabilityThreshold = 0.27
+        
+        probabilityFunctionDict = {}
+        probabilityFunctionDict['mitochondria'] = mitochondriaProbability
+        probabilityFunctionDict['vesicles'] = vesicleProbability
+        probabilityFunctionDict['blankInnerCell'] = blankInnerCellProbability
         enable3DPlot = False
-        numberOfLayersToProcess = 5
+        numberOfLayersToProcess = 7
+        #numberOfLayersToProcess = None
         
         
         if len(sys.argv) < 2:
@@ -317,75 +420,93 @@ class CellComponentDetector:
         print "running step number", stepNumber
         
         app = wx.PySimpleApp()
-        self.gui = ClassificationControlsFrame(makeClassifyGUITree())
-        self.gui.Show()
+        self.dataViewer = ClassificationControlsFrame(makeClassifyGUITree())
+        self.dataViewer.Show()
         
         
         self.originalVolumeName = 'OriginalVolume'
-        blurredVolumeName = 'BlurredVolume'
-        filteredVolumeName = 'MembraneClassifierFilterVolume'
-        contoursNodeName = target + 'Contours'
+        self.blurredVolumeName = 'BlurredVolume'
+        self.filteredVolumeName = 'MembraneClassifierFilterVolume'
+        #contoursNodeName = target + 'Contours'
+        groupedContoursNodeName = target + 'ContoursGroupedByImage'
         highProbabilityContoursNodeName = target + 'HighProbabilityContours'
     
-        if target == 'mitochondria': fastMarchInputVolumeName = filteredVolumeName
+        if target == 'mitochondria': fastMarchInputVolumeName = self.filteredVolumeName
         elif target == 'vesicles': fastMarchInputVolumeName = self.originalVolumeName
         else: print "find_3d_blobs target error"
         
-        print "starting find"
-        if stepNumber == 0:
+
+        if stepNumber == -2:
+
+            self.classifyVoxels(self.dataViewer,
+                                numberOfLayersToProcess=numberOfLayersToProcess)
+
+
+        elif stepNumber == -1:
+
+            self.dataViewer.getPersistentVolume_old(self.filteredVolumeName)
+
+
+        #print "starting find"
+        elif stepNumber == 0:
+
+            #originalVolume = loadImageStack(driveName + "/images/HPFcere_vol/HPF_rotated_tif/median_then_gaussian_8bit", None)
+            #originalVolume = loadImageStack(driveName + "/images/HPFcere_vol/HPF_rotated_tif/8bit", None)
+            originalVolume = loadImageStack(driveName + "/images/HPFcere_vol/HPF_rotated_tif/padding_removed/8bit", None)
+            
+            #originalVolume = originalVolume[:,:,3:]
+            
+            self.dataViewer.addPersistentVolumeAndRefreshDataTree(originalVolume,
+                                                                  self.originalVolumeName)
+
+            detector = ContourDetector()
+            detector.probabilityFunction = probabilityFunctionDict[target]
+
     
             if (target == 'mitochondria') or (target == 'blankInnerCell'):
-                blurredVolume = loadImageStack(driveName + "/images/HPFcere_vol/HPF_rotated_tif/median_then_gaussian_8bit", None)
-                filteredVolume = loadImageStack(driveName + "/images/HPFcere_vol/HPF_rotated_tif/median_then_gaussian_8bit_classified_pixels/tif", None)
+                #blurredVolume = loadImageStack(driveName + "/images/HPFcere_vol/HPF_rotated_tif/median_then_gaussian_8bit", None)
+                #filteredVolume = loadImageStack(driveName + "/images/HPFcere_vol/HPF_rotated_tif/median_then_gaussian_8bit_classified_pixels/tif", None)
                 
                 #originalVolume = originalVolume[:,:,3:]
                 #filteredVolume = filteredVolume[:,:,3:]
                 
-                self.gui.addPersistentVolumeAndRefreshDataTree(blurredVolume, blurredVolumeName)
-                self.gui.addPersistentVolumeAndRefreshDataTree(filteredVolume, filteredVolumeName)
-            
-                detector = ContourDetector()
-    
+                self.dataViewer.addPersistentVolumeAndRefreshDataTree(blurredVolume, self.blurredVolumeName)
+                #self.dataViewer.addPersistentVolumeAndRefreshDataTree(filteredVolume, self.filteredVolumeName)
+
                 if numberOfLayersToProcess != None:
-                    detector.originalVolume = self.gui.getPersistentVolume_old(blurredVolumeName)\
+                    detector.originalVolume = self.dataViewer.getPersistentVolume_old(self.blurredVolumeName)\
                     [:, :, 0:numberOfLayersToProcess]
-                    detector.filteredVolume = self.gui.getPersistentVolume_old(filteredVolumeName)\
+                    detector.filteredVolume = self.dataViewer.getPersistentVolume_old(self.filteredVolumeName)\
                     [:, :, 0:numberOfLayersToProcess]
                 else:
-                    detector.originalVolume = self.gui.getPersistentVolume_old(blurredVolumeName)
-                    detector.filteredVolume = self.gui.getPersistentVolume_old(filteredVolumeName)
+                    detector.originalVolume = self.dataViewer.getPersistentVolume_old(self.blurredVolumeName)
+                    detector.filteredVolume = self.dataViewer.getPersistentVolume_old(self.filteredVolumeName)
     
                 #detector.originalVolume = frm.getPersistentVolume_old(blurredVolumeName)
                 if target == 'mitochondria':
-                    detector.probabilityFunction = mitochondriaProbability
+                    #detector.probabilityFunction = mitochondriaProbability
                     detector.filteredVolume = filterVolume2D(detector.filteredVolume,
                                                             'erode', kernelSize=4)
                 elif target == 'blankInnerCell':
-                    detector.probabilityFunction = blankInnerCellProbability
+                    #detector.probabilityFunction = blankInnerCellProbability
                     detector.filteredVolume = filterVolume2D(detector.filteredVolume,
-                                                             'dilate', kernelSize=4)
+                                                             'GrayscaleDilate',
+                                                             kernelSize=4)
                 else:
                     raise Exception, "Invalid target"
                 #detector.filteredVolume = frm.getPersistentVolume_old(filteredVolumeName)
     
             elif target == 'vesicles':
-                #originalVolume = loadImageStack(driveName + "/images/HPFcere_vol/HPF_rotated_tif/median_then_gaussian_8bit", None)
-                #originalVolume = loadImageStack(driveName + "/images/HPFcere_vol/HPF_rotated_tif/8bit", None)
-                originalVolume = loadImageStack(driveName + "/images/HPFcere_vol/HPF_rotated_tif/padding_removed/8bit", None)
-                
-                #originalVolume = originalVolume[:,:,3:]
-                
-                self.gui.addPersistentVolumeAndRefreshDataTree(originalVolume, self.originalVolumeName)
             
                 detector = ContourDetector()
-                fullVolume = self.gui.getPersistentVolume_old(self.originalVolumeName)
+                fullVolume = self.dataViewer.getPersistentVolume_old(self.originalVolumeName)
     
                 if numberOfLayersToProcess != None:
                     detector.originalVolume = fullVolume[:, :, 0:numberOfLayersToProcess]
                 else:
                     detector.originalVolume = fullVolume
     
-                detector.probabilityFunction = vesicleProbability
+                #detector.probabilityFunction = vesicleProbability
                 detector.contourFilterFunction2D = greaterThanSurroundingPixelsFilter
                 detector.minPerimeter = 1
                 detector.maxPerimeter = 50
@@ -395,48 +516,110 @@ class CellComponentDetector:
     
     
             contoursGroupedByImage = detector.findContours()
-            contours = flattenTree(contoursGroupedByImage)
+            contoursGroupedByImage.name = groupedContoursNodeName
+            #contours = flattenTree(contoursGroupedByImage)
             
             # add a node for all detected contours
-            contoursNode = DataNode(contoursNodeName, 'contours node type', {}, None)
-            contoursNode.addObjectList(contours)
-            contoursNode.enableRecursiveRendering = False
-            self.gui.addPersistentSubtreeAndRefreshDataTree((), contoursNode)
-            saveBlobsToJinxFile(contoursNode)
+            #contoursNode = DataNode(contoursNodeName, 'contours node type', {}, None)
+            #contoursNode.addObjectList(contours)
+            #contoursNode.enableRecursiveRendering = False
+            #self.gui.addPersistentSubtreeAndRefreshDataTree((), contoursNode)
+            self.dataViewer.addPersistentSubtreeAndRefreshDataTree((), contoursGroupedByImage)
+            #saveBlobsToJinxFile(contoursNode)
 
             # write contours to an image stack for viewing
-            self.writeContoursToImageStack((contoursNodeName,))
-    
-    
+            #self.writeContoursToImageStack((contoursNodeName,))
+            self.writeContoursToImageStack((groupedContoursNodeName,))
+
+
         elif stepNumber == 1:
-    
-            # threshold by probability then add a node for the high probability contours
-    
-            allContoursNode = self.gui.mainDoc.dataTree.getSubtree((contoursNodeName,))
-            allContours = allContoursNode.makeChildrenObjectList()
-            highProbabilityContoursNode = DataNode(highProbabilityContoursNodeName, 'contours node type', {}, None)
-            highProbabilityContoursNode.addObjectList(highProbabilityContours(allContours, displayParametersDict[target].contourProbabilityThreshold))
-            highProbabilityContoursNode.enableRecursiveRendering = False
-            self.gui.addPersistentSubtreeAndRefreshDataTree((), highProbabilityContoursNode)
-            self.gui.getPersistentVolume_old(self.originalVolumeName)
-            self.gui.refreshTreeControls()
+
+            # - calculate probabilities
+            # - threshold by probability
+            # - add a node for the high probability contours
+
+            allContoursNode = self.dataViewer.mainDoc.dataTree.getSubtree((groupedContoursNodeName,))
+            #allContours = allContoursNode.makeChildrenObjectList()
+            #highProbabilityContoursNode = DataNode(highProbabilityContoursNodeName, 'contours node type', {}, None)
+            #highProbabilityContoursNode.addObjectList(highProbabilityContours(allContours, displayParametersDict[target].contourProbabilityThreshold))
+            #highProbabilityContoursNode.enableRecursiveRendering = False
+
+            updateContourProbabilities(allContoursNode,
+                                       probabilityFunctionDict[target])
+
+            #todo: this should filter the tree not just copy it
+            threshold = displayParametersDict[target].contourProbabilityThreshold
+            highProbabilityContoursNode = copyTree(allContoursNode,
+                                                   ProbabilityFilter(threshold))
+            #highProbabilityContoursNode = copyTree(allContoursNode)
+            highProbabilityContoursNode.name = highProbabilityContoursNodeName
+ 
+            self.dataViewer.addPersistentSubtreeAndRefreshDataTree((), highProbabilityContoursNode)
+            self.dataViewer.getPersistentVolume_old(self.originalVolumeName)
+            self.dataViewer.refreshTreeControls()
 
             # write contours to an image stack for viewing
             self.writeContoursToImageStack((highProbabilityContoursNodeName,))
     
         
         elif stepNumber == 2:
-            self.groupContours()
+            
+            contoursGroupedByImage = self.dataViewer.mainDoc.dataTree.getSubtree(
+                                      (groupedContoursNodeName,)) 
+            updateContourProbabilities(contoursGroupedByImage,
+                                       probabilityFunctionDict[target])
+            connectedComponents, graph = self.groupContours(contoursGroupedByImage)
+            
+            #count = 0
+            s = 0.5
+            v = 0.5
+            
+            print connectedComponents
+            
+            for nodeNameKey in connectedComponents:
+                #nodeName = connectedComponents[key]
+                attributes = graph.node_attributes(nodeNameKey)
+                contourNode = attributes[0]
+                #h = 0.05 * count
+                h = 0.05 * connectedComponents[nodeNameKey]
+                print contourNode.valueToSave.color()
+                print "h", h, "s", s, "v", v
+                h = remainder(h, 1.0)
+                contourNode.valueToSave.setColor(255.0 * array(colorsys.hsv_to_rgb(h, s, v)))
+                #contourNode.valueToSave.setColor((200, 200, 200))
+                #count += 1
+
+            originalVolume = self.dataViewer.getPersistentVolume_old(self.originalVolumeName)
+            contourRenderingVolume = zeros((originalVolume.shape[0],
+                                            originalVolume.shape[1],
+                                            originalVolume.shape[2],
+                                            3))
+
+            self.dataViewer.renderPointSetsInVolumeRecursive(contourRenderingVolume,
+                                                      contoursGroupedByImage,
+                                                      valueMode='RGB')
+
+#            writeTiffStackRGB(os.path.join(defaultOutputPath, "rgb"),
+#                              contourRenderingVolume[:, :, :, 0],
+#                              contourRenderingVolume[:, :, :, 1],
+#                              contourRenderingVolume[:, :, :, 2])
+
+            originalVolumeDark = originalVolume * 0.5
+
+            writeTiffStackRGB(os.path.join(defaultOutputPath, "rgb"),
+                              contourRenderingVolume[:, :, :, 0] + originalVolumeDark,
+                              contourRenderingVolume[:, :, :, 1] + originalVolumeDark,
+                              contourRenderingVolume[:, :, :, 2] + originalVolumeDark)
 
 
         elif stepNumber == 3:
     
             # use GUI to display high probability contours
     
-            if enable3DPlot: display3DContours(self.gui, self.originalVolumeName, highProbabilityContoursNodeName,
+            if enable3DPlot: display3DContours(self.dataViewer, self.originalVolumeName, highProbabilityContoursNodeName,
                                                 displayParametersDict[target])
-            self.gui.mainDoc.dataTree.getSubtree((highProbabilityContoursNodeName,))
-            self.gui.refreshTreeControls()
+            self.dataViewer.mainDoc.dataTree.getSubtree((highProbabilityContoursNodeName,))
+            self.dataViewer.refreshTreeControls()
     
     
         elif stepNumber == 4:
@@ -444,10 +627,10 @@ class CellComponentDetector:
             # perform 3D shell active contour to detect 3D blobs
     
             if enable3DPlot:
-                display3DContours(self.gui, self.originalVolumeName, highProbabilityContoursNodeName,
+                display3DContours(self.dataViewer, self.originalVolumeName, highProbabilityContoursNodeName,
                                     displayParametersDict[target])
     
-            fillAndDisplayResults(self.gui, fastMarchInputVolumeName,
+            fillAndDisplayResults(self.dataViewer, fastMarchInputVolumeName,
                                        highProbabilityContoursNodeName,
                                        displayParametersDict[target],
                                        enable3DPlot,
@@ -457,11 +640,11 @@ class CellComponentDetector:
     
             # write 3D blobs to an XML file and into a stack of tiffs for viewing
     
-            self.gui.mainDoc.dataTree.readSubtree(('Blobs',))
-            saveBlobsToJinxFile(self.gui.mainDoc.dataTree.getSubtree(('Blobs',)))
-            original = self.gui.getPersistentVolume_old(self.originalVolumeName)
-            allBlobs = self.gui.getPersistentVolume_old(fastMarchInputVolumeName + 'AllFastMarchBlobs')
-            self.gui.refreshTreeControls()
+            self.dataViewer.mainDoc.dataTree.readSubtree(('Blobs',))
+            saveBlobsToJinxFile(self.dataViewer.mainDoc.dataTree.getSubtree(('Blobs',)))
+            original = self.dataViewer.getPersistentVolume_old(self.originalVolumeName)
+            allBlobs = self.dataViewer.getPersistentVolume_old(fastMarchInputVolumeName + 'AllFastMarchBlobs')
+            self.dataViewer.refreshTreeControls()
             writeTiffStackRGB(defaultOutputPath,
                               #redVolume=rescale(allBlobs, 0, 255.0),
                               redVolume = (allBlobs > 0) * 255.0,
@@ -469,7 +652,7 @@ class CellComponentDetector:
                               blueVolume=None)
     
     
-        print "finished find"
+        print "finished step"
         app.MainLoop()
 
 

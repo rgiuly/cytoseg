@@ -6,23 +6,63 @@ class NodeDoesNotExist(Exception):
 
 
 
-class Node:
-
-    def __init__(self, name):
-        self.name = name
+#class Node:
+#    
+#    count = 0
+#
+#    def __init__(self, name=None):
+#        
+#        if name != None:
+#            self.name = name
+#        else:
+#            self.name = 'node' + str(Node.count)
+#        
+#        self.children = [] # this should really be only in GroupNode and not in Node
+#        self.valueToSave = None # this should really be only in DataNode and not in Node
+#        self.enableRecursiveRendering = False # this should really be only in GroupNode and not in Node
+#        
+#        Node.count += 1
 
 
 
 # node with a list of children
 
-class GroupNode(Node):
-    
-    def __init__(self, name):
+#class GroupNode(Node):
+#class GroupNode():
+class Node():
 
-        Node.__init__(self, name)
-        self.children = []
-        self.enableRecursiveRendering = True
+#    def __init__(self, name):
+#
+#        Node.__init__(self, name)
+#        #self.children = []
+#        self.enableRecursiveRendering = True
     
+
+    count = 0
+
+    def __init__(self, name=None):
+        
+        if name != None:
+            self.name = name
+        else:
+            self.name = 'node' + str(GroupNode.count)
+        
+        self.children = []
+        self.valueToSave = None
+        self.enableRecursiveRendering = True
+        self.isGroupNode = False
+        
+        #Node.count += 1
+        GroupNode.count += 1
+
+
+    def shallowCopy(self):
+        
+        nodeCopy = GroupNode(self.name)
+        nodeCopy.valueToSave = self.valueToSave
+        nodeCopy.enableRecursiveRendering = self.enableRecursiveRendering
+        return nodeCopy
+
 
     # shows children of node
     def __str__(self):
@@ -34,6 +74,9 @@ class GroupNode(Node):
     
     def addChild(self, node):
         self.children.append(node)
+
+#    def hasChildren(self):
+#        return len(self.children) == 0
 
     def insertChildAt(self, node, index):
         self.children.insert(index, node)
@@ -81,6 +124,14 @@ class GroupNode(Node):
         else:
             self.children.remove(childToRemove)
 
+
+
+class GroupNode(Node):
+
+    def __init__(self, name=None):
+
+        Node.__init__(self, name)
+        self.isGroupNode = True
 
 
 
@@ -191,6 +242,7 @@ def makeFilenameFromNodePath(nodePath):
     extension = ".pickle"
     return baseFilename + extension
 
+
 def createPathIfNeeded(rootNode, nodePath):
 
     currentNode = rootNode
@@ -203,20 +255,110 @@ def createPathIfNeeded(rootNode, nodePath):
             currentNode = currentNode.getChild(name)
 
 
-def flattenTree(inputRootNode):
+#def flattenTree(inputRootNode):
+#    
+#    resultList = []
+#    flattenTreeHelper(inputRootNode, resultList)
+#    return resultList
+#
+#
+#def flattenTreeHelper(object, resultList):
+#
+##    if isinstance(object, GroupNode):
+##        for o in object.children:
+##            flattenTreeHelper(o, resultList)
+##    else:
+##        resultList.append(object.valueToSave)
+#    for o in object.children:
+#        flattenTreeHelper(o, resultList)
+
+
+#def leafObjects(inputRootNode):
+#    
+#    resultList = []
+#    leafObjectsHelper(inputRootNode, resultList)
+#    return resultList
+#
+#
+#def leafObjectsHelper(node, resultList):
+#
+#    if node.hasChildren():
+#        for childNode in node.children:
+#            leafObjectsHelper(childNode, resultList)
+#    else:
+#        resultList.append(node.valueToSave)
+
+
+def nonnullObjects(inputRootNode):
     
     resultList = []
-    flattenTreeHelper(inputRootNode, resultList)
+    nonnullObjectsHelper(inputRootNode, resultList)
     return resultList
 
 
-def flattenTreeHelper(object, resultList):
+def nonnullObjectsHelper(node, resultList):
+    
+    if node.valueToSave != None:
+        resultList.append(node.valueToSave)
 
-    if isinstance(object, GroupNode):
-        for o in object.children:
-            flattenTreeHelper(o, resultList)
-    else:
-        resultList.append(object)
+    for childNode in node.children:
+        nonnullObjectsHelper(childNode, resultList)
+
+
+def nonnullObjectNodes(inputRootNode):
+    
+    resultList = []
+    nonnullObjectNodesHelper(inputRootNode, resultList)
+    return resultList
+
+
+def nonnullObjectNodesHelper(node, resultList):
+    
+    if node.valueToSave != None:
+        resultList.append(node)
+
+    for childNode in node.children:
+        nonnullObjectNodesHelper(childNode, resultList)
+
+
+#def flattenTreeToNodes(inputRootNode):
+#
+#    resultList = []
+#    flattenTreeToNodesHelper(inputRootNode, resultList)
+#    return resultList
+#
+#
+#def flattenTreeToNodesHelper(object, resultList):
+#
+#    if isinstance(object, GroupNode):
+#        for o in object.children:
+#            flattenTreeToNodesHelper(o, resultList)
+#    else:
+#        resultList.append(object)
+
+
+def copyTree(node, filter=None):
+    
+    newNode = node.shallowCopy()
+    copyTreeHelper(node, newNode, filter)
+    return newNode
+
+
+def copyTreeHelper(node, newNode, filter):
+
+    for child in node.children:
+        
+        print child
+        print child.name
+        print child.valueToSave
+        print child.isGroupNode
+
+        if child.isGroupNode or (filter == None) or (filter.isValid(child) == True):
+
+            newChild = child.shallowCopy()
+            newNode.addChild(newChild)
+
+            copyTreeHelper(child, newChild, filter)
 
 
 # represents a piece of data

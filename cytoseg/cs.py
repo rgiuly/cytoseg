@@ -28,7 +28,6 @@
 #set up just a simple gradient test image
 
 #http://www.pygame.org/docs/tut/intro/intro.html 
-from numpy import *
 import numpy
 import sys
 #import pygame
@@ -44,7 +43,8 @@ import wx
 
 import cPickle
 
-import copy
+#import copy
+import copy as copy_module
 
 
 #if len(sys.argv) <= 1:
@@ -212,7 +212,7 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
                           size=(800, 800))
         
         self.Move((750,100))
-        self.SetSize((400,200))
+        self.SetSize((400, 400))
         
         self.Bind(wx.EVT_CLOSE, self.onExit)
                 
@@ -1646,7 +1646,7 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
                 #print os.path.join(dialog.GetPath(), "file")
                 for i in range(v.shape[2]):
                     filename = os.path.join(dialog.GetPath(), "out%04d.bmp" % i)
-                    box = copy.deepcopy(self.cornersOf3DWindow())
+                    box = copy_module.deepcopy(self.cornersOf3DWindow())
                     box.cornerA[2] = i
                     box.cornerB[2] = i
                     bitmap = self.makeXYView(v, None, box)
@@ -1686,6 +1686,12 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
 
     def onDisplayXYView(self, event):
         self.displayXYView(self.getCurrentVolume(), None)
+
+
+    def onPrintCurrentPointSet(self, event):
+        print self.getCurrentBlob()
+        print "features", self.getCurrentBlob().features
+        print "probability", self.getCurrentBlob().probability()
 
     
     def onPrintValuesXYView(self, event):
@@ -2013,17 +2019,18 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
                 self.drawBlobsRecursive(child, dc, z)
 
 
-    def renderPointSetsInVolumeRecursive(self, volume, dataNode,
-                                         useProbabilityForIntensity=False):
+    def renderPointSetsInVolumeRecursive(self, volume, dataNode, valueMode='constant'):
         
         if isinstance(dataNode.valueToSave, PointSet):
             pointSet = dataNode.valueToSave
-            useThreshold = self.getValue(('particleMotionTool', 'useFacesProbabilityThreshold'))
-            if not(useThreshold) or numpy.log(pointSet.probability()) >= self.facesProbabilityThreshold():
-                renderPointSetInVolume(volume, pointSet, useProbabilityForIntensity)
+            useThreshold = self.getValue(('particleMotionTool',
+                                          'useFacesProbabilityThreshold'))
+            if not(useThreshold) or \
+                numpy.log(pointSet.probability()) >= self.facesProbabilityThreshold():
+                renderPointSetInVolume(volume, pointSet, valueMode)
         
         for child in dataNode.children:
-            self.renderPointSetsInVolumeRecursive(volume, child, useProbabilityForIntensity)
+            self.renderPointSetsInVolumeRecursive(volume, child, valueMode)
 
 
     # draws blob on an XY plane
@@ -2067,15 +2074,21 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
                  dc.DrawRectangle(x - offset*1, y - offset*1, offset*2, offset*2)
                      
     
-def renderPointSetInVolume(volume, pointSet, useProbabilityForIntensity):
+def renderPointSetInVolume(volume, pointSet, valueMode):
     
     for labeledPoint in pointSet.points():
         loc = labeledPoint.loc
 
-        if useProbabilityForIntensity:
-            volume[loc[0], loc[1], loc[2]] = pointSet.probability() * 255.0 * 6.0
-        else:
+        if valueMode == 'constant':
             volume[loc[0], loc[1], loc[2]] = 255
+        elif valueMode == 'probability':
+            volume[loc[0], loc[1], loc[2]] = min(pointSet.probability() * 255.0 * 6.0,
+                                                 255.0)
+        elif valueMode == 'RGB':
+            for colorIndex in range(3):
+                volume[loc[0], loc[1], loc[2], colorIndex] = pointSet.color()[colorIndex]
+        else:
+            raise Exception, "Invalid valueMode"
 
 
 adjacentOffsets = [array([-1, -1, +1]),
@@ -2112,7 +2125,7 @@ adjacentOffsets = [array([-1, -1, +1]),
 
 def insideLimits(shape, point):
     # todo: add a check to make sure the point has the type that it should have
-    newPoint = copy.deepcopy(point)
+    newPoint = copy_module.deepcopy(point)
     for coordinateIndex in range(0, len(point)):
         if newPoint[coordinateIndex] >= shape[coordinateIndex]:
             newPoint[coordinateIndex] = shape[coordinateIndex]
@@ -2122,7 +2135,7 @@ def insideLimits(shape, point):
         
 
 def appendToNewListAndReturnList(list, element):
-    newList = copy.deepcopy(list)
+    newList = copy_module.deepcopy(list)
     newList.append(element)
     return newList
 
@@ -2168,6 +2181,7 @@ def makeDefaultGUITree():
     particleMotionToolNode = DataNode("particleMotionTool","group",{'caption' : 'particleMotionTool', 'position' : (100,100), 'size' : (650,800)},None)
     particleMotionToolNode.addChildren((
                     DataNode("displayXYView","button",{'caption' : 'displayXYView'},'onDisplayXYView'),
+                    DataNode("printCurrentPointSet","button",{'caption' : 'printCurrentPointSet'},'onPrintCurrentPointSet'),
                     DataNode("saveBlobsToOBJFile","button",{'caption' : 'saveBlobsToOBJFile'},'onSaveBlobsToOBJFile'),
                     DataNode("printValuesXYView","button",{'caption' : 'printValuesXYView'},'onPrintValuesXYView'),
                     DataNode("makeNewSubgroup","button",{'caption' : 'Make New Subgroup'},'onMakeNewSubgroup'),
