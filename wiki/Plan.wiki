@@ -7,6 +7,7 @@ Cytoseg should serve to reduce the overhead in experimenting with algorithms for
 = Flow Chart =
 
 http://code.google.com/p/cytoseg/source/browse/trunk/cytoseg/docs/flow_chart.png
+http://cytoseg.googlecode.com/svn/wiki/cytoseg_screenshot.png
 
 = Pixel Level Filtering Modules =
 
