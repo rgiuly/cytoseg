@@ -20,20 +20,35 @@ def mainFunction():
     
     voxelTrainingImageFilePath = "data/membrane_training/image"
     voxelTrainingLabelFilePath = "data/membrane_training/label"
-    inputImageFilePath = "data/membrane"
+    inputImageFilePath = "data/membrane_small_original"
     exampleListFileName = os.path.join(cytosegDataFolder, "exampleList.tab")
     
+    voxelTrainingImageNodePath = ('Volumes', 'voxelTrainingImage')
+    voxelTrainingLabelNodePath = ('Volumes', 'voxelTrainingLabel')
+    inputImageNodePath = ('Volumes', 'inputImage')
+
+    gui.addVolumeAndRefreshDataTree(loadImageStack(voxelTrainingImageFilePath, None),
+                                    voxelTrainingImageNodePath[1])
+
+    gui.addVolumeAndRefreshDataTree(loadImageStack(voxelTrainingLabelFilePath, None),
+                                    voxelTrainingLabelNodePath[1])
+    
+    gui.addVolumeAndRefreshDataTree(loadImageStack(inputImageFilePath, None),
+                                    inputImageNodePath[1])
+
     # uses training data
     print "learning features of training data"
-    gui.learnFeaturesOfMembraneVoxels(voxelTrainingImageFilePath, voxelTrainingLabelFilePath, exampleListFileName)
+    gui.learnFeaturesOfMembraneVoxels(voxelTrainingImageNodePath,
+                                      voxelTrainingLabelNodePath,
+                                      exampleListFileName)
     
     # uses test data, generates voxel probabilities
     print "classifying voxels"
-    gui.classifyVoxels('intermediateDataLabel1', 'outputDataLabel1', exampleListFileName, inputImageFilePath)
+    gui.classifyVoxels('intermediateDataLabel1',
+                       'outputDataLabel1',
+                       exampleListFileName,
+                       inputImageNodePath)
     
-    numpyArray = loadImageStack("data/3D-blob-data", None)
-    
-    gui.addVolumeAndRefreshDataTree(numpyArray, "numpyArray")
     
 
 

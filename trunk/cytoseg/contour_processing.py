@@ -98,11 +98,13 @@ class ContourDetector:
 
     def findContours(self):
         
-        contoursGroupedByImage = self.opencvDetectContours()
-        contourList = flattenTree(contoursGroupedByImage)
+        self.contoursGroupedByImage = self.opencvDetectContours()
+        contourList = nonnullObjects(self.contoursGroupedByImage)
         
         # compute the average original volume value at contour points
         for contour in contourList:
+            
+            #contour = contourNode.valueToSave
             total = 0
             for labeledPoint in contour.points():
                 loc = labeledPoint.loc
@@ -110,13 +112,8 @@ class ContourDetector:
             average = float(total) / float(len(contour.points()))
             #print "average at the contour", average
             contour.features['averageOriginalVolumeValueAtContourPoints'] = average
-            
-            p = self.probabilityFunction(contour.features)
-            contour.setProbability(p)
-            color = 255.0 * array((1.0 - (p * 10.0), (p * 10.0), 0))
-            contour.setColor(color)
         
-        return contoursGroupedByImage
+        return self.contoursGroupedByImage
 
 
     def opencvDetectContours(self):
@@ -289,7 +286,9 @@ class ContourDetector:
     
                     contourObject = Contour(points=pointList)
                     #contourObject = Blob(points=pointList)
-                    contoursInImage.addChild(contourObject)
+                    contourNode = Node()
+                    contourNode.valueToSave = contourObject
+                    contoursInImage.addChild(contourNode)
                     
                     #print c
                     if c.v_next != None: print "c.v_next", c.v_next

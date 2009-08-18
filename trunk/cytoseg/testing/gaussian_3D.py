@@ -10,6 +10,9 @@ frm.Show()
 numpyArray = loadImageStack("data/3D-blob-data", None)
 
 frm.addVolumeAndRefreshDataTree(numpyArray, 'numpyArray')
-frm.addVolumeAndRefreshDataTree(filterVolume2D(numpyArray, 'dilate'), 'dilate')
+frm.addVolumeAndRefreshDataTree(itkFilter(numpyArray,
+                                           'SmoothingRecursiveGaussian',
+                                           sigma=1),
+                                          'SmoothingRecursiveGaussian')
 
 app.MainLoop()
