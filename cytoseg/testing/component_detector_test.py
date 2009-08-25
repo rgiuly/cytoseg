@@ -12,7 +12,7 @@ else:
     stepNumber = int(sys.argv[1])    
 
 cellComponentDetector = CellComponentDetector(
-    originalImageFilePath="O:/images/Eric_07-10-09/normalized_tiff_files/cropped_stack/8bit",
+    originalImageFilePath="data/sbfsem",
     voxelTrainingImageFilePath="data/sbfsem_training/images",
     voxelTrainingLabelFilePath="data/sbfsem_training/label")
 
