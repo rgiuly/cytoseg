@@ -40,7 +40,7 @@ class Node():
 
     count = 0
 
-    def __init__(self, name=None):
+    def __init__(self, name=None, valueToSave=None):
         
         if name != None:
             self.name = name
@@ -48,7 +48,7 @@ class Node():
             self.name = 'node' + str(GroupNode.count)
         
         self.children = []
-        self.valueToSave = None
+        self.valueToSave = valueToSave
         self.enableRecursiveRendering = True
         self.isGroupNode = False
         
@@ -125,6 +125,17 @@ class Node():
             self.children.remove(childToRemove)
 
 
+    def __setstate__(self, dict):
+        self.__dict__ = dict
+        self.guiComponent = None
+    
+    
+    def __getstate__(self):
+        result = self.__dict__.copy()
+        del result['guiComponent']
+        return result
+
+
 
 class GroupNode(Node):
 
@@ -143,7 +154,9 @@ class PersistentDataTree:
 
     # pathToNode identifies the node to be saved
     def writeSubtree(self, pathToSubtree):
+        #print pathToSubtree
         node = getNode(self.rootNode, pathToSubtree)
+        #print node
         filename = makeFilenameFromNodePath(pathToSubtree)
         f = open(os.path.join(self.rootFolderPath, filename), "wb")
         #cPickle.dump(node, f)
@@ -374,17 +387,6 @@ class DataNode(GroupNode):
         self.valueToSave = valueToSave
         self.guiComponent = None
 
-
-    def __setstate__(self, dict):
-        self.__dict__ = dict
-        self.guiComponent = None
-    
-    
-    def __getstate__(self):
-        result = self.__dict__.copy()
-        del result['guiComponent']
-        return result
-        
 
     def get(self):
         self.valueToSave = self.guiComponent.GetValue()  #todo: you should really always use set method so this should not be necessary 

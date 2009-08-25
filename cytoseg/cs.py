@@ -180,12 +180,12 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
 
         # initialize data tree
         self.mainDoc.dataRootNode.addChildren((
-                    DataNode('Volumes', 'type of node', None, None),
-                    DataNode('Blobs', 'type of node', None, None)))
+                    GroupNode('Volumes'),
+                    GroupNode('Blobs')))
         volumesNode = getNode(self.mainDoc.dataRootNode, ('Volumes',))
         volumesNode.addChildren((
-                    DataNode('test volume 1', 'type of node', None, sampleVolumes[0]),
-                    DataNode('test volume 2', 'type of node', None, sampleVolumes[1])))
+                    Node('test volume 1', valueToSave=sampleVolumes[0]),
+                    Node('test volume 2', valueToSave=sampleVolumes[1])))
         #self.selectedDataTreeControlItem = None
         blobsNode = getNode(self.mainDoc.dataRootNode, ('Blobs',))
         testBlob = Blob()
