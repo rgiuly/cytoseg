@@ -94,6 +94,7 @@ class ContourDetector:
         self.contourFilterFunction2D = None
         self.minPerimeter = 0
         self.maxPerimeter = None
+        self.threshold = 0.5
 
 
     def findContours(self):
@@ -196,7 +197,7 @@ class ContourDetector:
                         #cvmSet(binaryImage, i, j, int(numpyArrayFilteredImage[i,j])) # this is setting the data incorrectly like it thinks the size of the entry is something other than 8 bits, maybe it thinks 32 bits
             
                         #binaryImage[i,j] = int(numpyArrayFilteredImage[j,i])
-                        if numpyArrayFilteredImage[j,i] > 100:
+                        if numpyArrayFilteredImage[j,i] > self.threshold:
                             binaryImage[i,j] = 1
     
             elif contourFilterFunction2D != None:

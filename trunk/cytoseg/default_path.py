@@ -27,6 +27,8 @@ if hostname == "panther":
         #defaultPath = ""
         
         defaultOutputPath = "O:\\temp\\output\\" 
+
+
 elif hostname == "user-desktop":
         driveName = "/media/blackshiny"
         cytosegDataFolder = "/media/shared/cytoseg_data"
