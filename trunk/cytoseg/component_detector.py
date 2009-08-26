@@ -538,8 +538,8 @@ class CellComponentDetector:
         self.probabilityFunctionDict['vesicles'] = vesicleProbability
         self.probabilityFunctionDict['blankInnerCell'] = blankInnerCellProbability
         enable3DPlot = False
-        numberOfLayersToProcess = 7
-        #numberOfLayersToProcess = None
+        #numberOfLayersToProcess = 7
+        numberOfLayersToProcess = None
         
         
         #if len(sys.argv) < 2:
