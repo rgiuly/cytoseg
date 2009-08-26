@@ -482,7 +482,8 @@ class CellComponentDetector:
 
             # write contours to an image stack for viewing
             #self.writeContoursToImageStack((contoursNodeName,))
-            self.writeContoursToImageStack((self.groupedContoursNodeName,))
+            #self.writeContoursToImageStack((self.groupedContoursNodeName,))
+            self.writeContoursToImageStack(self.contoursNodePath)
 
 
     def groupContours(self, contoursGroupedByImage):
@@ -558,7 +559,7 @@ class CellComponentDetector:
         self.blurredVolumeName = 'BlurredVolume'
         self.filteredVolumeName = 'MembraneClassifierFilterVolume'
         #contoursNodeName = target + 'Contours'
-        self.groupedContoursNodeName = self.target + 'ContoursGroupedByImage'
+        #self.groupedContoursNodeName = self.target + 'ContoursGroupedByImage'
         highProbabilityContoursNodeName = self.target + 'HighProbabilityContours'
     
         if self.target == 'mitochondria': fastMarchInputVolumeName = self.filteredVolumeName
