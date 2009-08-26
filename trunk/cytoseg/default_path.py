@@ -3,7 +3,7 @@ import os
 
 
 from socket import gethostname; hostname = gethostname()
-if hostname == "panther":
+if hostname == "panther_invalid":
         driveName = "o:"
         cytosegDataFolder = "c:/shared/cytoseg_data"
         contourOutputTemporaryFolder = "c:/temp/contour_output"
@@ -38,8 +38,22 @@ elif hostname == "user-desktop":
         defaultPath = "/crbsdata1/rgiuly/input/triple_tilt/cb024/tifs_small/"
         defaultOutputPath = "/home/user/temp/output/"
 else:
-        defaultTemporaryFolder = os.tempnam()
-        os.mkdir(defaultTemporaryFolder)
+        #defaultTemporaryFolder = os.tempnam()
+        windowsHome = os.getenv("HOMEPATH")
+        windowsDrive = os.getenv("HOMEDRIVE")
+        linuxHome = os.getenv("HOME")
+        
+        if (windowsDrive !=None) and (windowsHome != None):
+            defaultTemporaryFolder = os.path.join(windowsDrive, windowsHome)
+        elif linuxHome != None:
+            defaultTemporaryFolder = linuxHome
+        else:
+            print "Warning: could not find the home folder. Files will be dumped into the current default folder"
+            defaultTemporaryFolder = ""
+        
+        print "Using \"%s\" folder for storing data." % defaultTemporaryFolder
+
+        #os.mkdir(defaultTemporaryFolder)
         driveName = "/folder_not_set/"
         cytosegDataFolder = defaultTemporaryFolder
         contourOutputTemporaryFolder = defaultTemporaryFolder
