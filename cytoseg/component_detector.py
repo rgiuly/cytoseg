@@ -314,6 +314,9 @@ class CellComponentDetector:
         self.contoursNodeName = 'Contours'
         self.contoursNodePath = (self.contoursNodeName,)
 
+        self.numberOfLayersToProcess = None
+        self.numberOfThresholds = 4
+
 
     def writeContoursToImageStack(self, pathToContoursNode):
 
@@ -541,7 +544,6 @@ class CellComponentDetector:
         self.probabilityFunctionDict['blankInnerCell'] = blankInnerCellProbability
         enable3DPlot = False
         #numberOfLayersToProcess = 7
-        numberOfLayersToProcess = None
         
         
         #if len(sys.argv) < 2:
@@ -572,13 +574,13 @@ class CellComponentDetector:
         if stepNumber == 0:
 
             self.preclassificationFilter(self.dataViewer,
-                                         numberOfLayersToProcess=numberOfLayersToProcess)
+                                numberOfLayersToProcess=self.numberOfLayersToProcess)
 
 
         if stepNumber == 1:
 
             self.classifyVoxels(self.dataViewer,
-                                numberOfLayersToProcess=numberOfLayersToProcess)
+                                numberOfLayersToProcess=self.numberOfLayersToProcess)
 
 
         elif stepNumber == 2:
@@ -591,11 +593,11 @@ class CellComponentDetector:
             
             self.dataViewer.mainDoc.dataRootNode.addChild(GroupNode(self.contoursNodeName))
 
-            for thresholdIndex in range(0, 4):
+            for thresholdIndex in range(self.numberOfThresholds):
 
                 self.findContours("thresholdIndex_%d" % thresholdIndex,
                                   0.2 * thresholdIndex,
-                                  numberOfLayersToProcess)
+                                  self.numberOfLayersToProcess)
 
             self.dataViewer.mainDoc.dataTree.writeSubtree(self.contoursNodePath)
             #self.dataViewer.mainDoc.dataTree.writeSubtree(('Contours', 'thresholdIndex_3'))
