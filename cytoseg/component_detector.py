@@ -406,7 +406,9 @@ class CellComponentDetector:
             #self.dataViewer.addPersistentVolumeAndRefreshDataTree(originalVolume,
             #                                                      self.originalVolumeName)
 
-            detector = ContourDetector()
+            originalVolumeShape = originalVolume.shape
+
+            detector = ContourDetector((originalVolumeShape[0], originalVolumeShape[1]))
             detector.threshold = threshold
             detector.probabilityFunction = self.probabilityFunctionDict[self.target]
 
@@ -483,7 +485,7 @@ class CellComponentDetector:
             # write contours to an image stack for viewing
             #self.writeContoursToImageStack((contoursNodeName,))
             #self.writeContoursToImageStack((self.groupedContoursNodeName,))
-            self.writeContoursToImageStack(self.contoursNodePath)
+            #self.writeContoursToImageStack(self.contoursNodePath)
 
 
     def groupContours(self, contoursGroupedByImage):
@@ -600,11 +602,15 @@ class CellComponentDetector:
 
 
         elif stepNumber == 4:
+            self.writeContoursToImageStack(self.contoursNodePath)
+
+
+        elif stepNumber == 5:
                 saveBlobsToJinxFile(
                     self.dataViewer.mainDoc.dataTree.getSubtree(self.contoursNodePath))
 
 
-        elif stepNumber == 5:
+        elif stepNumber == 6:
 
             # - calculate probabilities
             # - threshold by probability
@@ -635,7 +641,7 @@ class CellComponentDetector:
             self.writeContoursToImageStack((highProbabilityContoursNodeName,))
     
         
-        elif stepNumber == 6:
+        elif stepNumber == 7:
             
             contoursGroupedByImage = self.dataViewer.mainDoc.dataTree.getSubtree(
                                       (self.groupedContoursNodeName,)) 
@@ -685,7 +691,7 @@ class CellComponentDetector:
                               contourRenderingVolume[:, :, :, 2] + originalVolumeDark)
 
 
-        elif stepNumber == 7:
+        elif stepNumber == 8:
     
             # use GUI to display high probability contours
     
@@ -695,7 +701,7 @@ class CellComponentDetector:
             self.dataViewer.refreshTreeControls()
     
     
-        elif stepNumber == 8:
+        elif stepNumber == 9:
     
             # perform 3D shell active contour to detect 3D blobs
     
@@ -709,7 +715,7 @@ class CellComponentDetector:
                                        enable3DPlot,
                                        fillMethod='shellActiveContour')
     
-        elif stepNumber == 9:
+        elif stepNumber == 10:
     
             # write 3D blobs to an XML file and into a stack of tiffs for viewing
     

@@ -36,57 +36,11 @@ def copyNumpyToOpenCV(numpyArray, openCVImage):
 #        self.points = points
 #        self.features = {}
 
-def createTemporaryImages(openCVSize):
-    
-    s = openCVSize
-    #print size.__doc__
-
-    images = {}
-    
-    progressLog("contourImage")
-    images['contourImage'] = cvCreateImage(s, 8, 1)
-    cvSetZero(images['contourImage'])
-    
-    progressLog("ellipseImage")
-    images['ellipseImage'] = cvCreateImage(s, 8, 1)
-    cvSetZero(images['ellipseImage'])
-    
-    progressLog("andImage")
-    images['andImage'] = cvCreateImage(s, 8, 1)
-    cvSetZero(images['andImage'])
-    
-    progressLog("orImage")
-    images['orImage'] = cvCreateImage(s, 8, 1)
-    cvSetZero(images['orImage'])
-    
-    progressLog("maskedImage")
-    images['maskedImage'] = cvCreateImage(s, 8, 1)
-    cvSetZero(images['maskedImage'])
-
-
-    
-    images['binaryImage'] = cvCreateImage(s,8,1)
-    #binaryImage = cvCreateMat(numpyArrayFilteredImage.shape[1], numpyArrayFilteredImage.shape[0], CV_8UC1)
-    cvSetZero(images['binaryImage'])
-
-    progressLog("creating images")
-
-    images['originalImage'] = cvCreateImage(s, 8, 1)
-    images['contours_image'] = cvCreateImage(s, 8, 3)
-    images['resultContoursImage'] = cvCreateImage(s, 8, 3)
-    cvSetZero(images['contours_image'])
-
-
-
-    images['resultDisplayImage'] = cvCreateImage(s, 8, 3)
-    
-    return images
-
 
 class ContourDetector:
 
 
-    def __init__(self):
+    def __init__(self, numpyImageArrayShape):
         
         self.originalVolume = None
         self.probabilityFunction = None
@@ -95,6 +49,55 @@ class ContourDetector:
         self.minPerimeter = 0
         self.maxPerimeter = None
         self.threshold = 0.5
+        openCVSize = cvSize(numpyImageArrayShape[0], numpyImageArrayShape[1])
+        self.images = self.createTemporaryImages(openCVSize)
+
+
+    def createTemporaryImages(self, openCVSize):
+        
+        s = openCVSize
+        #print size.__doc__
+    
+        images = {}
+        
+        progressLog("contourImage")
+        images['contourImage'] = cvCreateImage(s, 8, 1)
+        cvSetZero(images['contourImage'])
+        
+        progressLog("ellipseImage")
+        images['ellipseImage'] = cvCreateImage(s, 8, 1)
+        cvSetZero(images['ellipseImage'])
+        
+        progressLog("andImage")
+        images['andImage'] = cvCreateImage(s, 8, 1)
+        cvSetZero(images['andImage'])
+        
+        progressLog("orImage")
+        images['orImage'] = cvCreateImage(s, 8, 1)
+        cvSetZero(images['orImage'])
+        
+        progressLog("maskedImage")
+        images['maskedImage'] = cvCreateImage(s, 8, 1)
+        cvSetZero(images['maskedImage'])
+    
+    
+        
+        images['binaryImage'] = cvCreateImage(s,8,1)
+        #binaryImage = cvCreateMat(numpyArrayFilteredImage.shape[1], numpyArrayFilteredImage.shape[0], CV_8UC1)
+        cvSetZero(images['binaryImage'])
+    
+        progressLog("creating images")
+    
+        images['originalImage'] = cvCreateImage(s, 8, 1)
+        images['contours_image'] = cvCreateImage(s, 8, 3)
+        images['resultContoursImage'] = cvCreateImage(s, 8, 3)
+        cvSetZero(images['contours_image'])
+    
+    
+    
+        images['resultDisplayImage'] = cvCreateImage(s, 8, 3)
+        
+        return images
 
 
     def findContours(self):
@@ -163,23 +166,22 @@ class ContourDetector:
             
             numpy_original = array(numpy.asarray(originalImage))
     
-            size = cvSize(numpy_original.shape[0], numpy_original.shape[1])
+            #size = cvSize(numpy_original.shape[0], numpy_original.shape[1])
+            #images = createTemporaryImages(size)
     
-            images = createTemporaryImages(size)
     
-    
-            contourImage = images['contourImage']
-            ellipseImage = images['ellipseImage']
-            andImage = images['andImage']
-            orImage = images['orImage']
-            maskedImage = images['maskedImage']
-            resultDisplayImage = images['resultDisplayImage']
+            contourImage = self.images['contourImage']
+            ellipseImage = self.images['ellipseImage']
+            andImage = self.images['andImage']
+            orImage = self.images['orImage']
+            maskedImage = self.images['maskedImage']
+            resultDisplayImage = self.images['resultDisplayImage']
             
-            binaryImage = images['binaryImage']
-            originalImage = images['originalImage']
-            contours_image = images['contours_image']
-            resultContoursImage = images['resultContoursImage']
-            resultDisplayImage = images['resultDisplayImage']
+            binaryImage = self.images['binaryImage']
+            originalImage = self.images['originalImage']
+            contours_image = self.images['contours_image']
+            resultContoursImage = self.images['resultContoursImage']
+            resultDisplayImage = self.images['resultDisplayImage']
             
     
             progressLog("copying to image")
