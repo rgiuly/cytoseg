@@ -16,4 +16,7 @@ cellComponentDetector = CellComponentDetector(
     voxelTrainingImageFilePath="data/sbfsem_training/images",
     voxelTrainingLabelFilePath="data/sbfsem_training/label")
 
+cellComponentDetector.numberOfLayersToProcess = 7
+cellComponentDetector.numberOfThresholds = 1
+
 cellComponentDetector.runStep(stepNumber)

@@ -132,7 +132,8 @@ class Node():
     
     def __getstate__(self):
         result = self.__dict__.copy()
-        del result['guiComponent']
+        if 'guiComponent' in result:
+            del result['guiComponent']
         return result
 
 
