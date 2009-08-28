@@ -62,36 +62,36 @@ class ContourDetector:
         
         progressLog("contourImage")
         images['contourImage'] = cvCreateImage(s, 8, 1)
-        cvSetZero(images['contourImage'])
+        #cvSetZero(images['contourImage'])
         
         progressLog("ellipseImage")
         images['ellipseImage'] = cvCreateImage(s, 8, 1)
-        cvSetZero(images['ellipseImage'])
+        #cvSetZero(images['ellipseImage'])
         
         progressLog("andImage")
         images['andImage'] = cvCreateImage(s, 8, 1)
-        cvSetZero(images['andImage'])
+        #cvSetZero(images['andImage'])
         
         progressLog("orImage")
         images['orImage'] = cvCreateImage(s, 8, 1)
-        cvSetZero(images['orImage'])
+        #cvSetZero(images['orImage'])
         
         progressLog("maskedImage")
         images['maskedImage'] = cvCreateImage(s, 8, 1)
-        cvSetZero(images['maskedImage'])
+        #cvSetZero(images['maskedImage'])
     
     
         
         images['binaryImage'] = cvCreateImage(s,8,1)
         #binaryImage = cvCreateMat(numpyArrayFilteredImage.shape[1], numpyArrayFilteredImage.shape[0], CV_8UC1)
-        cvSetZero(images['binaryImage'])
+        #cvSetZero(images['binaryImage'])
     
         progressLog("creating images")
     
         images['originalImage'] = cvCreateImage(s, 8, 1)
         images['contours_image'] = cvCreateImage(s, 8, 3)
         images['resultContoursImage'] = cvCreateImage(s, 8, 3)
-        cvSetZero(images['contours_image'])
+        #cvSetZero(images['contours_image'])
     
     
     
@@ -183,10 +183,14 @@ class ContourDetector:
             resultContoursImage = self.images['resultContoursImage']
             resultDisplayImage = self.images['resultDisplayImage']
             
+            for key in self.images:
+                cvSetZero(self.images[key])
+            
     
             progressLog("copying to image")
     
             if filteredVolume != None:
+                print "contour processing using filtered volume"
                 # todo: remove the asarray stuff, it's not doing anything anymore
                 i = filteredVolume[:,:,imageIndex]
                 numpyArrayFilteredImage = array(numpy.asarray(i))
@@ -203,6 +207,7 @@ class ContourDetector:
                             binaryImage[i,j] = 1
     
             elif contourFilterFunction2D != None:
+                print "contour processing using original image"
                 temp = cvCreateImage(size, 8, 1)
                 copyNumpyToOpenCV(numpy_original, temp)
                 binaryImage = contourFilterFunction2D(temp)
@@ -212,6 +217,13 @@ class ContourDetector:
     
                     
             if 1:
+
+                #outputFilename = os.path.join(contourOutputTemporaryFolder,
+                #                              "thresholded%04d.bmp" % imageIndex)
+                #outputFilename = os.path.join(contourOutputTemporaryFolder,
+                #                              "temp%04d.bmp" % imageIndex)
+                #highgui.cvSaveImage(outputFilename, temp)
+
                 #print "position 1"
                 nb_contours, contours = cvFindContours(binaryImage,
                                                           storage,

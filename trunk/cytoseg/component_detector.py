@@ -315,7 +315,9 @@ class CellComponentDetector:
         self.contoursNodePath = (self.contoursNodeName,)
 
         self.numberOfLayersToProcess = None
-        self.numberOfThresholds = 4
+        self.numberOfThresholds = 1
+        self.firstThreshold = 0.5
+        self.thresholdStep = 0.1
 
 
     def writeContoursToImageStack(self, pathToContoursNode):
@@ -489,6 +491,8 @@ class CellComponentDetector:
             #self.writeContoursToImageStack((contoursNodeName,))
             #self.writeContoursToImageStack((self.groupedContoursNodeName,))
             #self.writeContoursToImageStack(self.contoursNodePath)
+            
+            self.dataViewer.refreshTreeControls()
 
 
     def groupContours(self, contoursGroupedByImage):
@@ -596,8 +600,8 @@ class CellComponentDetector:
             for thresholdIndex in range(self.numberOfThresholds):
 
                 self.findContours("thresholdIndex_%d" % thresholdIndex,
-                                  0.2 * thresholdIndex,
-                                  self.numberOfLayersToProcess)
+                    self.firstThreshold + (self.thresholdStep * thresholdIndex),
+                    self.numberOfLayersToProcess)
 
             self.dataViewer.mainDoc.dataTree.writeSubtree(self.contoursNodePath)
             #self.dataViewer.mainDoc.dataTree.writeSubtree(('Contours', 'thresholdIndex_3'))
