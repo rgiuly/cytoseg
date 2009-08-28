@@ -44,13 +44,18 @@ else:
         linuxHome = os.getenv("HOME")
         
         if (windowsDrive !=None) and (windowsHome != None):
-            defaultTemporaryFolder = os.path.join(windowsDrive, windowsHome)
+            homeFolder = os.path.join(windowsDrive, windowsHome)
         elif linuxHome != None:
-            defaultTemporaryFolder = linuxHome
+            homeFolder = linuxHome
         else:
             print "Warning: could not find the home folder. Files will be dumped into the current default folder"
-            defaultTemporaryFolder = ""
+            homeFolder = ""
         
+        defaultTemporaryFolder = os.path.join(homeFolder, "cytoseg_data")
+
+        if (not os.path.exists(defaultTemporaryFolder)):
+            os.mkdir(defaultTemporaryFolder)
+
         print "Using \"%s\" folder for storing data." % defaultTemporaryFolder
 
         #os.mkdir(defaultTemporaryFolder)
