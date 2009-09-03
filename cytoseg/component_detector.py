@@ -32,6 +32,7 @@ from xml.dom.minidom import Document
 from graph import *
 import os
 import colorsys
+import copy as copy_module
 
 
 
@@ -522,6 +523,70 @@ class CellComponentDetector:
         return pygraph.algorithms.accessibility.connected_components(graph), graph
 
 
+    def makeContourSets(self):
+
+        startIndex = 0
+        pathLength = 2
+
+        self.dataViewer.getPersistentVolume_old(self.originalVolumeName)
+        self.dataViewer.mainDoc.dataTree.getSubtree(self.contoursNodePath)
+        self.dataViewer.refreshTreeControls()
+
+        allContoursAtPlane = getNode(self.dataViewer.mainDoc.dataRootNode,
+                                     ('Contours', 'thresholdIndex_0'))
+
+        pathList = GroupNode()
+        #pathList.addChild(GroupNode())
+
+        # initialize the paths with the contours at the startIndex plane
+        planeNode = allContoursAtPlane.children[startIndex]
+        for contourNode in planeNode.children:
+            pathNode = GroupNode()
+            pathNode.addChild(contourNode)
+            pathList.addChild(pathNode)
+
+        for planeIndex in range(startIndex + 1, startIndex + pathLength):
+
+            print "planeIndex:", planeIndex, "pathLength:", pathLength
+
+            planeNode = allContoursAtPlane.children[planeIndex]
+
+            newPathList = GroupNode()
+
+            for contourNode in planeNode.children:
+
+                # contour that may be appended to path if it is close enough
+                newContour = contourNode.valueToSave
+                newCenter = newContour.getAveragePointLocation()
+
+                for pathNode in pathList.children:
+
+                    # last contour in path that may be appended to
+                    endOfPathContourNode = pathNode.children[-1]
+                    contour1 = endOfPathContourNode.valueToSave
+                    center1 = contour1.getAveragePointLocation()
+
+                    if linalg.norm(center1 - newCenter) < 20:
+
+                        newPathNode = copy_module.deepcopy(pathNode)
+                        newPathNode.addObject(newContour)
+                        newPathList.addChild(newPathNode)
+
+            pathList = newPathList
+
+        pathList.name = 'ContourPaths'
+        self.dataViewer.addPersistentSubtreeAndRefreshDataTree((), pathList)
+
+
+    def computeContourRegions(self):
+
+        # flatten tree of contours into a list
+        # visit each contour and look at the label that goes with each point
+        # if more than half of the points have a label, assign that label to the contour
+        # otherwise, give the contour a null label: None or "unlabeled"
+        pass
+
+
     def runStep(self, stepNumber):
         
         #defaultStepNumber = 4
@@ -592,7 +657,7 @@ class CellComponentDetector:
             self.dataViewer.getPersistentVolume_old(self.filteredVolumeName)
 
 
-        #print "starting find"
+        # find contours
         elif stepNumber == 3:
             
             self.dataViewer.mainDoc.dataRootNode.addChild(GroupNode(self.contoursNodeName))
@@ -608,15 +673,33 @@ class CellComponentDetector:
 
 
         elif stepNumber == 4:
-            self.writeContoursToImageStack(self.contoursNodePath)
+            self.computeContourRegions()
 
 
         elif stepNumber == 5:
-                saveBlobsToJinxFile(
-                    self.dataViewer.mainDoc.dataTree.getSubtree(self.contoursNodePath))
+            self.writeContoursToImageStack(self.contoursNodePath)
 
 
         elif stepNumber == 6:
+
+            saveBlobsToJinxFile(
+                self.dataViewer.mainDoc.dataTree.getSubtree(self.contoursNodePath))
+
+            self.dataViewer.refreshTreeControls()
+
+
+        elif stepNumber == 7:
+            
+            self.makeContourSets()
+
+
+        elif stepNumber == 8:
+            
+            self.dataViewer.getPersistentVolume_old(self.originalVolumeName)
+            self.dataViewer.mainDoc.dataTree.getSubtree(('ContourPaths',))
+
+
+        elif stepNumber == 106:
 
             # - calculate probabilities
             # - threshold by probability
@@ -647,7 +730,7 @@ class CellComponentDetector:
             self.writeContoursToImageStack((highProbabilityContoursNodeName,))
     
         
-        elif stepNumber == 7:
+        elif stepNumber == 107:
             
             contoursGroupedByImage = self.dataViewer.mainDoc.dataTree.getSubtree(
                                       (self.groupedContoursNodeName,)) 
@@ -697,7 +780,7 @@ class CellComponentDetector:
                               contourRenderingVolume[:, :, :, 2] + originalVolumeDark)
 
 
-        elif stepNumber == 8:
+        elif stepNumber == 108:
     
             # use GUI to display high probability contours
     
@@ -707,7 +790,7 @@ class CellComponentDetector:
             self.dataViewer.refreshTreeControls()
     
     
-        elif stepNumber == 9:
+        elif stepNumber == 109:
     
             # perform 3D shell active contour to detect 3D blobs
     
@@ -721,7 +804,7 @@ class CellComponentDetector:
                                        enable3DPlot,
                                        fillMethod='shellActiveContour')
     
-        elif stepNumber == 10:
+        elif stepNumber == 110:
     
             # write 3D blobs to an XML file and into a stack of tiffs for viewing
     

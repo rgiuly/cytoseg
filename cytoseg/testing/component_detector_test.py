@@ -3,7 +3,7 @@ import sys
 
 from component_detector import *
 
-defaultStepNumber = 5
+defaultStepNumber = 4
 
 if len(sys.argv) < 2:
     print "step not specified, using default step", defaultStepNumber
