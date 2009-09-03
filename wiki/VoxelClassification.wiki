@@ -1,3 +1,5 @@
+http://cytoseg.googlecode.com/svn/trunk/cytoseg/docs/voxel_classification.pdf
+
 To run this example
 
    * change directory to cytoseg/testing/
