@@ -81,9 +81,11 @@ class Node():
     def insertChildAt(self, node, index):
         self.children.insert(index, node)
 
+
     def addChildren(self, nodeList):
         for node in nodeList:
             self.addChild(node)
+
 
     def addObjectList(self, objectList):
         """Add a list of objects as children. A DataNode is created for each object."""
@@ -93,6 +95,14 @@ class Node():
             self.addChild(node)
             count += 1
 
+
+    def addObject(self, object):
+        """Wrap an object in a node and add the node as a child."""
+
+        node = Node(name=str(len(self.children)), valueToSave=object)
+        self.addChild(node)
+
+
     def makeChildrenObjectList(self):
         """Returns list of children objects. The objects are unwrapped (they are not inside of DataNodes)."""
         list = []
@@ -100,6 +110,7 @@ class Node():
             list.append(child.valueToSave)
         return list
     
+
     def insertChildrenAt(self, nodeList, index):
         for i in range(len(nodeList)):
             node = nodeList[i]
