@@ -1,4 +1,4 @@
-[http://cytoseg.googlecode.com/svn/trunk/cytoseg/docs/voxel_classification.pdf Rough Notes and Flowchart]
+[http://cytoseg.googlecode.com/svn/trunk/cytoseg/docs/voxel_classification.pdf Voxel Classification Rough Notes and Flowchart]
 
 To run this example
 
