@@ -927,7 +927,7 @@ class ClassificationControlsFrame(ControlsFrame):
         
         facesNode = getNode(self.getBlobsNode(), (facesNodeName,))
         for faceNode in facesNode.children:
-            faceBlob = faceNode.valueToSave
+            faceBlob = faceNode.object
             d = getFaceFeatures(identifier, faceBlob, self.getPersistentVolume_old(originalVolumeName), self.getPersistentVolume_old(probabilityVolumeName), superVoxelDict, self)
             
             # assume it is a salient face if average value is greater than a certain number
@@ -1205,7 +1205,7 @@ class ClassificationControlsFrame(ControlsFrame):
         if (getNode(self.settingsTree, ('particleMotionTool','drawBlobs'))).get():
             loadedVolumeLocation = self.screenXYToLoadedVolumeXYZ((event.X, event.Y))
             #blob = self.mainDoc.blobDict['InbetweenPoints']
-            #blob = getNode(self.getBlobsNode(), ('InbetweenPoints',)).valueToSave
+            #blob = getNode(self.getBlobsNode(), ('InbetweenPoints',)).object
             #print "value %s" % str(at(self.getCurrentVolume(), loadedVolumeLocation))
             
             watershedLabel = at(self.mainDoc.volumeDict['Watershed1'], loadedVolumeLocation)
@@ -1215,7 +1215,7 @@ class ClassificationControlsFrame(ControlsFrame):
 
             facesNode = getNode(self.getBlobsNode(), ('faces',))
             for childNode in facesNode.children:
-                blob = childNode.valueToSave
+                blob = childNode.object
                 for labeledPoint in blob.points():
                     if (loadedVolumeLocation.round() == labeledPoint.loc).all():
                         #if len(labeledPoint.adjacentNonzeroValueSet) > 0:

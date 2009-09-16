@@ -5,13 +5,15 @@
 # (could call this AnnotatedPoint)
 
 from numpy import *
+from probability_object import *
 
 #class PointSet(Node):
-class PointSet():
+class PointSet(ProbabilityObject):
 #    def __init__(self, center=None, size=None, points=[], color=[100,0,0]):
     def __init__(self, center=None, size=None, points=None):
         
         #Node.__init__(self)
+        ProbabilityObject.__init__(self)
         
         self._center = center
         self._size = size
@@ -23,9 +25,9 @@ class PointSet():
         else:
             self._points = points    
 
-        self._color = [0, 255, 0]
-        self._probability = 0
         self.features = {}
+        self.labelSet = set()
+        self.labelCountDict = None
         self.XMLTag = 'pointSet'
         self.pointListXMLTag = 'points'
         self.pointXMLFormatString = '%g %g %g, '
@@ -58,20 +60,12 @@ class PointSet():
         for numpyPoint in numpyPoints:
             self.addPoint(LabeledPoint(numpyPoint))
 
-    def color(self):
-        return self._color
-    
-    def setColor(self, color):
-        self._color = color
-
-    def probability(self):
-        return self._probability
-
-    def setProbability(self, p):
-        self._probability = p
-    
     def __repr__(self):
-        return "Blob_with_%d_points" % len(self.points())
+        #return "Blob_with_%d_points" % len(self.points())
+        return "PointSet " +\
+                "labelCountDict: " + str(self.labelCountDict) + " " +\
+                "labelSet: " + str(self.labelSet) + " " +\
+                "probability(): " + str(self.probability())
     
     def setCenter(self, centerPoint):
         self._center = centerPoint
@@ -167,6 +161,7 @@ class Blob(PointSet):
 
 
 class Contour(PointSet):
+
     def __init__(self, center=None, size=None, points=None):
         PointSet.__init__(self, center, size, points)
         self.XMLTag = 'Contour'
@@ -179,7 +174,7 @@ class ProbabilityFilter():
         self.minimumRequiredProbability = minimumRequiredProbability
 
     def isValid(self, node):
-        return node.valueToSave.probability() >= self.minimumRequiredProbability
+        return node.object.probability() >= self.minimumRequiredProbability
 
 
 

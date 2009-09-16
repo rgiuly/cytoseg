@@ -7,6 +7,12 @@ class odict(UserDict):
         self._keys = []
         UserDict.__init__(self, dict)
 
+    def __repr__(self):
+        totalString = ""
+        for key in self.keys():
+            totalString += str(key) + ":" + str(self[key]) + "\n"
+        return totalString
+
     def __delitem__(self, key):
         UserDict.__delitem__(self, key)
         self._keys.remove(key)

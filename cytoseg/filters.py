@@ -83,8 +83,8 @@ def numpyToItk(numpyArray):
 
 def itkToNumpy(itkImage):
 
-    print dir(itkImage)
-    print dir(itkImage.__class__)
+    #print dir(itkImage)
+    #print dir(itkImage.__class__)
     #Dimension = itkImage.GetImageDimension()
     #print itkImage.__class__
     

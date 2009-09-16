@@ -184,8 +184,8 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
                     GroupNode('Blobs')))
         volumesNode = getNode(self.mainDoc.dataRootNode, ('Volumes',))
         volumesNode.addChildren((
-                    Node('test volume 1', valueToSave=sampleVolumes[0]),
-                    Node('test volume 2', valueToSave=sampleVolumes[1])))
+                    Node('test volume 1', object=sampleVolumes[0]),
+                    Node('test volume 2', object=sampleVolumes[1])))
         #self.selectedDataTreeControlItem = None
         blobsNode = getNode(self.mainDoc.dataRootNode, ('Blobs',))
         testBlob = Blob()
@@ -404,8 +404,8 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         listBox.Set(keyList)
         
         # if the index of the selected item is in range, use it to pick currently selected item
-        if (listBoxNode.valueToSave < listBox.GetCount()):
-            listBox.SetSelection(listBoxNode.valueToSave)
+        if (listBoxNode.object < listBox.GetCount()):
+            listBox.SetSelection(listBoxNode.object)
 
     def refreshGUI(self):
         #self.refreshBlobList()
@@ -469,7 +469,7 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
 
     def getVolume(self, name):
         node = getNode(self.mainDoc.dataRootNode, ('Volumes', name))
-        return node.valueToSave
+        return node.object
 
     # gets object and refreshes the tree gui component if needed
     def getPersistentObject(self, pathToNode):
@@ -483,7 +483,7 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         if doRefresh:
             self.refreshTreeControls()
         
-        return node.valueToSave
+        return node.object
 
 
     def getPersistentVolume_old(self, name):
@@ -492,7 +492,7 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
 
     #def getBlob(self, name):
     #    node = getNode(self.mainDoc.dataRootNode, ('Blobs', name))
-    #    return node.valueToSave
+    #    return node.object
 
     def getPersistentBlob(self, name):
         return self.getPersistentObject(('Blobs', name))
@@ -507,7 +507,7 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
     #    
     #    newNode = DataNode("root","group",{'caption' : 'root', 'position' : (100,100), 'size' : (100,100)},"value")
     
-    #def addNodeAndRefresh(self, nameList, valueToSave):
+    #def addNodeAndRefresh(self, nameList, object):
     #    name = nameList[-1]
     #    path = nameList[0:-1]
     #    parentNode = getNode(self.dataTree, path)
@@ -924,8 +924,8 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         
             node = self.getSelectedVolumeNode()
             if node != None:
-                #print "getCurrentVolume", node.valueToSave
-                returnValue = node.valueToSave
+                #print "getCurrentVolume", node.object
+                returnValue = node.object
             else:
                 #print "getCurrentVolume", None
                 returnValue = None
@@ -946,7 +946,7 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         #dataTreeControl = dataTreeNode.guiComponent
         #item = dataTreeControl.GetSelection()
         #dataNode = dataTreeControl.GetItemData(item)
-        #return dataNode.valueToSave
+        #return dataNode.object
         
         print "getCurrentBlob"
         
@@ -956,7 +956,7 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
             #print node
             #print type(node)
             #return None
-            return node.valueToSave
+            return node.object
         else:
             return None
         
@@ -1166,7 +1166,7 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
             else:
                 min = 0
 
-            slider = wx.Slider(panel, -1, node.valueToSave, min, node.params['max'], pos=(10, 10), 
+            slider = wx.Slider(panel, -1, node.object, min, node.params['max'], pos=(10, 10), 
                                size=(250, -1),
                                style=wx.SL_HORIZONTAL | wx.SL_AUTOTICKS | wx.SL_LABELS )
             slider.SetTickFreq(5, 1)
@@ -1187,7 +1187,7 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
 
             
             #label = wx.StaticText(self.panel, -1, node.params['caption'])
-            textBox = wx.TextCtrl(panel, -1, node.valueToSave, size=(175, -1))
+            textBox = wx.TextCtrl(panel, -1, node.object, size=(175, -1))
             #text.SetInsertionPoint(0)
             container.AddMany([label, textBox])
 
@@ -1211,7 +1211,7 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
             
             #label = wx.StaticText(self.panel, -1, "check box")
             checkBox = wx.CheckBox(panel, -1, node.params['caption'], (35, 40), (150, 20))
-            checkBox.SetValue(node.valueToSave)
+            checkBox.SetValue(node.object)
             container.AddMany([label, checkBox])
             #self.panel.SetSizerAndFit(self.fgs)
             #self.Fit()
@@ -1229,7 +1229,7 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
             #label = wx.StaticText(self.panel, -1, "button")
 
             button = wx.Button(panel, -1, node.params['caption'])
-            frame.Bind(wx.EVT_BUTTON, eval('self.' + node.valueToSave), button)
+            frame.Bind(wx.EVT_BUTTON, eval('self.' + node.object), button)
             # button.SetDefault() #what does this do? -- maybe sets as default selected button
 
             container.AddMany([label, button])
@@ -1244,7 +1244,7 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
             #menuBar.Append(node.params['caption'])
             menu = menuBar.GetMenu(0)
             item = menu.Append(-1, node.params['caption'], 'help text')
-            self.Bind(wx.EVT_MENU, eval('self.' + node.valueToSave), item)
+            self.Bind(wx.EVT_MENU, eval('self.' + node.object), item)
 
             #labelComponent = wx.StaticText(panel, -1, '-')
             #container.AddMany([label, labelComponent])
@@ -1258,7 +1258,7 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
                 height = 80
                 
             listBox = wx.ListBox(panel, -1, (20, 20), (200, height), [], wx.LB_SINGLE)
-            #listBox.SetSelection(node.valueToSave)
+            #listBox.SetSelection(node.object)
             listBox.InsertItems(node.params['items'], 0)
             container.AddMany([label, listBox])
             node.guiComponent = listBox
@@ -1688,10 +1688,12 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         self.displayXYView(self.getCurrentVolume(), None)
 
 
-    def onPrintCurrentPointSet(self, event):
-        print self.getCurrentBlob()
-        print "features", self.getCurrentBlob().features
-        print "probability", self.getCurrentBlob().probability()
+    def onPrintCurrentObject(self, event):
+        print self.getSelectedBlobNode().object
+        #print self.getCurrentBlob()
+        #print "features", self.getCurrentBlob().features
+        #print "labelSet", self.getCurrentBlob().labelSet
+        #print "probability", self.getCurrentBlob().probability()
 
     
     def onPrintValuesXYView(self, event):
@@ -1972,7 +1974,7 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
     def renderBlobsRecursive(self, dataNode):
         
         if dataNode.type == 'blob':
-            blob = dataNode.valueToSave
+            blob = dataNode.object
             useThreshold = self.getValue(('particleMotionTool', 'useFacesProbabilityThreshold'))
             if not(useThreshold) or numpy.log(blob.probability()) >= self.facesProbabilityThreshold():
                 self.renderBlob(blob, dataNode.name)
@@ -2007,8 +2009,8 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
 
     def drawBlobsRecursive(self, dataNode, dc, z):
         
-        if isinstance(dataNode.valueToSave, PointSet):
-            blob = dataNode.valueToSave
+        if isinstance(dataNode.object, PointSet):
+            blob = dataNode.object
             useThreshold = self.getValue(('particleMotionTool', 'useFacesProbabilityThreshold'))
             if not(useThreshold) or numpy.log(blob.probability()) >= self.facesProbabilityThreshold():
                 #print "log of probability threshold", self.facesProbabilityThreshold(), "log of probability", numpy.log(blob.probability()), "probability", blob.probability()
@@ -2021,8 +2023,8 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
 
     def renderPointSetsInVolumeRecursive(self, volume, dataNode, valueMode='constant'):
         
-        if isinstance(dataNode.valueToSave, PointSet):
-            pointSet = dataNode.valueToSave
+        if isinstance(dataNode.object, PointSet):
+            pointSet = dataNode.object
             useThreshold = self.getValue(('particleMotionTool',
                                           'useFacesProbabilityThreshold'))
             if not(useThreshold) or \
@@ -2181,7 +2183,7 @@ def makeDefaultGUITree():
     particleMotionToolNode = DataNode("particleMotionTool","group",{'caption' : 'particleMotionTool', 'position' : (100,100), 'size' : (650,800)},None)
     particleMotionToolNode.addChildren((
                     DataNode("displayXYView","button",{'caption' : 'displayXYView'},'onDisplayXYView'),
-                    DataNode("printCurrentPointSet","button",{'caption' : 'printCurrentPointSet'},'onPrintCurrentPointSet'),
+                    DataNode("printCurrentObject","button",{'caption' : 'printCurrentObject'},'onPrintCurrentObject'),
                     DataNode("saveBlobsToOBJFile","button",{'caption' : 'saveBlobsToOBJFile'},'onSaveBlobsToOBJFile'),
                     DataNode("printValuesXYView","button",{'caption' : 'printValuesXYView'},'onPrintValuesXYView'),
                     DataNode("makeNewSubgroup","button",{'caption' : 'Make New Subgroup'},'onMakeNewSubgroup'),
@@ -2311,7 +2313,7 @@ class old_GUI:
             label.pack()
             #slider = Scale(root, from_=0, to=100, orient=HORIZONTAL, length=100, command=lambda arg1: setNodeValueCallback(node, slider.get()))
             slider = Scale(root, from_=0, to=100, orient=HORIZONTAL, length=100)
-            slider.set(node.valueToSave)
+            slider.set(node.object)
             slider.pack()
             node.guiComponent = slider
             
@@ -2320,7 +2322,7 @@ class old_GUI:
             label.pack()
             textBox = Entry(root)
             textBoxString = StringVar()    #todo add callback to this tkinter variable
-            textBoxString.set(node.valueToSave)
+            textBoxString.set(node.object)
             textBox.config(textvariable=textBoxString)
             textBox.pack()
             #textBoxString.trace("w", testcallback)

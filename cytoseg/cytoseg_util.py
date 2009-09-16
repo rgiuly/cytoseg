@@ -3,6 +3,14 @@ from ctypes import *
 from ctypes.wintypes import *
 
 
+def subtractDictionary(d1, d2):
+
+    result = odict()
+    for key in d1.keys():
+        result[key] = d1[key] - d2[key]
+    return result
+
+
 def flatten(inputList):
     
     resultList = []
