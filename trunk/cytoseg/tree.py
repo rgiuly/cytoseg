@@ -18,7 +18,7 @@ class NodeDoesNotExist(Exception):
 #            self.name = 'node' + str(Node.count)
 #        
 #        self.children = [] # this should really be only in GroupNode and not in Node
-#        self.valueToSave = None # this should really be only in DataNode and not in Node
+#        self.object = None # this should really be only in DataNode and not in Node
 #        self.enableRecursiveRendering = False # this should really be only in GroupNode and not in Node
 #        
 #        Node.count += 1
@@ -40,7 +40,7 @@ class Node():
 
     count = 0
 
-    def __init__(self, name=None, valueToSave=None):
+    def __init__(self, name=None, object=None):
         
         if name != None:
             self.name = name
@@ -48,7 +48,7 @@ class Node():
             self.name = 'node' + str(GroupNode.count)
         
         self.children = []
-        self.valueToSave = valueToSave
+        self.object = object
         self.enableRecursiveRendering = True
         self.isGroupNode = False
         
@@ -59,7 +59,7 @@ class Node():
     def shallowCopy(self):
         
         nodeCopy = GroupNode(self.name)
-        nodeCopy.valueToSave = self.valueToSave
+        nodeCopy.object = self.object
         nodeCopy.enableRecursiveRendering = self.enableRecursiveRendering
         return nodeCopy
 
@@ -99,7 +99,7 @@ class Node():
     def addObject(self, object):
         """Wrap an object in a node and add the node as a child."""
 
-        node = Node(name=str(len(self.children)), valueToSave=object)
+        node = Node(name=str(len(self.children)), object=object)
         self.addChild(node)
 
 
@@ -107,7 +107,7 @@ class Node():
         """Returns list of children objects. The objects are unwrapped (they are not inside of DataNodes)."""
         list = []
         for child in self.children:
-            list.append(child.valueToSave)
+            list.append(child.object)
         return list
     
 
@@ -293,7 +293,7 @@ def createPathIfNeeded(rootNode, nodePath):
 ##        for o in object.children:
 ##            flattenTreeHelper(o, resultList)
 ##    else:
-##        resultList.append(object.valueToSave)
+##        resultList.append(object.object)
 #    for o in object.children:
 #        flattenTreeHelper(o, resultList)
 
@@ -311,7 +311,7 @@ def createPathIfNeeded(rootNode, nodePath):
 #        for childNode in node.children:
 #            leafObjectsHelper(childNode, resultList)
 #    else:
-#        resultList.append(node.valueToSave)
+#        resultList.append(node.object)
 
 
 def nonnullObjects(inputRootNode):
@@ -323,8 +323,8 @@ def nonnullObjects(inputRootNode):
 
 def nonnullObjectsHelper(node, resultList):
     
-    if node.valueToSave != None:
-        resultList.append(node.valueToSave)
+    if node.object != None:
+        resultList.append(node.object)
 
     for childNode in node.children:
         nonnullObjectsHelper(childNode, resultList)
@@ -339,7 +339,7 @@ def nonnullObjectNodes(inputRootNode):
 
 def nonnullObjectNodesHelper(node, resultList):
     
-    if node.valueToSave != None:
+    if node.object != None:
         resultList.append(node)
 
     for childNode in node.children:
@@ -375,7 +375,7 @@ def copyTreeHelper(node, newNode, filter):
         
         print child
         print child.name
-        print child.valueToSave
+        print child.object
         print child.isGroupNode
 
         if child.isGroupNode or (filter == None) or (filter.isValid(child) == True):
@@ -390,23 +390,23 @@ def copyTreeHelper(node, newNode, filter):
 # (can be used for gui components)
 class DataNode(GroupNode):
 
-    def __init__(self, name, type, params, valueToSave):
+    def __init__(self, name, type, params, object):
         
         GroupNode.__init__(self, name)
         
         self.type = type
         self.params = params
-        self.valueToSave = valueToSave
+        self.object = object
         self.guiComponent = None
 
 
     def get(self):
-        self.valueToSave = self.guiComponent.GetValue()  #todo: you should really always use set method so this should not be necessary 
+        self.object = self.guiComponent.GetValue()  #todo: you should really always use set method so this should not be necessary 
         return self.guiComponent.GetValue()
     
 
     def set(self, value):
-        self.valueToSave = value
+        self.object = value
         self.guiComponent.SetValue(value)
 
 

@@ -108,7 +108,7 @@ class ContourDetector:
         # compute the average original volume value at contour points
         for contour in contourList:
             
-            #contour = contourNode.valueToSave
+            #contour = contourNode.object
             total = 0
             for labeledPoint in contour.points():
                 loc = labeledPoint.loc
@@ -302,7 +302,7 @@ class ContourDetector:
                     contourObject = Contour(points=pointList)
                     #contourObject = Blob(points=pointList)
                     contourNode = Node()
-                    contourNode.valueToSave = contourObject
+                    contourNode.object = contourObject
                     contoursInImage.addChild(contourNode)
                     
                     #print c

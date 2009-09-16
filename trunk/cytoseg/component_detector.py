@@ -21,6 +21,7 @@
 
 import numpy
 from cytoseg_classify import *
+from contour_list_classification import *
 #from mitochondria import *
 from fill import *
 #import sys
@@ -266,9 +267,9 @@ def saveBlobsToJinxFile(node):
         doc.appendChild(main)
 
         #for childNode in node.children:
-        #    #print childNode.valueToSave.getXMLVoxelList(doc)
+        #    #print childNode.object.getXMLVoxelList(doc)
         #    #getXMLPointList should allow floating points values
-        #    main.appendChild(childNode.valueToSave.getXMLObject(doc, childNode.name))
+        #    main.appendChild(childNode.object.getXMLObject(doc, childNode.name))
         #print doc.toprettyxml(indent="  ")
 
         saveBlobsToJinxFileRecursiveHelper(node, doc, main)
@@ -284,7 +285,7 @@ def saveBlobsToJinxFileRecursiveHelper(node, document, documentElement):
                 saveBlobsToJinxFileRecursiveHelper(childNode, document, documentElement)
         else:
             documentElement.appendChild(
-                node.valueToSave.getXMLObject(document, node.name))
+                node.object.getXMLObject(document, node.name))
 
 
 
@@ -292,14 +293,25 @@ class CellComponentDetector:
 
 
     def __init__(self,
+                 identifier,
                  originalImageFilePath,
-                 voxelTrainingImageFilePath,
-                 voxelTrainingLabelFilePath):
+                 contourListExamplesFilename,
+                 contourListTrainingExamplesFilename,
+                 voxelTrainingImageFilePath=None,
+                 voxelTrainingLabelFilePath=None,
+                 labelFilePaths=None):
+        '''contourListExamplesFilename: features from detected contours go in this file
+        contourListTrainingExamplesFilename: the classifier is generated based on these
+        examples'''
         #self.originalImageFilePath =\
         #    "O:/images/HPFcere_vol/HPF_rotated_tif/padding_removed/8bit"
         #self.originalImageFilePath =\
         #    "O:/images/Eric_07-10-09/normalized_tiff_files/cropped_stack/8bit"
         self.originalImageFilePath = originalImageFilePath
+
+        self.originalVolumeName = identifier + 'OriginalVolume'
+        self.blurredVolumeName = identifier + 'BlurredVolume'
+        self.filteredVolumeName = identifier + 'MembraneClassifierFilterVolume'
 
         #self.voxelTrainingImageFilePath =\
         #    "O:\\images\\HPFcere_vol\\HPF_rotated_tif\\three_compartment\\"
@@ -312,8 +324,12 @@ class CellComponentDetector:
         self.voxelTrainingImageFilePath = voxelTrainingImageFilePath
         self.voxelTrainingLabelFilePath = voxelTrainingLabelFilePath
 
-        self.contoursNodeName = 'Contours'
+        self.contoursNodeName = identifier + 'Contours'
         self.contoursNodePath = (self.contoursNodeName,)
+        self.contourPathsNodePath = (identifier + 'ContourPaths',)
+        self.contourListExamplesFilename = contourListExamplesFilename
+        self.contourListTrainingExamplesFilename = contourListTrainingExamplesFilename
+        self.labelFilePaths = labelFilePaths
 
         self.numberOfLayersToProcess = None
         self.numberOfThresholds = 1
@@ -350,8 +366,10 @@ class CellComponentDetector:
 
         dataViewer.addVolumeAndRefreshDataTree(originalImage, originalImageNodePath[1])
 
+        print "starting itk filtering"
         medianFilteredImage = itkFilter(originalImage, 'Median', radius=1)
         blurredImage = itkFilter(medianFilteredImage, 'SmoothingRecursiveGaussian', sigma=1)
+        print "itk filtering complete"
 
         dataViewer.addPersistentVolumeAndRefreshDataTree(originalImage,
                                                          self.originalVolumeName)
@@ -372,11 +390,13 @@ class CellComponentDetector:
         voxelTrainingLabelNodePath = ('Volumes', 'voxelTrainingLabel')
         inputImageNodePath = ('Volumes', 'inputImage')
     
-        dataViewer.addVolumeAndRefreshDataTree(loadImageStack(self.voxelTrainingImageFilePath, None),
-                                        voxelTrainingImageNodePath[1])
+        dataViewer.addVolumeAndRefreshDataTree(
+                                    loadImageStack(self.voxelTrainingImageFilePath, None),
+                                    voxelTrainingImageNodePath[1])
     
-        dataViewer.addVolumeAndRefreshDataTree(loadImageStack(self.voxelTrainingLabelFilePath, None),
-                                        voxelTrainingLabelNodePath[1])
+        dataViewer.addVolumeAndRefreshDataTree(
+                                    loadImageStack(self.voxelTrainingLabelFilePath, None),
+                                    voxelTrainingLabelNodePath[1])
         
         #inputImage = loadImageStack(inputImageFilePath, None)
         
@@ -505,16 +525,16 @@ class CellComponentDetector:
         
         for contour in contourList:
             graph.add_node_object(contour)
-            #print contour.valueToSave.getAveragePointLocation()
+            #print contour.object.getAveragePointLocation()
             print contour.name
-            contour.valueToSave.setColor((200, 100, 0))
+            contour.object.setColor((200, 100, 0))
         
         for imageIndex in range(len(contoursGroupedByImage.children) - 1):
             for contourNode1 in contoursGroupedByImage.children[imageIndex].children:
-                contour1 = contourNode1.valueToSave
+                contour1 = contourNode1.object
                 center1 = contour1.getAveragePointLocation()
                 for contourNode2 in contoursGroupedByImage.children[imageIndex + 1].children:
-                    contour2 = contourNode2.valueToSave
+                    contour2 = contourNode2.object
                     center2 = contour2.getAveragePointLocation()
                     if linalg.norm(center1 - center2) < 10.0:
                         graph.add_edge(contourNode1.name, contourNode2.name)
@@ -523,7 +543,41 @@ class CellComponentDetector:
         return pygraph.algorithms.accessibility.connected_components(graph), graph
 
 
-    def makeContourSets(self):
+    def computeContourRegions(self):
+
+        for labelName in self.labelFilePaths.keys():
+            self.dataViewer.addPersistentVolumeAndRefreshDataTree(
+                                    loadImageStack(self.labelFilePaths[labelName], None),
+                                    labelName)
+
+        contoursRootNode = self.dataViewer.mainDoc.dataTree.getSubtree(
+                                                                self.contoursNodePath)
+        self.dataViewer.refreshTreeControls()
+
+        # flatten tree of contours into a list
+        contourList = nonnullObjects(contoursRootNode)
+
+        # visit each contour and look at the label that goes with each point
+        for contour in contourList:
+            count = {}
+            for labelName in self.labelFilePaths.keys():
+                count[labelName] = 0
+                labelVolume = self.dataViewer.getVolume(labelName)
+                for location in contour.locations():
+                    if at(labelVolume, location) != 0:
+                        count[labelName] += 1
+
+                # if more than half of the points have a certain label,
+                # assign that label to the contour
+                if count[labelName] > (contour.numPoints() / 2):
+                    contour.labelSet.add(labelName)
+                    #print contour.labelSet
+            contour.labelCountDict = count
+
+        self.dataViewer.mainDoc.dataTree.writeSubtree(self.contoursNodePath)
+
+
+    def makeContourLists(self):
 
         startIndex = 0
         pathLength = 2
@@ -533,7 +587,7 @@ class CellComponentDetector:
         self.dataViewer.refreshTreeControls()
 
         allContoursAtPlane = getNode(self.dataViewer.mainDoc.dataRootNode,
-                                     ('Contours', 'thresholdIndex_0'))
+                                     self.contoursNodePath + ('thresholdIndex_0',))
 
         pathList = GroupNode()
         #pathList.addChild(GroupNode())
@@ -556,14 +610,14 @@ class CellComponentDetector:
             for contourNode in planeNode.children:
 
                 # contour that may be appended to path if it is close enough
-                newContour = contourNode.valueToSave
+                newContour = contourNode.object
                 newCenter = newContour.getAveragePointLocation()
 
                 for pathNode in pathList.children:
 
                     # last contour in path that may be appended to
                     endOfPathContourNode = pathNode.children[-1]
-                    contour1 = endOfPathContourNode.valueToSave
+                    contour1 = endOfPathContourNode.object
                     center1 = contour1.getAveragePointLocation()
 
                     if linalg.norm(center1 - newCenter) < 20:
@@ -574,19 +628,20 @@ class CellComponentDetector:
 
             pathList = newPathList
 
-        pathList.name = 'ContourPaths'
+        pathList.name = self.contourPathsNodePath[0]
         self.dataViewer.addPersistentSubtreeAndRefreshDataTree((), pathList)
 
 
-    def computeContourRegions(self):
+    def calculateContourListFeatures(self):
 
-        # flatten tree of contours into a list
-        # visit each contour and look at the label that goes with each point
-        # if more than half of the points have a label, assign that label to the contour
-        # otherwise, give the contour a null label: None or "unlabeled"
-        pass
+        contourListsNode = self.dataViewer.mainDoc.dataTree.getSubtree(self.contourPathsNodePath)
 
+        for contourListNode in contourListsNode.children:
+            contourListNode.object = getContourListProperties(contourListNode)
 
+        self.dataViewer.mainDoc.dataTree.writeSubtree(self.contourPathsNodePath)
+    
+    
     def runStep(self, stepNumber):
         
         #defaultStepNumber = 4
@@ -627,10 +682,6 @@ class CellComponentDetector:
         self.dataViewer = ClassificationControlsFrame(makeClassifyGUITree())
         self.dataViewer.Show()
         
-        
-        self.originalVolumeName = 'OriginalVolume'
-        self.blurredVolumeName = 'BlurredVolume'
-        self.filteredVolumeName = 'MembraneClassifierFilterVolume'
         #contoursNodeName = target + 'Contours'
         #self.groupedContoursNodeName = self.target + 'ContoursGroupedByImage'
         highProbabilityContoursNodeName = self.target + 'HighProbabilityContours'
@@ -673,6 +724,8 @@ class CellComponentDetector:
 
 
         elif stepNumber == 4:
+
+            self.dataViewer.getPersistentVolume_old(self.originalVolumeName)
             self.computeContourRegions()
 
 
@@ -690,13 +743,36 @@ class CellComponentDetector:
 
         elif stepNumber == 7:
             
-            self.makeContourSets()
+            self.makeContourLists()
 
 
         elif stepNumber == 8:
+
+            self.calculateContourListFeatures()
+
+
+        elif stepNumber == 9:
+
+            recordFeaturesOfContourLists(self.dataViewer,
+                            inputTrainingContourListsNodePath=self.contourPathsNodePath,
+                            outputExamplesFilename=self.contourListExamplesFilename)
+            self.dataViewer.getPersistentVolume_old(self.originalVolumeName)
+
+            if self.labelFilePaths != None:
+                for labelName in self.labelFilePaths.keys():
+                    self.dataViewer.getPersistentVolume_old(labelName)
+
+            self.dataViewer.refreshTreeControls()
+
+
+        elif stepNumber == 10:
             
             self.dataViewer.getPersistentVolume_old(self.originalVolumeName)
-            self.dataViewer.mainDoc.dataTree.getSubtree(('ContourPaths',))
+            self.dataViewer.mainDoc.dataTree.getSubtree(self.contourPathsNodePath)
+            classifyContourLists(self.dataViewer,
+                    inputTrainingExamplesFilename=self.contourListTrainingExamplesFilename,
+                    contourListsNodePath=self.contourPathsNodePath)
+            self.dataViewer.refreshTreeControls()
 
 
         elif stepNumber == 106:
@@ -750,11 +826,11 @@ class CellComponentDetector:
                 contourNode = attributes[0]
                 #h = 0.05 * count
                 h = 0.05 * connectedComponents[nodeNameKey]
-                print contourNode.valueToSave.color()
+                print contourNode.object.color()
                 print "h", h, "s", s, "v", v
                 h = remainder(h, 1.0)
-                contourNode.valueToSave.setColor(255.0 * array(colorsys.hsv_to_rgb(h, s, v)))
-                #contourNode.valueToSave.setColor((200, 200, 200))
+                contourNode.object.setColor(255.0 * array(colorsys.hsv_to_rgb(h, s, v)))
+                #contourNode.object.setColor((200, 200, 200))
                 #count += 1
 
             originalVolume = self.dataViewer.getPersistentVolume_old(self.originalVolumeName)
