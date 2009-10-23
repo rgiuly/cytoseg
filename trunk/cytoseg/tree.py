@@ -61,6 +61,7 @@ class Node():
         nodeCopy = GroupNode(self.name)
         nodeCopy.object = self.object
         nodeCopy.enableRecursiveRendering = self.enableRecursiveRendering
+        nodeCopy.isGroupNode = self.isGroupNode
         return nodeCopy
 
 
@@ -221,6 +222,7 @@ class PersistentDataTree:
         """
         Adds newNode to subtree and saves to file
         """
+        #print "setSubtree", pathToParent, newNode.name
         parent = getNode(self.rootNode, pathToParent)
         parent.addChild(newNode)
         self.writeSubtree(pathToParent + (newNode.name,))
@@ -328,6 +330,27 @@ def nonnullObjectsHelper(node, resultList):
 
     for childNode in node.children:
         nonnullObjectsHelper(childNode, resultList)
+
+
+def nonnullNongroupObjects(inputRootNode):
+    
+    resultList = []
+    nonnullNongroupObjectsHelper(inputRootNode, resultList)
+    return resultList
+
+
+def nonnullNongroupObjectsHelper(node, resultList):
+    
+    #print node
+    #print node.object != None
+    #print node.isGroupNode
+
+    if (node.object != None) and not(node.isGroupNode):
+        resultList.append(node.object)
+    #print resultList
+
+    for childNode in node.children:
+        nonnullNongroupObjectsHelper(childNode, resultList)
 
 
 def nonnullObjectNodes(inputRootNode):

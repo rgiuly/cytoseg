@@ -49,8 +49,8 @@ class ContourDetector:
         self.minPerimeter = 0
         self.maxPerimeter = None
         self.threshold = 0.5
-        openCVSize = cvSize(numpyImageArrayShape[0], numpyImageArrayShape[1])
-        self.images = self.createTemporaryImages(openCVSize)
+        self.openCVImageSize = cvSize(numpyImageArrayShape[0], numpyImageArrayShape[1])
+        self.images = self.createTemporaryImages(self.openCVImageSize)
 
 
     def createTemporaryImages(self, openCVSize):
@@ -146,6 +146,7 @@ class ContourDetector:
         for imageIndex in range(originalVolume.shape[2]):
 
             contoursInImage = GroupNode('image' + str(imageIndex))
+            contourResultTree.addChild(contoursInImage)
             
             progressLog(("image index", imageIndex, "number of images:", originalVolume.shape[2])) 
             
@@ -208,7 +209,7 @@ class ContourDetector:
     
             elif contourFilterFunction2D != None:
                 print "contour processing using original image"
-                temp = cvCreateImage(size, 8, 1)
+                temp = cvCreateImage(self.openCVImageSize, 8, 1)
                 copyNumpyToOpenCV(numpy_original, temp)
                 binaryImage = contourFilterFunction2D(temp)
     
@@ -504,7 +505,7 @@ class ContourDetector:
             outputFilename = os.path.join(contourOutputTemporaryFolder, "result%04d.bmp" % imageIndex)
             highgui.cvSaveImage(outputFilename, resultContoursImage)
 
-            contourResultTree.addChild(contoursInImage)
+            #contourResultTree.addChild(contoursInImage)
         
             #print outputFilename
         print "output written to file stack"

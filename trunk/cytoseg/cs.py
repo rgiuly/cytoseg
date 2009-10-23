@@ -2009,16 +2009,23 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
 
     def drawBlobsRecursive(self, dataNode, dc, z):
         
-        if isinstance(dataNode.object, PointSet):
+        if isinstance(dataNode.object, ProbabilityObject):
             blob = dataNode.object
             useThreshold = self.getValue(('particleMotionTool', 'useFacesProbabilityThreshold'))
-            if not(useThreshold) or numpy.log(blob.probability()) >= self.facesProbabilityThreshold():
+            if not(blob.filterActive) or\
+                not(useThreshold) or\
+                numpy.log(blob.probability()) >= self.facesProbabilityThreshold():
                 #print "log of probability threshold", self.facesProbabilityThreshold(), "log of probability", numpy.log(blob.probability()), "probability", blob.probability()
-                self.drawBlob(blob, dc, z)
+                if isinstance(dataNode.object, PointSet):
+                    self.drawBlob(blob, dc, z)
         
-        if dataNode.enableRecursiveRendering:
-            for child in dataNode.children:
-                self.drawBlobsRecursive(child, dc, z)
+                if dataNode.enableRecursiveRendering:
+                    for child in dataNode.children:
+                        self.drawBlobsRecursive(child, dc, z)
+        else:
+            if dataNode.enableRecursiveRendering:
+                for child in dataNode.children:
+                    self.drawBlobsRecursive(child, dc, z)
 
 
     def renderPointSetsInVolumeRecursive(self, volume, dataNode, valueMode='constant'):
@@ -2196,7 +2203,7 @@ def makeDefaultGUITree():
                     DataNode("dataTree","treeControl",{'caption' : 'treeControl', 'selectionCallback' : 'onBlobSelectionChanged'},None),
                     DataNode("dataTreeForVolumeSelection","treeControl",{'caption' : 'Volume Selector', 'selectionCallback' : 'onVolumeSelectionChanged'},None),
                     #DataNode("timerUpdateDisplay","boolean",{'caption' : 'timerUpdateDisplay'},False),
-                    DataNode("visualsEnabled","boolean",{'caption' : 'Visuals Enabled'},True),
+                    DataNode("visualsEnabled","boolean",{'caption' : 'Visuals Enabled'},False),
                     DataNode("volumeList","listBox",{'caption' : 'volumeList', 'items' : ()},0),
                     #DataNode("blobList","listBox",{'caption' : 'blobList'},0),
                     DataNode("mouseClickCallbackList","listBox",{'caption' : 'mouseClickCallbackList', 'height' : 200, 'items' : ()},0), 
@@ -3463,52 +3470,11 @@ def plotBlobSizes(blobs):
     pylab.plot(blobIndices, blobSizes, linewidth=1.0)
     pylab.grid(True)
     pylab.show()
-    
-                        
+
+         
 def writeTiffStackButton(arg1):
     writeTiffStack(form['saveImageStackPathTextBox'].value, volume, volume, volume)                        
                          
-# todo: path and filename combining should be done with a function for certain operating system i think
-def writeTiffStack_version1(path, redVolume, greenVolume, blueVolume):
-    maxValue = 255
-    
-    #path = 'c:/temp/'
-    for i in range(0,redVolume.shape[2]):
-        # all the volumes of each color should have the same dimensions (shape)
-        colorImageArray = numpy.zeros((redVolume.shape[0], redVolume.shape[1], 3), numpy.uint8)
-        
-        colorImageArray[:,:,0] = redVolume[:,:,i]
-        colorImageArray[:,:,1] = greenVolume[:,:,i]
-        colorImageArray[:,:,2] = blueVolume[:,:,i]
-        #colorImageArray[:,:,3] = maxValue
-        
-        #image = Image.fromarray(colorImageArray, 'RGB')
-        
-        image = Image.fromstring("F", (a.shape[1],a.shape[0]), a.tostring())
-        
-        
-        fullName = path + ('output%0.3d' % i) + '.tiff'
-        print fullName
-        image.save(fullName)
-
-def writeTiffStack(path, volume):
-    maxValue = 255
-    
-    a = numpy.zeros((volume.shape[0], volume.shape[1]), int8)
-    
-    #path = 'c:/temp/'
-    for i in range(0,volume.shape[2]):
-
-        #a[:,:] = 
-        a[:,:] = volume[:,:,i]
-        aTransposed = a.T
-        image = Image.fromstring("L", (aTransposed.shape[1],aTransposed.shape[0]), aTransposed.tostring())
-        
-        
-        fullName = os.path.join(path, ('output%0.3d' % i) + '.bmp')
-        print fullName
-        image.save(fullName)
-
 
 class TimerHandler(wx.EvtHandler):
 
@@ -3522,7 +3488,6 @@ class TimerHandler(wx.EvtHandler):
         a = 1
 
 
-         
 def updateParticlePositions(volume, settingsTree, offsetOfLoadedVolumeInFullVolume):
     
     global count

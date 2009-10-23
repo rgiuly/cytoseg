@@ -17,38 +17,56 @@ def shellActiveContour(inputImage, seedPoints, advectionScaling, propagationScal
 
 
 
-    smoothing = itk.CurvatureAnisotropicDiffusionImageFilter[InternalImageType, InternalImageType].New(inputImage,
-		        TimeStep=0.125,
-			NumberOfIterations=5,
-			ConductanceParameter=9.0)
-    
-    gradientMagnitude = itk.GradientMagnitudeRecursiveGaussianImageFilter[InternalImageType, InternalImageType].New(smoothing,
-                        Sigma=float(gradientMagnitudeSigma))
+    #smoothing = itk.CurvatureAnisotropicDiffusionImageFilter[InternalImageType, InternalImageType].New(inputImage,
+	#	        TimeStep=0.125,
+	#		NumberOfIterations=5,
+	#		ConductanceParameter=9.0)
+    #
+    #gradientMagnitude = itk.GradientMagnitudeRecursiveGaussianImageFilter[InternalImageType, InternalImageType].New(smoothing,
+    #                    Sigma=float(gradientMagnitudeSigma))
+
+    gradientMagnitude = itk.GradientMagnitudeRecursiveGaussianImageFilter[
+                            InternalImageType, InternalImageType].New(inputImage,
+                                Sigma=float(gradientMagnitudeSigma))
 
     invertedGradientMagnitude = itk.MultiplyByConstantImageFilter[InternalImageType, itk.F, InternalImageType].New()
     invertedGradientMagnitude.SetInput(gradientMagnitude.GetOutput())
     invertedGradientMagnitude.SetConstant(-1.0)
     
+    invertedInputImage = itk.MultiplyByConstantImageFilter[InternalImageType, itk.F, InternalImageType].New()
+    invertedInputImage.SetInput(inputImage)
+    invertedInputImage.SetConstant(-1.0)
+    
     rescaler = itk.RescaleIntensityImageFilter[InternalImageType, InternalImageType].New(inputImage,
                    OutputMinimum=0,
                OutputMaximum=1)
+    
+    #rescaler = itk.RescaleIntensityImageFilter[InternalImageType, InternalImageType].New(invertedInputImage,
+    #               OutputMinimum=0,
+    #           OutputMaximum=1)
     
     gradientMagnitudeRescaler = itk.RescaleIntensityImageFilter[InternalImageType, InternalImageType].New(invertedGradientMagnitude,
                    OutputMinimum=0,
                OutputMaximum=1)
 
-    seedPosition = itk.Index[dimensions]()
+    # make itk seed list
 
-    for elementIndex in range(dimensions):
-        seedPosition.SetElement(elementIndex, int(seedPoints[0][elementIndex]))
-	    
-    node = itk.LevelSetNode[InternalPixelType, dimensions]()
-    node.SetValue(-float(levelSetNodeValue))
-    node.SetIndex(seedPosition)
-    
     seeds = itk.VectorContainer[itk.UI, itk.LevelSetNode[InternalPixelType, dimensions]].New()
     seeds.Initialize()
-    seeds.InsertElement(0, node)
+
+    for seedPointIndex in range(len(seedPoints)):
+
+        seedPosition = itk.Index[dimensions]()
+    
+        for elementIndex in range(dimensions):
+            seedPosition.SetElement(elementIndex,
+                                    int(seedPoints[seedPointIndex][elementIndex]))
+    	    
+        node = itk.LevelSetNode[InternalPixelType, dimensions]()
+        node.SetValue(-float(levelSetNodeValue))
+        node.SetIndex(seedPosition)
+        
+        seeds.InsertElement(seedPointIndex, node)
 
     fastMarching = itk.FastMarchingImageFilter[InternalImageType, InternalImageType].New(rescaler,
                         TrialPoints=seeds,

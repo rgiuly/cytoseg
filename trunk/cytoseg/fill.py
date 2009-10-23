@@ -149,7 +149,7 @@ def fastMarch(image1, center, contour, inputVolume):
 
 
 
-def shellActiveContourWrapper(image1, center, contour, inputVolume):
+def shellActiveContourWrapper(image1, seedList, contour, inputVolume):
 
     InternalPixelType = itk.F
     Dimension = 3
@@ -163,7 +163,7 @@ def shellActiveContourWrapper(image1, center, contour, inputVolume):
     OutputImageType = IT
     itk.write(image1, os.path.join(defaultOutputPath, "hello1.nrrd"))
     itk.write(image1, os.path.join(defaultOutputPath, "hello2.nrrd"))
-    seedPosition = numpyToItkPoint(center)
+    #seedPosition = numpyToItkPoint(center)
 
     argv[1:] = ["O:\\images\\HPFcere_vol\\HPF_rotated_tif\\median_then_gaussian_8bit_classified_pixels\\median_then_gaussian_8bit_classified_pixels.nrrd", "o:\\temp\\fastmarch3d.nrrd", 81, 114, 1.0, -0.5, 3.0, 0.4, 0.4]
 
@@ -227,18 +227,21 @@ def shellActiveContourWrapper(image1, center, contour, inputVolume):
 #    beta  =  float( argv[7] )
     
     
-    seeds = NodeContainer.New()
-    
-    
-    
-    node = NodeType()
-    seedValue = 0.0
-    
-    node.SetValue( seedValue )
-    node.SetIndex( seedPosition )
-    
-    seeds.Initialize();
-    seeds.InsertElement( 0, node )
+    #seeds = NodeContainer.New()
+    itkSeedList = []
+
+    for point in seedList:    
+
+        itkSeedList.append(numpyToItkPoint(point))
+
+#        node = NodeType()
+#        seedValue = 0.0
+#        
+#        node.SetValue(seedValue)
+#        node.SetIndex(numpyToItkPoint(point))
+#        
+#        seeds.Initialize();
+#        seeds.InsertElement(0, node)
     
 #    fastMarching.SetTrialPoints(  seeds  );
     
@@ -250,10 +253,12 @@ def shellActiveContourWrapper(image1, center, contour, inputVolume):
     #fastMarching.SetStoppingValue(  stoppingTime  )
     
     resultItkArray = shellActiveContour(inputImage=image1,
-                                        seedPoints=(seedPosition,),
-                                        advectionScaling=20.0,
-                                        curvatureScaling=1.2,
+                                        seedPoints=itkSeedList,
+                                        advectionScaling=80.0,
+                                        curvatureScaling=0.75,
                                         dimensions=3)
+                                        #advectionScaling=20.0,
+                                        #curvatureScaling=1.2,
     
     print "update"
 #    fastMarching.Update()
@@ -555,7 +560,7 @@ def shellActiveContourWrapper_old(seedPositionNumpyArray, numpyTargetPointList):
 
 
 
-def computeFillFromEllipseCenter(inputVolume1, contourList, fillMethod):
+def computeFillFromEllipseCenters(inputVolume1, contourList, fillMethod):
 
     global numpyBufferFromPyBufferClass
     global img
@@ -601,20 +606,95 @@ def computeFillFromEllipseCenter(inputVolume1, contourList, fillMethod):
             blob = Blob()
             #binaryResult = resultVolume < 10000000
             binaryResult = resultVolume < 0.5
-            pointList = floodFill(binaryResult, center)
+            if 0:
+                print "starting flood fill"
+                pointList = floodFill(binaryResult, center)
+                print "flood fill finished"
+                blob.setPoints(pointList)
 
             if count == 0:
                 sumVolume = (1.0 * binaryResult)
             else:
                 sumVolume += (1.0 * binaryResult)
 
-            blob.setPoints(pointList)
             #contour.features['fastMarchBlobFromEllipseCenter'] = blob
             print "result volume"
         count += 1
 
     return sumVolume
 
+
+def quickComputeFillFromEllipseCenters(inputVolume1, contourList, fillMethod):
+
+    global numpyBufferFromPyBufferClass
+    global img
+
+    InternalPixelType = itk.F
+    Dimension = 3
+    ImageType = itk.Image[InternalPixelType, Dimension]
+    converter = itk.PyBuffer[ImageType]
+    IT = itk.Image.F3
+    img = IT.New(Regions=[inputVolume1.shape[2], inputVolume1.shape[1], inputVolume1.shape[0]])
+    img.Allocate()
+    img.FillBuffer(0)
+    InternalImageType = IT
+    OutputImageType = IT
+
+    numpyBufferFromPyBufferClass = itk.PyBuffer[IT].GetArrayFromImage(img)
+    numpyBufferFromPyBufferClass[:, :, :] = inputVolume1
+    
+    centerList = []
+
+    for contour in contourList:
+        center = contour.bestFitEllipse.center
+        centerList.append(center)
+        for point in contour.locations():
+            centerList.append(((array(point) - array(center)) / 2.0) + array(center))
+
+    count = 0
+
+    center = contour.bestFitEllipse.center
+    print "compute fill", count, "total", len(contourList)
+
+    inputVolume = converter.GetImageFromArray(numpyBufferFromPyBufferClass)
+    inputVolumeFileName = os.path.join(defaultOutputPath, "hello.nrrd")
+    itk.write(inputVolume, inputVolumeFileName)
+    reader1 = itk.ImageFileReader[InternalImageType].New(FileName=inputVolumeFileName)
+    image1  = reader1.GetOutput()
+
+    if fillMethod == 'fastMarch':
+        #resultItkArray = fastMarch(image1, center, contour, inputVolume)
+        raise Exception, "not implemented"
+    elif fillMethod == 'shellActiveContour':
+        resultItkArray = shellActiveContourWrapper(image1, centerList, contour, inputVolume)
+    else: raise Exception, "Invalid fill method"
+    
+    tempFileName = os.path.join(defaultOutputPath, "fillResult.nrrd")
+    print "writing file", tempFileName
+    itk.write(resultItkArray, tempFileName)
+
+    resultVolume = numpy.array(converter.GetArrayFromImage(resultItkArray))
+    if 1:
+        #contour.features['fastMarchFromEllipseCenter'] = resultVolume
+        blob = Blob()
+        #binaryResult = resultVolume < 10000000
+        binaryResult = resultVolume < 0.5
+        if 0:
+            print "starting flood fill"
+            pointList = floodFill(binaryResult, center)
+            print "flood fill finished"
+            blob.setPoints(pointList)
+
+        if count == 0:
+            sumVolume = (1.0 * binaryResult)
+        else:
+            sumVolume += (1.0 * binaryResult)
+
+        #contour.features['fastMarchBlobFromEllipseCenter'] = blob
+        print "result volume"
+    count += 1
+
+    return sumVolume
 
 
 def fillAndDisplayResults(gui, inputVolumeName, contoursNodeName,
@@ -628,7 +708,8 @@ def fillAndDisplayResults(gui, inputVolumeName, contoursNodeName,
     #print inputVolume
 
     node = gui.mainDoc.dataTree.getSubtree((contoursNodeName,))
-    contourList = node.makeChildrenObjectList()
+    #contourList = node.makeChildrenObjectList()
+    contourList = nonnullNongroupObjects(node)
     #highProbabilityContourList = highProbabilityContours(contours)
     
     if numberOfContoursToDisplay != None:
@@ -639,7 +720,8 @@ def fillAndDisplayResults(gui, inputVolumeName, contoursNodeName,
     if len(contourList) > 0:
 
         # perform fast march operations
-        sumVolume = computeFillFromEllipseCenter(inputVolume, contourList, fillMethod)
+        #sumVolume = computeFillFromEllipseCenter(inputVolume, contourList, fillMethod)
+        sumVolume = quickComputeFillFromEllipseCenters(inputVolume, contourList, fillMethod)
     
         #node = gui.mainDoc.dataTree.writeSubtree((contoursNodeName,))
             # compute the logical or of fastmarches
@@ -655,11 +737,12 @@ def fillAndDisplayResults(gui, inputVolumeName, contoursNodeName,
         # display 3D blobs
         if enable3DPlot: displayBlobsFromContourCenters(gui, contourList)
     
-        # add blobs for the fastmarch to the data tree
-        count = 0
-        for contour in contourList:
-            gui.addBlob(contour.features['fastMarchBlobFromEllipseCenter'], getNode(gui.mainDoc.dataRootNode, ('Blobs',)), inputVolumeName + ('Blob%d' % count))
-            count += 1
+        if 0:
+            # add blobs for the fastmarch to the data tree
+            count = 0
+            for contour in contourList:
+                gui.addBlob(contour.features['fastMarchBlobFromEllipseCenter'], getNode(gui.mainDoc.dataRootNode, ('Blobs',)), inputVolumeName + ('Blob%d' % count))
+                count += 1
     
         gui.mainDoc.dataTree.writeSubtree(('Blobs',))
         gui.refreshTreeControls()
