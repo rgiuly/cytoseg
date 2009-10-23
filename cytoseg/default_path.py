@@ -3,7 +3,16 @@ import os
 
 
 from socket import gethostname; hostname = gethostname()
-if hostname == "panther_invalid":
+if hostname == "panther":
+        defaultTemporaryFolder = "o:/cytoseg_data"
+        driveName = "/folder_not_set/"
+        cytosegDataFolder = defaultTemporaryFolder
+        contourOutputTemporaryFolder = defaultTemporaryFolder
+        defaultPath = "/folder_not_set/"
+        defaultOutputPath = defaultTemporaryFolder
+
+
+elif hostname == "panther_invalid":
         driveName = "o:"
         cytosegDataFolder = "c:/shared/cytoseg_data"
         contourOutputTemporaryFolder = "c:/temp/contour_output"

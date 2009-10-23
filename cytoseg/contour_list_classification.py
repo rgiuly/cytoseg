@@ -9,6 +9,7 @@ class ContourListProperties(ProbabilityObject):
 
     def __init__(self):
 
+        ProbabilityObject.__init__(self)
         self.featureDict = None
         self.className = None
         self.intersectionOfLabelSets = None
@@ -73,18 +74,18 @@ def getContourListProperties(contourListNode):
 
 def recordFeaturesOfContourLists(dataViewer,
                                  inputTrainingContourListsNodePath,
-                                 outputExamplesFilename):
+                                 outputExamplesIdentifier):
 
 
-    file = open(outputExamplesFilename, "w")
+    file = open(os.path.join(cytosegDataFolder, outputExamplesIdentifier + ".tab"), "w")
 
-    print "recordFeaturesOfContourLists file name: " + outputExamplesFilename
+    print "recordFeaturesOfContourLists file name: " + outputExamplesIdentifier
 
     contourListsNode =\
         dataViewer.mainDoc.dataTree.getSubtree(inputTrainingContourListsNodePath)
     
-    # get point features at the arbitrary point [3,3,3] to get a list of feature names
-    dictionary = getContourListFeatures(contourListsNode.children[0])
+    # use the feature dictionary of the first node to get a list of feature names
+    dictionary = contourListsNode.children[0].object.featureDict
     featureList = []
     for item in dictionary.items():
         key = item[0]
@@ -98,6 +99,9 @@ def recordFeaturesOfContourLists(dataViewer,
                 dataViewer.writeExample(file,
                                         contourListProperties.featureDict,
                                         contourListProperties.isConnected)
+                #dataViewer.writeExample(file,
+                #                        dictionary,
+                #                        contourListProperties.isConnected)
 
                 
     
@@ -105,12 +109,13 @@ def recordFeaturesOfContourLists(dataViewer,
 
 
 def classifyContourLists(dataViewer,
-                         inputTrainingExamplesFilename,
+                         inputTrainingExamplesIdentifier,
                          contourListsNodePath):
     
     #identifier = 'test'
 
-    data = orange.ExampleTable(inputTrainingExamplesFilename)
+    data = orange.ExampleTable(os.path.join(cytosegDataFolder,
+                                            inputTrainingExamplesIdentifier + ".tab"))
     
     minimumExamples = len(data) / 5
     
@@ -168,3 +173,44 @@ def classifyContourLists(dataViewer,
             contourNode.object.setColor([200 - ((colorScaleFactor * p[1]) * 200),
                                          (colorScaleFactor * p[1]) * 200, 0]) 
             #contourNode.object.setProbability(p[1])
+
+
+def classifyContourListsBayes(probabilityFunction,
+                              contourListsNode):
+    
+    for contourListNode in contourListsNode.children:
+
+        probabilityProduct = 1.0
+
+        for contourNode in contourListNode.children:
+            probability = probabilityFunction(contourNode.object.features)
+            probabilityProduct *= probability
+            pass
+            #contourNode.object.setColor([200 - ((colorScaleFactor * p[1]) * 200),
+            #                             (colorScaleFactor * p[1]) * 200, 0]) 
+            #contourNode.object.setProbability(p[1])
+        
+        contourListNode.object = ProbabilityObject()
+        contourListNode.object.setProbability(probabilityProduct)
+
+        colorScaleFactor = 100.0
+        scaledProbability = colorScaleFactor * probabilityProduct
+
+        for contourNode in contourListNode.children:
+            contourNode.object.setColor([200 - (scaledProbability * 200),
+                                         scaledProbability * 200, 0])
+            contourNode.object.filterActive = False 
+
+
+def classifyContourListsNodePathBayes(dataViewer,
+                                      probabilityFunction,
+                                      contourListsNodePath):
+
+    contourListsNode =\
+        dataViewer.mainDoc.dataTree.getSubtree(contourListsNodePath)
+
+    classifyContourListsBayes(probabilityFunction,
+                              contourListsNode)
+
+
+

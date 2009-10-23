@@ -35,6 +35,8 @@ import os
 import colorsys
 import copy as copy_module
 
+enablePathProbabilityFilter = False # use for mitochondria
+
 
 
 def mitochondriaProbability_old(features):
@@ -51,10 +53,10 @@ def mitochondriaProbability(features):
 
     amplitude = 1
     overlapValue = gaussian(1.0 - features['ellipseOverlap'], amplitude, 0.2)
-    perimeterValue = gaussian(abs(81.0 - features['perimeter']), amplitude, 75)
+    perimeterValue = gaussian(abs(131.0 - features['perimeter']), amplitude, 75)
     grayValueMatch = gaussian(abs(1 - features['averageGrayValue']), amplitude, 0.25)
-    areaMatch = gaussian(abs(435 - math.sqrt(features['contourArea'])), amplitude, 300)
-    return overlapValue * perimeterValue * grayValueMatch * areaMatch
+    areaMatch = gaussian(abs(635 - math.sqrt(features['contourArea'])), amplitude, 300)
+    return overlapValue * perimeterValue * grayValueMatch * areaMatch * areaMatch
 
 
 def blankInnerCellProbability(features):
@@ -259,33 +261,34 @@ class ContourAndBlobDisplayParameters:
         self.contourProbabilityThreshold = 0
 
 
-def saveBlobsToJinxFile(node):
+def saveBlobsToJinxFile(node, filename):
+    """filename: filename (without a path or an extension)"""
 
-        doc = Document()
-        #blobsNode = gui.mainDoc.dataTree.getSubtree(('Blobs',))
-        main = doc.createElement("main")
-        doc.appendChild(main)
+    doc = Document()
+    #blobsNode = gui.mainDoc.dataTree.getSubtree(('Blobs',))
+    main = doc.createElement("main")
+    doc.appendChild(main)
 
-        #for childNode in node.children:
-        #    #print childNode.object.getXMLVoxelList(doc)
-        #    #getXMLPointList should allow floating points values
-        #    main.appendChild(childNode.object.getXMLObject(doc, childNode.name))
-        #print doc.toprettyxml(indent="  ")
+    #for childNode in node.children:
+    #    #print childNode.object.getXMLVoxelList(doc)
+    #    #getXMLPointList should allow floating points values
+    #    main.appendChild(childNode.object.getXMLObject(doc, childNode.name))
+    #print doc.toprettyxml(indent="  ")
 
-        saveBlobsToJinxFileRecursiveHelper(node, doc, main)
+    saveBlobsToJinxFileRecursiveHelper(node, doc, main)
 
-        file = open(os.path.join(defaultOutputPath, "blobs.xml"), "w")
-        file.write(doc.toprettyxml(indent="   "))
+    file = open(os.path.join(defaultOutputPath, filename + ".xml"), "w")
+    file.write(doc.toprettyxml(indent="   "))
 
 
 def saveBlobsToJinxFileRecursiveHelper(node, document, documentElement):
 
-        if node.isGroupNode:
-            for childNode in node.children:
-                saveBlobsToJinxFileRecursiveHelper(childNode, document, documentElement)
-        else:
-            documentElement.appendChild(
-                node.object.getXMLObject(document, node.name))
+    if node.isGroupNode:
+        for childNode in node.children:
+            saveBlobsToJinxFileRecursiveHelper(childNode, document, documentElement)
+    else:
+        documentElement.appendChild(
+            node.object.getXMLObject(document, node.name))
 
 
 
@@ -293,25 +296,33 @@ class CellComponentDetector:
 
 
     def __init__(self,
-                 identifier,
+                 dataIdentifier,
+                 target,
                  originalImageFilePath,
-                 contourListExamplesFilename,
-                 contourListTrainingExamplesFilename,
+                 contourListClassificationMethod,
+                 contourListExamplesIdentifier, # file to write to
+                 contourListTrainingExamplesIdentifier, # file to read from
                  voxelTrainingImageFilePath=None,
                  voxelTrainingLabelFilePath=None,
                  labelFilePaths=None):
-        '''contourListExamplesFilename: features from detected contours go in this file
-        contourListTrainingExamplesFilename: the classifier is generated based on these
+        '''contourListExamplesIdentifier: features from detected contours go in this file
+        contourListTrainingExamplesIdentifier: the classifier is generated based on these
         examples'''
+
+        self.dataIdentifier = dataIdentifier
+        self.target = target
+        self.highProbabilityContoursBaseFilename =\
+            self.dataIdentifier + "_" + self.target
+
         #self.originalImageFilePath =\
         #    "O:/images/HPFcere_vol/HPF_rotated_tif/padding_removed/8bit"
         #self.originalImageFilePath =\
         #    "O:/images/Eric_07-10-09/normalized_tiff_files/cropped_stack/8bit"
         self.originalImageFilePath = originalImageFilePath
 
-        self.originalVolumeName = identifier + 'OriginalVolume'
-        self.blurredVolumeName = identifier + 'BlurredVolume'
-        self.filteredVolumeName = identifier + 'MembraneClassifierFilterVolume'
+        self.originalVolumeName = dataIdentifier + 'OriginalVolume'
+        self.blurredVolumeName = dataIdentifier + 'BlurredVolume'
+        self.filteredVolumeName = dataIdentifier + 'MembraneClassifierFilterVolume'
 
         #self.voxelTrainingImageFilePath =\
         #    "O:\\images\\HPFcere_vol\\HPF_rotated_tif\\three_compartment\\"
@@ -324,11 +335,17 @@ class CellComponentDetector:
         self.voxelTrainingImageFilePath = voxelTrainingImageFilePath
         self.voxelTrainingLabelFilePath = voxelTrainingLabelFilePath
 
-        self.contoursNodeName = identifier + 'Contours'
+        self.contourListClassificationMethod = contourListClassificationMethod
+
+        self.contoursNodeName = dataIdentifier + '_' + self.target + 'Contours'
         self.contoursNodePath = (self.contoursNodeName,)
-        self.contourPathsNodePath = (identifier + 'ContourPaths',)
-        self.contourListExamplesFilename = contourListExamplesFilename
-        self.contourListTrainingExamplesFilename = contourListTrainingExamplesFilename
+        self.contourPathsNodePath = (dataIdentifier + '_' + self.target + 'ContourPaths',)
+        if contourListExamplesIdentifier != None:
+            self.contourListExamplesIdentifier = contourListExamplesIdentifier +\
+                                                '_' + self.target
+        self.contourListTrainingExamplesIdentifier =\
+            contourListTrainingExamplesIdentifier +\
+            '_' + self.target
         self.labelFilePaths = labelFilePaths
 
         self.numberOfLayersToProcess = None
@@ -462,7 +479,7 @@ class CellComponentDetector:
                 if self.target == 'mitochondria':
                     #detector.probabilityFunction = mitochondriaProbability
                     detector.filteredVolume = filterVolume2D(detector.filteredVolume,
-                                                            'erode', kernelSize=4)
+                                                            'GrayscaleErode', kernelSize=4)
                 elif self.target == 'blankInnerCell':
                     #detector.probabilityFunction = blankInnerCellProbability
                     detector.filteredVolume = filterVolume2D(detector.filteredVolume,
@@ -474,7 +491,7 @@ class CellComponentDetector:
     
             elif self.target == 'vesicles':
             
-                detector = ContourDetector()
+                #detector = ContourDetector()
                 fullVolume = self.dataViewer.getPersistentVolume_old(self.originalVolumeName)
     
                 if numberOfLayersToProcess != None:
@@ -577,59 +594,101 @@ class CellComponentDetector:
         self.dataViewer.mainDoc.dataTree.writeSubtree(self.contoursNodePath)
 
 
-    def makeContourLists(self):
+    def makeContourLists(self, probabilityThreshold, pathLength):
 
-        startIndex = 0
-        pathLength = 2
+        #startIndex = 3
+        #pathLength = 3
 
         self.dataViewer.getPersistentVolume_old(self.originalVolumeName)
         self.dataViewer.mainDoc.dataTree.getSubtree(self.contoursNodePath)
         self.dataViewer.refreshTreeControls()
 
-        allContoursAtPlane = getNode(self.dataViewer.mainDoc.dataRootNode,
-                                     self.contoursNodePath + ('thresholdIndex_0',))
+        #allContoursAtPlane = getNode(self.dataViewer.mainDoc.dataRootNode,
+        #                             self.contoursNodePath + ('thresholdIndex_0',))
+        contoursNode = getNode(self.dataViewer.mainDoc.dataRootNode,
+                                     self.contoursNodePath)
 
-        pathList = GroupNode()
-        #pathList.addChild(GroupNode())
+        newContourStack = GroupNode('ContourStack')
 
-        # initialize the paths with the contours at the startIndex plane
-        planeNode = allContoursAtPlane.children[startIndex]
-        for contourNode in planeNode.children:
-            pathNode = GroupNode()
-            pathNode.addChild(contourNode)
-            pathList.addChild(pathNode)
+        firstThresholdNode = contoursNode.children[0]
+        numPlanes = len(firstThresholdNode.children)
+        for i in range(numPlanes):
+            newContourStack.addChild(GroupNode('plane_%d' % i))
 
-        for planeIndex in range(startIndex + 1, startIndex + pathLength):
+        for thresholdSetNode in contoursNode.children:
+            for contourPlaneNodeIndex in range(numPlanes):
+                #print len(thresholdSetNode.children)
+                #print numPlanes
+                contourPlaneNode = thresholdSetNode.children[contourPlaneNodeIndex]
+                for contourNode in contourPlaneNode.children:
+                    newContourStack.children[contourPlaneNodeIndex].addChild(contourNode)
 
-            print "planeIndex:", planeIndex, "pathLength:", pathLength
+        self.dataViewer.addPersistentSubtreeAndRefreshDataTree((), newContourStack)
 
-            planeNode = allContoursAtPlane.children[planeIndex]
+        allPathsNode = GroupNode(self.contourPathsNodePath[0])
 
-            newPathList = GroupNode()
+        for startIndex in range(numPlanes - pathLength):
 
+            pathList = GroupNode()
+            #pathList.addChild(GroupNode())
+    
+            # initialize the paths with the contours at the startIndex plane
+            planeNode = newContourStack.children[startIndex]
             for contourNode in planeNode.children:
+                pathNode = GroupNode()
+                pathNode.addChild(contourNode)
+                pathList.addChild(pathNode)
 
-                # contour that may be appended to path if it is close enough
-                newContour = contourNode.object
-                newCenter = newContour.getAveragePointLocation()
+            for planeIndex in range(startIndex + 1, startIndex + pathLength):
+    
+                print "planeIndex:", planeIndex, "pathLength:", pathLength
+    
+                planeNode = newContourStack.children[planeIndex]
+    
+                newPathList = GroupNode()
+    
+                for contourNode in planeNode.children:
+    
+                    # contour that may be appended to path if it is close enough
+                    newContour = contourNode.object
+                    newCenter = newContour.getAveragePointLocation()
+    
+                    for pathNode in pathList.children:
+    
+                        # last contour in path that may be appended to
+                        endOfPathContourNode = pathNode.children[-1]
+                        contour1 = endOfPathContourNode.object
+                        center1 = contour1.getAveragePointLocation()
+    
+                        if linalg.norm(center1 - newCenter) < 40:
+    
+                            newPathNode = copy_module.deepcopy(pathNode)
+                            newPathNode.addObject(newContour)
+                            newPathList.addChild(newPathNode)
+    
+                pathList = newPathList
+                #pathList.name = 'planeIndex_%d' % planeIndex
 
-                for pathNode in pathList.children:
+            # calculate features
+            for contourListNode in pathList.children:
+                contourListNode.object = getContourListProperties(contourListNode)
 
-                    # last contour in path that may be appended to
-                    endOfPathContourNode = pathNode.children[-1]
-                    contour1 = endOfPathContourNode.object
-                    center1 = contour1.getAveragePointLocation()
+            # calculate probabilities based on features
+            classifyContourListsBayes(mitochondriaProbability, pathList)
 
-                    if linalg.norm(center1 - newCenter) < 20:
+            filteredPathList = GroupNode()
 
-                        newPathNode = copy_module.deepcopy(pathNode)
-                        newPathNode.addObject(newContour)
-                        newPathList.addChild(newPathNode)
+            # filter out low probability paths
+            for contourListNode in pathList.children:
+                #print contourListNode.object.probability()
+                if contourListNode.object.probability() >\
+                   pow(probabilityThreshold, pathLength) / 200.0\
+                   or not(enablePathProbabilityFilter):
+                    filteredPathList.addChild(contourListNode)
 
-            pathList = newPathList
-
-        pathList.name = self.contourPathsNodePath[0]
-        self.dataViewer.addPersistentSubtreeAndRefreshDataTree((), pathList)
+            allPathsNode.addChildren(filteredPathList.children)
+            
+        self.dataViewer.addPersistentSubtreeAndRefreshDataTree((), allPathsNode)
 
 
     def calculateContourListFeatures(self):
@@ -646,26 +705,30 @@ class CellComponentDetector:
         
         #defaultStepNumber = 4
         #self.target = 'mitochondria'
-        self.target = 'blankInnerCell'
+        #self.target = 'blankInnerCell'
         #self.target = 'vesicles'
         #numberOfContoursToDisplay = None
         displayParametersDict = {}
         displayParametersDict['mitochondria'] = ContourAndBlobDisplayParameters()
-        displayParametersDict['mitochondria'].numberOfContoursToDisplay = 20
-        displayParametersDict['mitochondria'].contourProbabilityThreshold = 0
+        displayParametersDict['mitochondria'].numberOfContoursToDisplay = None #20
+        displayParametersDict['mitochondria'].contourProbabilityThreshold = 0.08
         displayParametersDict['blankInnerCell'] = ContourAndBlobDisplayParameters()
         displayParametersDict['blankInnerCell'].numberOfContoursToDisplay = 20
-        displayParametersDict['blankInnerCell'].contourProbabilityThreshold = 0.1
+        displayParametersDict['blankInnerCell'].contourProbabilityThreshold = 0 #0.1
         displayParametersDict['vesicles'] = ContourAndBlobDisplayParameters()
         displayParametersDict['vesicles'].numberOfContoursToDisplay = 5 #500 #5 #20
         displayParametersDict['vesicles'].contourSegmentTubeRadius = 0.1
         displayParametersDict['vesicles'].contourCenterMarkerSize = 0.5
-        displayParametersDict['vesicles'].contourProbabilityThreshold = 0.27
+        displayParametersDict['vesicles'].contourProbabilityThreshold = 0.15
         
         self.probabilityFunctionDict = {}
         self.probabilityFunctionDict['mitochondria'] = mitochondriaProbability
         self.probabilityFunctionDict['vesicles'] = vesicleProbability
         self.probabilityFunctionDict['blankInnerCell'] = blankInnerCellProbability
+        self.pathLength = {}
+        self.pathLength['mitochondria'] = 3
+        self.pathLength['vesicles'] = 1
+        self.pathLength['blankInnerCell'] = 1
         enable3DPlot = False
         #numberOfLayersToProcess = 7
         
@@ -697,7 +760,7 @@ class CellComponentDetector:
                                 numberOfLayersToProcess=self.numberOfLayersToProcess)
 
 
-        if stepNumber == 1:
+        elif stepNumber == 1:
 
             self.classifyVoxels(self.dataViewer,
                                 numberOfLayersToProcess=self.numberOfLayersToProcess)
@@ -730,10 +793,13 @@ class CellComponentDetector:
 
 
         elif stepNumber == 5:
+
             self.writeContoursToImageStack(self.contoursNodePath)
 
 
         elif stepNumber == 6:
+
+            self.dataViewer.getPersistentVolume_old(self.originalVolumeName)
 
             saveBlobsToJinxFile(
                 self.dataViewer.mainDoc.dataTree.getSubtree(self.contoursNodePath))
@@ -743,19 +809,28 @@ class CellComponentDetector:
 
         elif stepNumber == 7:
             
-            self.makeContourLists()
+            self.makeContourLists(
+                displayParametersDict[self.target].contourProbabilityThreshold,
+                self.pathLength[self.target])
 
 
         elif stepNumber == 8:
 
-            self.calculateContourListFeatures()
+            saveBlobsToJinxFile(
+                self.dataViewer.mainDoc.dataTree.getSubtree(self.contourPathsNodePath))
+
+
+#        elif stepNumber == 8:
+#
+#            self.calculateContourListFeatures()
 
 
         elif stepNumber == 9:
 
+            self.calculateContourListFeatures()
             recordFeaturesOfContourLists(self.dataViewer,
                             inputTrainingContourListsNodePath=self.contourPathsNodePath,
-                            outputExamplesFilename=self.contourListExamplesFilename)
+                            outputExamplesIdentifier=self.contourListExamplesIdentifier)
             self.dataViewer.getPersistentVolume_old(self.originalVolumeName)
 
             if self.labelFilePaths != None:
@@ -767,22 +842,60 @@ class CellComponentDetector:
 
         elif stepNumber == 10:
             
+            # load items for viewing and diagnostics
             self.dataViewer.getPersistentVolume_old(self.originalVolumeName)
+            contoursGroupedByImage = self.dataViewer.mainDoc.dataTree.getSubtree(
+                                      (self.contoursNodeName,))
+            updateContourProbabilities(contoursGroupedByImage,
+                                       self.probabilityFunctionDict[self.target])
+            #self.dataViewer.mainDoc.dataTree.getSubtree(self.contoursNodePath)
+
+            # load contour paths for processing
             self.dataViewer.mainDoc.dataTree.getSubtree(self.contourPathsNodePath)
-            classifyContourLists(self.dataViewer,
-                    inputTrainingExamplesFilename=self.contourListTrainingExamplesFilename,
-                    contourListsNodePath=self.contourPathsNodePath)
+
+            if self.contourListClassificationMethod == 'randomForest':
+                classifyContourLists(self.dataViewer,
+                        inputTrainingExamplesIdentifier=\
+                            self.contourListTrainingExamplesIdentifier,
+                        contourListsNodePath=self.contourPathsNodePath)
+            elif self.contourListClassificationMethod == 'bayes':
+                classifyContourListsNodePathBayes(self.dataViewer,
+                        self.probabilityFunctionDict[self.target],
+                        contourListsNodePath=self.contourPathsNodePath)
+            else:
+                raise Exception, "invalid classification method"
+
             self.dataViewer.refreshTreeControls()
 
+
+        elif stepNumber == 11:
+
+            # save contour paths to Jinx file
+
+            saveBlobsToJinxFile(self.dataViewer.mainDoc.dataTree.getSubtree(
+                                                            self.contourPathsNodePath),
+                                self.target + "_contours")
+
+
+        elif stepNumber == 12:
+    
+            # perform 3D shell active contour to detect 3D blobs
+    
+            fillAndDisplayResults(self.dataViewer, fastMarchInputVolumeName,
+                                       self.contourPathsNodePath[0],
+                                       displayParametersDict[self.target],
+                                       enable3DPlot,
+                                       fillMethod='shellActiveContour')
+    
 
         elif stepNumber == 106:
 
             # - calculate probabilities
-            # - threshold by probability
+            # - filter (threshold) contours by probability
             # - add a node for the high probability contours
 
             allContoursNode =\
-                self.dataViewer.mainDoc.dataTree.getSubtree((self.groupedContoursNodeName,))
+                self.dataViewer.mainDoc.dataTree.getSubtree((self.contoursNodeName,))
             #allContours = allContoursNode.makeChildrenObjectList()
             #highProbabilityContoursNode = DataNode(highProbabilityContoursNodeName, 'contours node type', {}, None)
             #highProbabilityContoursNode.addObjectList(highProbabilityContours(allContours, displayParametersDict[target].contourProbabilityThreshold))
@@ -802,6 +915,11 @@ class CellComponentDetector:
             self.dataViewer.getPersistentVolume_old(self.originalVolumeName)
             self.dataViewer.refreshTreeControls()
 
+            print highProbabilityContoursNodeName
+            saveBlobsToJinxFile(self.dataViewer.mainDoc.dataTree.getSubtree(
+                                                (highProbabilityContoursNodeName,)),
+                                                self.highProbabilityContoursBaseFilename)
+
             # write contours to an image stack for viewing
             self.writeContoursToImageStack((highProbabilityContoursNodeName,))
     
@@ -809,7 +927,7 @@ class CellComponentDetector:
         elif stepNumber == 107:
             
             contoursGroupedByImage = self.dataViewer.mainDoc.dataTree.getSubtree(
-                                      (self.groupedContoursNodeName,)) 
+                                      (self.contoursNodeName,))
             updateContourProbabilities(contoursGroupedByImage,
                                        self.probabilityFunctionDict[self.target])
             connectedComponents, graph = self.groupContours(contoursGroupedByImage)
@@ -880,6 +998,7 @@ class CellComponentDetector:
                                        enable3DPlot,
                                        fillMethod='shellActiveContour')
     
+
         elif stepNumber == 110:
     
             # write 3D blobs to an XML file and into a stack of tiffs for viewing
@@ -894,9 +1013,26 @@ class CellComponentDetector:
                               redVolume = (allBlobs > 0) * 255.0,
                               greenVolume=original,
                               blueVolume=None)
+            writeTiffStack(os.path.join(defaultOutputPath, "blobVolume"),
+                           (allBlobs > 0) * 255.0)
     
     
         print "finished step"
         app.MainLoop()
+
+
+    def runVoxelTestSteps(self):
+
+        self.runStep(0)
+        self.runStep(1)
+
+
+    def runContourTestSteps(self):
+
+        ##self.runStep(3)
+        self.runStep(7)
+        self.runStep(9)
+        #self.runStep(10)
+        self.runStep(106)
 
 
