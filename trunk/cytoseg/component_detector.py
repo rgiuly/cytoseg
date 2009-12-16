@@ -28,6 +28,7 @@ from fill import *
 from enthought.mayavi.scripts import mayavi2
 from default_path import *
 from contour_processing import *
+
 from xml.dom.minidom import Document
 #from pygraph import *
 from graph import *
@@ -35,7 +36,7 @@ import os
 import colorsys
 import copy as copy_module
 
-enablePathProbabilityFilter = False # use for mitochondria
+enablePathProbabilityFilter = True # use True for mitochondria
 
 
 
@@ -396,12 +397,15 @@ class CellComponentDetector:
 
 
     def classifyVoxels(self, dataViewer, numberOfLayersToProcess=None):
+        # inputVolumeName = self.blurredVolumeName for sfn2009 results
         
         #inputImageFilePath =\
         #    driveName + "/images/HPFcere_vol/HPF_rotated_tif/median_then_gaussian_8bit"
         exampleListFileName = os.path.join(cytosegDataFolder, "exampleList.tab")
         
-        inputImage = self.dataViewer.getPersistentVolume_old(self.blurredVolumeName)
+        #inputImage = self.dataViewer.getPersistentVolume_old(self.blurredVolumeName)
+        inputImage = self.dataViewer.getPersistentVolume_old(
+                                                    self.voxelClassificationInputVolumeName)
 
         voxelTrainingImageNodePath = ('Volumes', 'voxelTrainingImage')
         voxelTrainingLabelNodePath = ('Volumes', 'voxelTrainingLabel')
@@ -422,18 +426,31 @@ class CellComponentDetector:
 
         dataViewer.addVolumeAndRefreshDataTree(inputImage, inputImageNodePath[1])
     
-        # uses training data
-        print "learning features of training data"
-        dataViewer.learnFeaturesOfMembraneVoxels(voxelTrainingImageNodePath,
-                                          voxelTrainingLabelNodePath,
-                                          exampleListFileName)
+        if self.voxelClassificationMethod == 'randomForest':
+
+            # uses training data
+            print "learning features of training data"
+            dataViewer.learnFeaturesOfMembraneVoxels(voxelTrainingImageNodePath,
+                                              voxelTrainingLabelNodePath,
+                                              exampleListFileName)
         
-        # uses test data, generates voxel probabilities
-        print "classifying voxels"
-        dataViewer.classifyVoxels('intermediateDataLabel1',
-                           self.filteredVolumeName,
-                           exampleListFileName,
-                           inputImageNodePath)
+            # uses test data, generates voxel probabilities
+            print "classifying voxels"
+            dataViewer.classifyVoxels('intermediateDataLabel1',
+                               self.filteredVolumeName,
+                               exampleListFileName,
+                               inputImageNodePath)
+
+        elif self.voxelClassificationMethod == 'neuralNetwork':
+
+            #dataViewer.learnFeaturesOfMembraneVoxels(voxelTrainingImageNodePath,
+            #                                  voxelTrainingLabelNodePath,
+            #                                  exampleListFileName)
+
+            dataViewer.classifyVoxelsNN('intermediateDataLabel1',
+                               self.filteredVolumeName,
+                               exampleListFileName,
+                               inputImageNodePath)
 
 
     def findContours(self, groupNodeName, threshold, numberOfLayersToProcess):
@@ -701,25 +718,25 @@ class CellComponentDetector:
         self.dataViewer.mainDoc.dataTree.writeSubtree(self.contourPathsNodePath)
     
     
-    def runStep(self, stepNumber):
-        
+    def runInitialize(self):
+
         #defaultStepNumber = 4
         #self.target = 'mitochondria'
         #self.target = 'blankInnerCell'
         #self.target = 'vesicles'
         #numberOfContoursToDisplay = None
-        displayParametersDict = {}
-        displayParametersDict['mitochondria'] = ContourAndBlobDisplayParameters()
-        displayParametersDict['mitochondria'].numberOfContoursToDisplay = None #20
-        displayParametersDict['mitochondria'].contourProbabilityThreshold = 0.08
-        displayParametersDict['blankInnerCell'] = ContourAndBlobDisplayParameters()
-        displayParametersDict['blankInnerCell'].numberOfContoursToDisplay = 20
-        displayParametersDict['blankInnerCell'].contourProbabilityThreshold = 0 #0.1
-        displayParametersDict['vesicles'] = ContourAndBlobDisplayParameters()
-        displayParametersDict['vesicles'].numberOfContoursToDisplay = 5 #500 #5 #20
-        displayParametersDict['vesicles'].contourSegmentTubeRadius = 0.1
-        displayParametersDict['vesicles'].contourCenterMarkerSize = 0.5
-        displayParametersDict['vesicles'].contourProbabilityThreshold = 0.15
+        self.displayParametersDict = {}
+        self.displayParametersDict['mitochondria'] = ContourAndBlobDisplayParameters()
+        self.displayParametersDict['mitochondria'].numberOfContoursToDisplay = None #20
+        self.displayParametersDict['mitochondria'].contourProbabilityThreshold = 0.08
+        self.displayParametersDict['blankInnerCell'] = ContourAndBlobDisplayParameters()
+        self.displayParametersDict['blankInnerCell'].numberOfContoursToDisplay = 20
+        self.displayParametersDict['blankInnerCell'].contourProbabilityThreshold = 0 #0.1
+        self.displayParametersDict['vesicles'] = ContourAndBlobDisplayParameters()
+        self.displayParametersDict['vesicles'].numberOfContoursToDisplay = 5 #500 #5 #20
+        self.displayParametersDict['vesicles'].contourSegmentTubeRadius = 0.1
+        self.displayParametersDict['vesicles'].contourCenterMarkerSize = 0.5
+        self.displayParametersDict['vesicles'].contourProbabilityThreshold = 0.15
         
         self.probabilityFunctionDict = {}
         self.probabilityFunctionDict['mitochondria'] = mitochondriaProbability
@@ -729,7 +746,7 @@ class CellComponentDetector:
         self.pathLength['mitochondria'] = 3
         self.pathLength['vesicles'] = 1
         self.pathLength['blankInnerCell'] = 1
-        enable3DPlot = False
+        self.enable3DPlot = False
         #numberOfLayersToProcess = 7
         
         
@@ -739,41 +756,37 @@ class CellComponentDetector:
         #else:
         #    stepNumber = int(sys.argv[1])    
         
-        print "running step number", stepNumber
+        #print "running step number", stepNumber
         
-        app = wx.PySimpleApp()
+        self.app = wx.PySimpleApp()
         self.dataViewer = ClassificationControlsFrame(makeClassifyGUITree())
         self.dataViewer.Show()
         
         #contoursNodeName = target + 'Contours'
         #self.groupedContoursNodeName = self.target + 'ContoursGroupedByImage'
-        highProbabilityContoursNodeName = self.target + 'HighProbabilityContours'
+        self.highProbabilityContoursNodeName = self.target + 'HighProbabilityContours'
     
-        if self.target == 'mitochondria': fastMarchInputVolumeName = self.filteredVolumeName
-        elif self.target == 'vesicles': fastMarchInputVolumeName = self.originalVolumeName
+        if self.target == 'mitochondria':
+            self.fastMarchInputVolumeName = self.filteredVolumeName
+        elif self.target == 'vesicles':
+            self.fastMarchInputVolumeName = self.originalVolumeName
         else: print "find_3d_blobs target error"
-        
 
-        if stepNumber == 0:
+
+    def runPreclassificationFilter(self):
 
             self.preclassificationFilter(self.dataViewer,
                                 numberOfLayersToProcess=self.numberOfLayersToProcess)
 
 
-        elif stepNumber == 1:
+    def runClassifyVoxels(self):
 
-            self.classifyVoxels(self.dataViewer,
-                                numberOfLayersToProcess=self.numberOfLayersToProcess)
-
-
-        elif stepNumber == 2:
-
-            self.dataViewer.getPersistentVolume_old(self.filteredVolumeName)
+        self.classifyVoxels(self.dataViewer,
+                            numberOfLayersToProcess=self.numberOfLayersToProcess)
 
 
-        # find contours
-        elif stepNumber == 3:
-            
+    def runFindContours(self):
+
             self.dataViewer.mainDoc.dataRootNode.addChild(GroupNode(self.contoursNodeName))
 
             for thresholdIndex in range(self.numberOfThresholds):
@@ -784,6 +797,154 @@ class CellComponentDetector:
 
             self.dataViewer.mainDoc.dataTree.writeSubtree(self.contoursNodePath)
             #self.dataViewer.mainDoc.dataTree.writeSubtree(('Contours', 'thresholdIndex_3'))
+
+
+    def runMakeContourLists(self):
+
+            self.makeContourLists(
+                self.displayParametersDict[self.target].contourProbabilityThreshold,
+                self.pathLength[self.target])
+
+
+    def runMainLoop(self):
+
+        self.app.MainLoop()
+
+
+    def loadItemsForViewing(self):
+
+        # load items for viewing and diagnostics
+        self.dataViewer.getPersistentVolume_old(self.originalVolumeName)
+        contoursGroupedByImage = self.dataViewer.mainDoc.dataTree.getSubtree(
+                                  (self.contoursNodeName,))
+        updateContourProbabilities(contoursGroupedByImage,
+                                   self.probabilityFunctionDict[self.target])
+        #self.dataViewer.mainDoc.dataTree.getSubtree(self.contoursNodePath)
+
+        # load contour paths for processing
+        self.dataViewer.mainDoc.dataTree.getSubtree(self.contourPathsNodePath)
+
+        if self.contourListClassificationMethod == 'randomForest':
+            classifyContourLists(self.dataViewer,
+                    inputTrainingExamplesIdentifier=\
+                        self.contourListTrainingExamplesIdentifier,
+                    contourListsNodePath=self.contourPathsNodePath)
+        elif self.contourListClassificationMethod == 'bayes':
+            classifyContourListsNodePathBayes(self.dataViewer,
+                    self.probabilityFunctionDict[self.target],
+                    contourListsNodePath=self.contourPathsNodePath)
+        else:
+            raise Exception, "invalid classification method"
+
+        self.dataViewer.refreshTreeControls()
+
+
+    def saveContourPathsToJinxFile(self):
+
+        # save contour paths to Jinx file
+
+        saveBlobsToJinxFile(self.dataViewer.mainDoc.dataTree.getSubtree(
+                                                        self.contourPathsNodePath),
+                            self.target + "_contours")
+
+
+    def run3DShellActiveContourToDetect3DBlobs(self):
+
+        # perform 3D shell active contour to detect 3D blobs
+
+        fillAndDisplayResults(self.dataViewer, self.fastMarchInputVolumeName,
+                                   self.contourPathsNodePath[0],
+                                   self.displayParametersDict[self.target],
+                                   self.enable3DPlot,
+                                   fillMethod='shellActiveContour')
+
+
+    def run3DShellActiveContourToDetect3DBlobsHighProbabilityOnly(self):
+
+            # perform 3D shell active contour to detect 3D blobs
+    
+            if self.enable3DPlot:
+                display3DContours(self.dataViewer, self.originalVolumeName, self.highProbabilityContoursNodeName,
+                                    self.displayParametersDict[self.target])
+    
+            fillAndDisplayResults(self.dataViewer, self.fastMarchInputVolumeName,
+                                       self.highProbabilityContoursNodeName,
+                                       self.displayParametersDict[self.target],
+                                       self.enable3DPlot,
+                                       fillMethod='shellActiveContour')
+
+
+    def runContourProbabilityFilter(self):
+
+            # - calculate probabilities
+            # - filter (threshold) contours by probability
+            # - add a node for the high probability contours
+
+            allContoursNode =\
+                self.dataViewer.mainDoc.dataTree.getSubtree((self.contoursNodeName,))
+            #allContours = allContoursNode.makeChildrenObjectList()
+            #highProbabilityContoursNode = DataNode(highProbabilityContoursNodeName, 'contours node type', {}, None)
+            #highProbabilityContoursNode.addObjectList(highProbabilityContours(allContours, displayParametersDict[target].contourProbabilityThreshold))
+            #highProbabilityContoursNode.enableRecursiveRendering = False
+
+            updateContourProbabilities(allContoursNode,
+                                       self.probabilityFunctionDict[self.target])
+
+            #todo: this should filter the tree not just copy it
+            threshold = self.displayParametersDict[self.target].contourProbabilityThreshold
+            highProbabilityContoursNode = copyTree(allContoursNode,
+                                                   ProbabilityFilter(threshold))
+            #highProbabilityContoursNode = copyTree(allContoursNode)
+            highProbabilityContoursNode.name = self.highProbabilityContoursNodeName
+ 
+            self.dataViewer.addPersistentSubtreeAndRefreshDataTree((), highProbabilityContoursNode)
+            self.dataViewer.getPersistentVolume_old(self.originalVolumeName)
+            self.dataViewer.refreshTreeControls()
+
+            print self.highProbabilityContoursNodeName
+            saveBlobsToJinxFile(self.dataViewer.mainDoc.dataTree.getSubtree(
+                                                (self.highProbabilityContoursNodeName,)),
+                                                self.highProbabilityContoursBaseFilename)
+
+            # write contours to an image stack for viewing
+            self.writeContoursToImageStack((self.highProbabilityContoursNodeName,))
+
+
+    def runWrite3DBlobsVolume(self):
+
+            # write 3D blobs to a stack of tiffs
+    
+            allBlobs = self.dataViewer.getPersistentVolume_old(self.fastMarchInputVolumeName + 'AllFastMarchBlobs')
+            self.dataViewer.refreshTreeControls()
+            writeTiffStack(self.blobImageStackOutputFolder, (allBlobs > 0) * 255.0)
+
+
+    def runStep(self, stepNumber):
+        
+
+        print "running step number", stepNumber
+        self.runInitialize()
+        
+
+        if stepNumber == 0:
+
+            self.runPreclassificationFilter()
+
+
+        elif stepNumber == 1:
+
+            self.runClassifyVoxels()
+
+
+        elif stepNumber == 2:
+
+            self.dataViewer.getPersistentVolume_old(self.filteredVolumeName)
+
+
+        # find contours
+        elif stepNumber == 3:
+
+            self.runFindContours()
 
 
         elif stepNumber == 4:
@@ -809,9 +970,7 @@ class CellComponentDetector:
 
         elif stepNumber == 7:
             
-            self.makeContourLists(
-                displayParametersDict[self.target].contourProbabilityThreshold,
-                self.pathLength[self.target])
+            self.runMakeContourLists()
 
 
         elif stepNumber == 8:
@@ -842,86 +1001,22 @@ class CellComponentDetector:
 
         elif stepNumber == 10:
             
-            # load items for viewing and diagnostics
-            self.dataViewer.getPersistentVolume_old(self.originalVolumeName)
-            contoursGroupedByImage = self.dataViewer.mainDoc.dataTree.getSubtree(
-                                      (self.contoursNodeName,))
-            updateContourProbabilities(contoursGroupedByImage,
-                                       self.probabilityFunctionDict[self.target])
-            #self.dataViewer.mainDoc.dataTree.getSubtree(self.contoursNodePath)
-
-            # load contour paths for processing
-            self.dataViewer.mainDoc.dataTree.getSubtree(self.contourPathsNodePath)
-
-            if self.contourListClassificationMethod == 'randomForest':
-                classifyContourLists(self.dataViewer,
-                        inputTrainingExamplesIdentifier=\
-                            self.contourListTrainingExamplesIdentifier,
-                        contourListsNodePath=self.contourPathsNodePath)
-            elif self.contourListClassificationMethod == 'bayes':
-                classifyContourListsNodePathBayes(self.dataViewer,
-                        self.probabilityFunctionDict[self.target],
-                        contourListsNodePath=self.contourPathsNodePath)
-            else:
-                raise Exception, "invalid classification method"
-
-            self.dataViewer.refreshTreeControls()
+            self.loadItemsForViewing()
 
 
         elif stepNumber == 11:
 
-            # save contour paths to Jinx file
-
-            saveBlobsToJinxFile(self.dataViewer.mainDoc.dataTree.getSubtree(
-                                                            self.contourPathsNodePath),
-                                self.target + "_contours")
+            self.saveContourPathsToJinxFile()
 
 
         elif stepNumber == 12:
     
-            # perform 3D shell active contour to detect 3D blobs
-    
-            fillAndDisplayResults(self.dataViewer, fastMarchInputVolumeName,
-                                       self.contourPathsNodePath[0],
-                                       displayParametersDict[self.target],
-                                       enable3DPlot,
-                                       fillMethod='shellActiveContour')
-    
+            self.run3DShellActiveContourToDetect3DBlobs()
+
 
         elif stepNumber == 106:
 
-            # - calculate probabilities
-            # - filter (threshold) contours by probability
-            # - add a node for the high probability contours
-
-            allContoursNode =\
-                self.dataViewer.mainDoc.dataTree.getSubtree((self.contoursNodeName,))
-            #allContours = allContoursNode.makeChildrenObjectList()
-            #highProbabilityContoursNode = DataNode(highProbabilityContoursNodeName, 'contours node type', {}, None)
-            #highProbabilityContoursNode.addObjectList(highProbabilityContours(allContours, displayParametersDict[target].contourProbabilityThreshold))
-            #highProbabilityContoursNode.enableRecursiveRendering = False
-
-            updateContourProbabilities(allContoursNode,
-                                       self.probabilityFunctionDict[self.target])
-
-            #todo: this should filter the tree not just copy it
-            threshold = displayParametersDict[self.target].contourProbabilityThreshold
-            highProbabilityContoursNode = copyTree(allContoursNode,
-                                                   ProbabilityFilter(threshold))
-            #highProbabilityContoursNode = copyTree(allContoursNode)
-            highProbabilityContoursNode.name = highProbabilityContoursNodeName
- 
-            self.dataViewer.addPersistentSubtreeAndRefreshDataTree((), highProbabilityContoursNode)
-            self.dataViewer.getPersistentVolume_old(self.originalVolumeName)
-            self.dataViewer.refreshTreeControls()
-
-            print highProbabilityContoursNodeName
-            saveBlobsToJinxFile(self.dataViewer.mainDoc.dataTree.getSubtree(
-                                                (highProbabilityContoursNodeName,)),
-                                                self.highProbabilityContoursBaseFilename)
-
-            # write contours to an image stack for viewing
-            self.writeContoursToImageStack((highProbabilityContoursNodeName,))
+            self.runContourProbabilityFilter()
     
         
         elif stepNumber == 107:
@@ -978,25 +1073,15 @@ class CellComponentDetector:
     
             # use GUI to display high probability contours
     
-            if enable3DPlot: display3DContours(self.dataViewer, self.originalVolumeName, highProbabilityContoursNodeName,
-                                                displayParametersDict[self.target])
-            self.dataViewer.mainDoc.dataTree.getSubtree((highProbabilityContoursNodeName,))
+            if self.enable3DPlot: display3DContours(self.dataViewer, self.originalVolumeName, self.highProbabilityContoursNodeName,
+                                                self.displayParametersDict[self.target])
+            self.dataViewer.mainDoc.dataTree.getSubtree((self.highProbabilityContoursNodeName,))
             self.dataViewer.refreshTreeControls()
     
     
         elif stepNumber == 109:
     
-            # perform 3D shell active contour to detect 3D blobs
-    
-            if enable3DPlot:
-                display3DContours(self.dataViewer, self.originalVolumeName, highProbabilityContoursNodeName,
-                                    displayParametersDict[self.target])
-    
-            fillAndDisplayResults(self.dataViewer, fastMarchInputVolumeName,
-                                       highProbabilityContoursNodeName,
-                                       displayParametersDict[self.target],
-                                       enable3DPlot,
-                                       fillMethod='shellActiveContour')
+            self.run3DShellActiveContourToDetect3DBlobsHighProbabilityOnly()
     
 
         elif stepNumber == 110:
@@ -1006,7 +1091,7 @@ class CellComponentDetector:
             self.dataViewer.mainDoc.dataTree.readSubtree(('Blobs',))
             saveBlobsToJinxFile(self.dataViewer.mainDoc.dataTree.getSubtree(('Blobs',)))
             original = self.dataViewer.getPersistentVolume_old(self.originalVolumeName)
-            allBlobs = self.dataViewer.getPersistentVolume_old(fastMarchInputVolumeName + 'AllFastMarchBlobs')
+            allBlobs = self.dataViewer.getPersistentVolume_old(self.fastMarchInputVolumeName + 'AllFastMarchBlobs')
             self.dataViewer.refreshTreeControls()
             writeTiffStackRGB(defaultOutputPath,
                               #redVolume=rescale(allBlobs, 0, 255.0),
@@ -1018,7 +1103,7 @@ class CellComponentDetector:
     
     
         print "finished step"
-        app.MainLoop()
+        self.runMainLoop()
 
 
     def runVoxelTestSteps(self):

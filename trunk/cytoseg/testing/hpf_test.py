@@ -9,7 +9,9 @@ mode = 'hpf_test'
 target = 'mitochondria'
 #target = 'vesicles'
 #target = 'blankInnerCell'
-defaultStepNumber = 10
+#defaultStepNumber = 10
+#defaultStepNumber = 3
+defaultStepNumber = 7
 #defaultStepNumber = 106
 contourListClassificationMethod='bayes' # use for mitochondria
 #contourListClassificationMethod='randomForest'
@@ -70,12 +72,27 @@ elif mode == 'hpf_test':
         voxelTrainingLabelFilePath="O:/images/HPFcere_vol/HPF_rotated_tif/three_compartment/membrane_label_for_three_compartments")
 
     cellComponentDetector.numberOfLayersToProcess = None
-    cellComponentDetector.numberOfThresholds = 1 #4
-    cellComponentDetector.firstThreshold = 0.4 #0.2
+
+    # for mitochondria
+    cellComponentDetector.numberOfThresholds = 4 #1 #4
+    cellComponentDetector.firstThreshold = 0.2 #0.4 #0.2
+
+    # not for mitochondria
+    #cellComponentDetector.numberOfThresholds = 1 #4
+    #cellComponentDetector.firstThreshold = 0.4 #0.2
+
     cellComponentDetector.thresholdStep = 0.2
 
+if 1:
+    cellComponentDetector.runInitialize()
+    #cellComponentDetector.runStep(stepNumber)
+    cellComponentDetector.loadItemsForViewing()
+    cellComponentDetector.saveContourPathsToJinxFile()
+    cellComponentDetector.run3DShellActiveContourToDetect3DBlobs()
+    #cellComponentDetector.runContourProbabilityFilter()
+    #cellComponentDetector.run3DShellActiveContourToDetect3DBlobsHighProbabilityOnly()
+    #cellComponentDetector.runVoxelTestSteps()
+    #cellComponentDetector.runContourTestSteps()
+    cellComponentDetector.runMainLoop()
+
 #cellComponentDetector.runStep(stepNumber)
-cellComponentDetector.runStep(10)
-cellComponentDetector.runStep(11)
-#cellComponentDetector.runVoxelTestSteps()
-#cellComponentDetector.runContourTestSteps()
