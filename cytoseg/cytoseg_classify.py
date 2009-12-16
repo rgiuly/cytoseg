@@ -1,5 +1,7 @@
-from cs import *
+from data_viewer import *
 from geometry import *
+from neural_network import *
+
 #from scipy import ndimage
 #import geometry
 
@@ -1152,6 +1154,25 @@ class ClassificationControlsFrame(ControlsFrame):
 
         self.addPersistentVolumeAndRefreshDataTree(logV,
                                         outputDataIdentifier + '_LogProbabilityVolume')
+
+
+    def classifyVoxelsNN(self,
+                         intermediateDataIdentifier,
+                         outputDataIdentifier,
+                         voxelExamplesFilename,
+                         inputImageNodePath):
+
+        inputVolume = self.getPersistentObject(inputImageNodePath)
+        
+        network = NeuralNetwork(inputVolume)
+        #network.input = inputVolume
+        network.update()
+
+        #v = zeros(inputVolume.shape)
+
+
+        self.addPersistentVolumeAndRefreshDataTree(network.getOutput(),
+                                                   outputDataIdentifier)
 
 
     def setPointFeatureSliders(self, location):
