@@ -15,7 +15,9 @@ Installation Instructions (Windows):
 Installation Instructions (Ubuntu Linux, Instructions not yet complete)
   # Install the following modules with synaptic: python, python-numpy, python-wxgtk, python-scipy, python-opencv, python-matplotlib
   # Visit http://code.enthought.com/projects/mayavi/docs/development/html/mayavi/installation.html to get the most recent version of mayavi2 and install it
-  # Visit http://paulnovo.org/node/2 and follow instructions to install python itk packages
+  # Visit http://www.paulnovo.org/ and follow instructions to install python itk packages. You will need both of the following packages:
+   *sudo apt-get install insighttoolkit python-insighttoolkitsudo
+   *sudo apt-get install python-insighttoolkit-extras
   # Install orange for python http://www.ailab.si/orange/
   # Install [http://code.google.com/p/python-graph/ python-graph]
   # Optional: Install [http://mlabwrap.sourceforge.net/ mlabwrap] which interfaces python to MATLAB (only needed for blob detection)
