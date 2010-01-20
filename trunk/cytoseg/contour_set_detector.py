@@ -82,7 +82,7 @@ class ContourSetDetector:
             contourListTrainingExamplesIdentifier="contourPathFeatures" + "_" + dataIdentifier,
             voxelTrainingImageFilePath=parameterDict['voxelTrainingImageFilePath'],
             voxelTrainingLabelFilePath=parameterDict['voxelTrainingLabelFilePath'],
-            voxelClassificationIteration=2)
+            voxelClassificationIteration=0)
     
         #self.contourClassifier.voxelClassificationInputVolumeName =\
         #    self.contourClassifier.blurredVolumeName
