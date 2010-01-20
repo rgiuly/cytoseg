@@ -1050,6 +1050,15 @@ class CellComponentDetector:
                             maxLabelValue=self.maxVoxelLabelValue[self.target])
 
 
+    def runWriteVoxelClassificationResult(self):
+
+            # write classification result to a stack of tiffs
+    
+            volume = self.dataViewer.getPersistentObject(self.voxelClassificationResultPath)
+            self.dataViewer.refreshTreeControls()
+            writeTiffStack(self.blobImageStackOutputFolder, volume * 255.0)
+
+
     def runFindContours(self):
 
             #testContours()

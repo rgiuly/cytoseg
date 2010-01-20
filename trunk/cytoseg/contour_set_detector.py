@@ -131,6 +131,7 @@ class ContourSetDetector:
             self.contourClassifier.runInitialize()
             self.contourClassifier.runPreclassificationFilter()
             self.contourClassifier.runClassifyVoxels()
+            self.contourClassifier.runWriteVoxelClassificationResult()
             #self.contourClassifier.runFindContours()
             #self.contourClassifier.runGroupContoursByConnectedComponents()
             self.app.MainLoop()
