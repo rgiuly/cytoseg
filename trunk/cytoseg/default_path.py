@@ -4,7 +4,7 @@ import os
 
 from socket import gethostname; hostname = gethostname()
 if hostname == "panther":
-        defaultTemporaryFolder = "o:/cytoseg_data"
+        defaultTemporaryFolder = "G:/cytoseg_data"
         driveName = "/folder_not_set/"
         cytosegDataFolder = defaultTemporaryFolder
         contourOutputTemporaryFolder = defaultTemporaryFolder
@@ -13,9 +13,9 @@ if hostname == "panther":
 
 
 elif hostname == "panther_invalid":
-        driveName = "o:"
-        cytosegDataFolder = "c:/shared/cytoseg_data"
-        contourOutputTemporaryFolder = "c:/temp/contour_output"
+        driveName = "O:"
+        cytosegDataFolder = "C:/shared/cytoseg_data"
+        contourOutputTemporaryFolder = "C:/temp/contour_output"
 
         #defaultPath = "O:\\images\\LFong\\cropped\\8bit_smaller\\"
         #defaultPath = "O:\\images\\LFong\\tif_8bit_partial\\"

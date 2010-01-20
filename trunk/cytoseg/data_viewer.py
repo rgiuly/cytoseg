@@ -52,6 +52,8 @@ import copy as copy_module
 
 import os
 
+import warnings
+
 import imod_tools
 
 import geometry
@@ -453,7 +455,7 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
 
     def addVolume(self, volume, name):
         
-        print "depricated: addVolume"
+        warnings.warn("depricated: addVolume")
 
         ## todo: delete this code that deals with the list box. use tree instead.
         #self.mainDoc.volumeDict[name] = volume
@@ -479,7 +481,7 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
 
 
     def getVolume(self, name):
-        print "depricated: getVolume"
+        warnings.warn("depricated: getVolume")
         node = getNode(self.mainDoc.dataRootNode, ('Volumes', name))
         return node.object
 
@@ -506,6 +508,7 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
 
 
     def getPersistentVolume_old(self, name):
+        warnings.warn("depricated")
         return self.getPersistentObject(('Volumes', name))
 
 
@@ -514,6 +517,7 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
     #    return node.object
 
     def getPersistentBlob(self, name):
+        warnings.warn("depricated")
         return self.getPersistentObject(('Blobs', name))
 
 
@@ -555,8 +559,17 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         self.refreshTreeControls()
 
     def addPersistentVolumeAndRefreshDataTree(self, volume, name):
+        warnings.warn("depricated")
         newNode = DataNode(name, 'volume', None, volume)
         self.addPersistentSubtreeAndRefreshDataTree(('Volumes',), newNode)
+
+
+    def addPersistentObjectAndRefreshDataTree(self, volume, nodePath):
+
+        name = nodePath[-1]
+        newNode = DataNode(name, 'object', None, volume)
+        self.addPersistentSubtreeAndRefreshDataTree(nodePath[:-1], newNode)
+
 
 #    def addPersistentVolumeAndRefreshDataTree(self, volume, name):
 #        name = nodePath[-1]
@@ -2110,20 +2123,32 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
 
         dc.SetPen(pen)
         #dc.SetBrush(wx.TRANSPARENT_BRUSH)
-        dc.SetBrush(brush)
 
-        #if blob != None:
-        for loc in blob.locations():
-             # if particle is close to current z plane, show it
-             #print p.loc
+        dc.SetBrush(wx.TRANSPARENT_BRUSH)
+        locations = blob.locations()
+        if locations[0][2] == z:
+            wxPoints = []
+            for loc in locations:
+                x, y = self.fullVolumeXYToScreenXY((loc[0], loc[1]))
+                wxPoints.append(wx.Point(x, y))
         
-             if loc[2] == z:
-                 x, y = self.fullVolumeXYToScreenXY((loc[0], loc[1]))
-                 #print x, y
-                 #x, y = (p.loc[0], p.loc[1])
-                 if f < 1: offset = 1
-                 else: offset = f
-                 dc.DrawRectangle(x - offset*1, y - offset*1, offset*2, offset*2)
+            dc.DrawPolygon(wxPoints)
+
+        if 0:
+
+            dc.SetBrush(brush)
+            #if blob != None:
+            for loc in locations:
+                 # if particle is close to current z plane, show it
+                 #print p.loc
+
+                 if loc[2] == z:
+                     x, y = self.fullVolumeXYToScreenXY((loc[0], loc[1]))
+                     #print x, y
+                     #x, y = (p.loc[0], p.loc[1])
+                     if f < 1: offset = 1
+                     else: offset = f
+                     dc.DrawRectangle(x - offset*1, y - offset*1, offset*2, offset*2)
                      
     
 def renderPointSetInVolume(volume, pointSet, valueMode):
@@ -2904,10 +2929,8 @@ def imageStackShape(path):
     
 
 # todo: make subvolumeBox an optional parameter
-def loadImageStack(path, subvolumeBox):
-    
-   
-    
+def loadImageStack(path, subvolumeBox, maxNumberOfImages=None):
+
     #volume = volumes['Original']
     
     fileList = os.listdir(path)
@@ -2932,8 +2955,12 @@ def loadImageStack(path, subvolumeBox):
     else:
         box = subvolumeBox
     
-    # for each z coordinate    
-    for i in range(box.cornerA[2], box.cornerB[2]):
+    indexRange = range(box.cornerA[2], box.cornerB[2]) 
+    if maxNumberOfImages != None:
+        indexRange = indexRange[0:maxNumberOfImages] 
+
+    # for each z coordinate
+    for i in indexRange:
 
         #if hostname == "panther":
         #        filename = "I:/ncmir_data/caulobacter/bmp/c%03d.bmp" % i
@@ -2981,7 +3008,10 @@ def loadImageStack(path, subvolumeBox):
                 #print "shape %s" % str(box.shape())
                 #print "array2d %s" % str(array2d.shape)
                 
-                volume = numpy.zeros(box.shape(), numpy.uint8)
+                volumeShape = box.shape()
+                if maxNumberOfImages != None:
+                    volumeShape[2] = min(volumeShape[2], maxNumberOfImages)
+                volume = numpy.zeros(volumeShape, numpy.uint8)
 
                 firstImage = False
              

@@ -492,6 +492,7 @@ class ClassificationControlsFrame(ControlsFrame):
 #        file.close()
 
     def learnFeaturesOfMembraneVoxels(self,
+                                      inputVolumeDict,
                                       voxelTrainingImageNodePath,
                                       voxelTrainingLabelNodePath,
                                       voxelExamplesFilename):
@@ -499,16 +500,20 @@ class ClassificationControlsFrame(ControlsFrame):
 
         file = open(voxelExamplesFilename, "w")
 
-        originalVolume = self.getPersistentObject(voxelTrainingImageNodePath)
-        sh = originalVolume.shape
+        filteredVolume = self.getPersistentObject(voxelTrainingImageNodePath)
+        sh = filteredVolume.shape
 
-        self.calculateDerivatives(originalVolume, 'training')
+        #originalVolume = self.getPersistentObject(originalVolumeNodePath)
+
+        print "learnFeaturesOfMembraneVoxels dimensions", sh
+        self.calculateDerivatives(filteredVolume, 'training')
 
         volume = numpy.zeros(sh)
         #selected x, y, and z
         
         # get point features at the arbitrary point [3,3,3] to get a list of feature names
-        dictionary = getPointFeaturesAt(originalVolume, 'training', self, [3,3,3])
+        dictionary = getPointFeaturesAt(inputVolumeDict, filteredVolume,
+                                        'training', self, [3,3,3])
         featureList = []
         for item in dictionary.items():
             key = item[0]
@@ -527,7 +532,8 @@ class ClassificationControlsFrame(ControlsFrame):
             for y in range(border,sh[1]-border,2):
                 for z in range(border,sh[2]-border,2):
                     
-                    d = getPointFeaturesAt(originalVolume, 'training', self, (x,y,z))
+                    d = getPointFeaturesAt(inputVolumeDict, filteredVolume,
+                                           'training', self, (x,y,z))
                     
                     #xG = volumes['xGradient'][x,y,z]
                     #yG = volumes['yGradient'][x,y,z]
@@ -536,7 +542,7 @@ class ClassificationControlsFrame(ControlsFrame):
                     #st = structureTensor(xG,yG,zG)
                     #eigenValues = numpy.linalg.eigvals(st)
                     
-                    self.writeExample(file, d, (membraneVoxelVolume[x,y,z] != 0))
+                    self.writeExample(file, d, (membraneVoxelVolume[x,y,z] == True))
 
                     
         
@@ -1086,9 +1092,15 @@ class ClassificationControlsFrame(ControlsFrame):
 
     def classifyVoxels(self,
                        intermediateDataIdentifier,
-                       outputDataIdentifier,
+                       outputNodePath,
                        voxelExamplesFilename,
+                       inputVolumeDict,
                        inputImageNodePath):
+        '''intermediateDataIdentifier
+        outputNodePath: specifies the node where output will be saved
+        voxelExamplesFilename: examples that generate the classifier
+        inputVolumeDict: set of input volumes, filters are not run on them
+        inputImageNodePath: input volume that does have filters run on it'''
         
         #identifier = 'test'
 
@@ -1096,6 +1108,7 @@ class ClassificationControlsFrame(ControlsFrame):
         
         minimumExamples = len(data) / 5
         
+        #originalVolume = self.getPersistentObject(originalVolumeNodePath)
         inputVolume = self.getPersistentObject(inputImageNodePath)
         
         self.calculateDerivatives(inputVolume, intermediateDataIdentifier)
@@ -1128,7 +1141,7 @@ class ClassificationControlsFrame(ControlsFrame):
         v = zeros(inputVolume.shape)
         logV = zeros(inputVolume.shape)
         #self.addPersistentVolumeAndRefreshDataTree(v,
-        #                                outputDataIdentifier + '_ProbabilityVolume')
+        #                                outputNodePath + '_ProbabilityVolume')
 
         for x in range(borderWidthForFeatures, v.shape[0]-borderWidthForFeatures):
             print x, "out of", v.shape[0]-borderWidthForFeatures-1
@@ -1136,24 +1149,26 @@ class ClassificationControlsFrame(ControlsFrame):
                 for z in range(borderWidthForFeatures,v.shape[2]-borderWidthForFeatures):
                     
                     
-                    dictionary = getPointFeaturesAt(inputVolume,
+                    dictionary = getPointFeaturesAt(inputVolumeDict, inputVolume,
                                         intermediateDataIdentifier, self, (x,y,z))
-                    list = []
+                    valueList = []
                     for item in dictionary.items():
                         value = item[1]
-                        list.append(value)
-                    list.append('False') # todo: what would happen if you used True here
-                    example = orange.Example(data.domain, list)
+                        valueList.append(value)
+                    valueList.append('False') # todo: what would happen if you used True here
+                    example = orange.Example(data.domain, valueList)
                     p = forest(example, orange.GetProbabilities)    
                     
                     v[x,y,z] = p[1]
                     logV[x,y,z] = numpy.log(p[1])
                     count += 1
 
-        self.addPersistentVolumeAndRefreshDataTree(v, outputDataIdentifier)
+        self.addPersistentObjectAndRefreshDataTree(v, outputNodePath)
 
-        self.addPersistentVolumeAndRefreshDataTree(logV,
-                                        outputDataIdentifier + '_LogProbabilityVolume')
+        logOutputNodePath = list(outputNodePath)
+        logOutputNodePath[-1] = logOutputNodePath[-1] + '_LogProbabilityVolume'
+
+        self.addPersistentObjectAndRefreshDataTree(logV, logOutputNodePath)
 
 
     def classifyVoxelsNN(self,
@@ -1277,7 +1292,7 @@ class FaceBlob(Blob):
 
 # todo: rename to getPointFeaturesAt
 # todo: gui parameter should just be the node that has the volumes you need as its children
-def getPointFeaturesAt(volume, derivativeVolumesIdentifier, gui, point):
+def getPointFeaturesAt(inputVolumeDict, volume, derivativeVolumesIdentifier, gui, point):
     # f is dictionary of features
     
 
@@ -1345,12 +1360,7 @@ def getPointFeaturesAt(volume, derivativeVolumesIdentifier, gui, point):
         f[prefix + 'median'] = quantiles[2]
         f[prefix + '0.75-quantile'] = quantiles[3]
         f[prefix + 'maximum'] = quantiles[4]
-    
-    
-    
-    
-    
-        
+
         # Distribution of the gradient magnitude
         #'gmStandardDeviation'
         #'gmThirdMoment'
@@ -1361,6 +1371,15 @@ def getPointFeaturesAt(volume, derivativeVolumesIdentifier, gui, point):
         #'gm0.75-quantile'
         #'gmtMaximum'
     
+    for (key, value) in inputVolumeDict.items():
+
+        inputVolume = inputVolumeDict[key]
+
+        for xOffset in range(-3, 3):
+            for yOffset in range(-3, 3):
+                f['inputVolume_%s_%d_%d' % (key, xOffset, yOffset)] =\
+                    inputVolume[point[0] + xOffset, point[1] + yOffset, point[2]]
+
     return f
 
 

@@ -38,7 +38,7 @@ def isConnected(contourListNode):
         return False # set is empty
 
 
-def getContourListFeatures(contourListNode):
+def getContourListFeatures(contourListNode, includeIndividualContourFeatures=True):
 
     featureDict = odict()
     lastContourFeatures = None
@@ -50,11 +50,15 @@ def getContourListFeatures(contourListNode):
         for featureName in contour.features:
             key = 'contour%d_%s' % (count, featureName)
             #print key
-            featureDict[key] = contour.features[featureName]
+
+            if includeIndividualContourFeatures:
+                featureDict[key] = contour.features[featureName]
+
             if lastContourFeatures != None:
                 differenceKey = 'difference_' + key
                 featureDict[differenceKey] = lastContourFeatures[featureName] -\
                         contour.features[featureName]
+
         count += 1
         lastContourFeatures = contour.features
 

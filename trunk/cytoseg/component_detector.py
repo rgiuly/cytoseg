@@ -28,10 +28,11 @@ from fill import *
 from enthought.mayavi.scripts import mayavi2
 from default_path import *
 from contour_processing import *
+from accuracy import *
 
 from xml.dom.minidom import Document
-#from pygraph import *
-#from graph import *
+from pygraph import *
+from graph import *
 import os
 import colorsys
 import copy as copy_module
@@ -297,6 +298,7 @@ class CellComponentDetector:
 
 
     def __init__(self,
+                 dataViewer,
                  dataIdentifier,
                  target,
                  originalImageFilePath,
@@ -305,10 +307,17 @@ class CellComponentDetector:
                  contourListTrainingExamplesIdentifier, # file to read from
                  voxelTrainingImageFilePath=None,
                  voxelTrainingLabelFilePath=None,
-                 labelFilePaths=None):
+                 labelFilePaths=None,
+                 voxelClassificationIteration=0):
         '''contourListExamplesIdentifier: features from detected contours go in this file
         contourListTrainingExamplesIdentifier: the classifier is generated based on these
         examples'''
+
+        #self.app = wx.PySimpleApp()
+        #self.dataViewer = ClassificationControlsFrame(makeClassifyGUITree())
+        #self.dataViewer.Show()
+
+        self.dataViewer = dataViewer
 
         self.dataIdentifier = dataIdentifier
         self.target = target
@@ -322,8 +331,37 @@ class CellComponentDetector:
         self.originalImageFilePath = originalImageFilePath
 
         self.originalVolumeName = dataIdentifier + 'OriginalVolume'
+        self.voxelClassificationInputVolumeName = self.originalVolumeName
         self.blurredVolumeName = dataIdentifier + 'BlurredVolume'
-        self.filteredVolumeName = dataIdentifier + 'MembraneClassifierFilterVolume'
+        self._voxelClassificationIteration = voxelClassificationIteration
+
+        self.voxelTrainingClassificationResultPath =\
+            ('Volumes', dataIdentifier + 'VoxelTrainingClassificationResult'
+             + '_' + str(self._voxelClassificationIteration))
+
+        self.voxelClassificationResultPath =\
+            ('Volumes', dataIdentifier + 'VoxelClassificationResult'
+             + '_' + str(self._voxelClassificationIteration))
+
+
+        if self._voxelClassificationIteration > 0:
+
+            self.previousVoxelTrainingClassificationResultPath =\
+                ('Volumes', dataIdentifier + 'VoxelTrainingClassificationResult'
+                 + '_' + str(self._voxelClassificationIteration - 1))
+
+            self.previousVoxelClassificationResultPath =\
+                ('Volumes', dataIdentifier + 'VoxelClassificationResult'
+                 + '_' + str(self._voxelClassificationIteration - 1))
+
+        else:
+
+            self.previousVoxelTrainingClassificationResultPath = None
+            self.previousVoxelClassificationResultPath = None
+
+
+        self.fullManualSegPath =\
+            ('Volumes', dataIdentifier + 'FullManualSeg')
 
         #self.voxelTrainingImageFilePath =\
         #    "O:\\images\\HPFcere_vol\\HPF_rotated_tif\\three_compartment\\"
@@ -349,10 +387,51 @@ class CellComponentDetector:
             '_' + self.target
         self.labelFilePaths = labelFilePaths
 
+        self.fullManualSegFilePath = None
+
+        self.numberOfTrainingLayersToProcess = None
+
         self.numberOfLayersToProcess = None
         self.numberOfThresholds = 1
         self.firstThreshold = 0.5
         self.thresholdStep = 0.1
+
+        #self.minVoxelLabelValue = 1
+        #self.maxVoxelLabelValue = None
+
+        self.displayParametersDict = {}
+        self.displayParametersDict['mitochondria'] = ContourAndBlobDisplayParameters()
+        self.displayParametersDict['mitochondria'].numberOfContoursToDisplay = None #20
+        self.displayParametersDict['mitochondria'].contourProbabilityThreshold = 0.08
+        self.displayParametersDict['blankInnerCell'] = ContourAndBlobDisplayParameters()
+        self.displayParametersDict['blankInnerCell'].numberOfContoursToDisplay = 20
+        self.displayParametersDict['blankInnerCell'].contourProbabilityThreshold = 0 #0.1
+        self.displayParametersDict['vesicles'] = ContourAndBlobDisplayParameters()
+        self.displayParametersDict['vesicles'].numberOfContoursToDisplay = 5 #500 #5 #20
+        self.displayParametersDict['vesicles'].contourSegmentTubeRadius = 0.1
+        self.displayParametersDict['vesicles'].contourCenterMarkerSize = 0.5
+        self.displayParametersDict['vesicles'].contourProbabilityThreshold = 0.15
+        
+        self.probabilityFunctionDict = {}
+        self.probabilityFunctionDict['mitochondria'] = mitochondriaProbability
+        self.probabilityFunctionDict['vesicles'] = vesicleProbability
+        self.probabilityFunctionDict['blankInnerCell'] = blankInnerCellProbability
+        self.probabilityFunctionDict['membranes'] = blankInnerCellProbability
+        self.pathLength = {}
+        self.pathLength['mitochondria'] = 3
+        self.pathLength['vesicles'] = 1
+        self.pathLength['blankInnerCell'] = 1
+        self.enable3DPlot = False
+        #numberOfLayersToProcess = 7
+
+        targetKeys = ['mitochondria', 'blankInnerCell', 'vesicles', 'membranes'] 
+        self.minVoxelLabelValue = {}
+        self.maxVoxelLabelValue = {}
+
+        # setting defaults so that 1 or greater represents the label
+        for key in targetKeys:
+            self.minVoxelLabelValue[key] = 1
+            self.maxVoxelLabelValue[key] = None
 
 
     def writeContoursToImageStack(self, pathToContoursNode):
@@ -382,6 +461,9 @@ class CellComponentDetector:
 
         originalImage = loadImageStack(self.originalImageFilePath, None)
 
+        originalImage = originalImage[:, :, 0:self.numberOfLayersToProcess]
+
+        # this might be redundant
         dataViewer.addVolumeAndRefreshDataTree(originalImage, originalImageNodePath[1])
 
         print "starting itk filtering"
@@ -396,49 +478,92 @@ class CellComponentDetector:
                                                          self.blurredVolumeName)
 
 
-    def classifyVoxels(self, dataViewer, numberOfLayersToProcess=None):
+    def classifyVoxels(self, dataViewer, numberOfLayersToProcess=None,
+                       minLabelValue=1, maxLabelValue=None):
+
+        inputVolumeDict = odict()
+        originalImageNodePath = ('Volumes', 'originalImage')
+        inputVolumeDict['originalVolume'] =\
+            self.dataViewer.getPersistentObject(originalImageNodePath)
+        if self._voxelClassificationIteration > 0:
+            inputVolumeDict['previousResult'] =\
+                self.dataViewer.getPersistentObject(
+                    self.previousVoxelClassificationResultPath)
+
         # inputVolumeName = self.blurredVolumeName for sfn2009 results
         
         #inputImageFilePath =\
         #    driveName + "/images/HPFcere_vol/HPF_rotated_tif/median_then_gaussian_8bit"
         exampleListFileName = os.path.join(cytosegDataFolder, "exampleList.tab")
         
-        #inputImage = self.dataViewer.getPersistentVolume_old(self.blurredVolumeName)
-        inputImage = self.dataViewer.getPersistentVolume_old(
-                                                    self.voxelClassificationInputVolumeName)
-
         voxelTrainingImageNodePath = ('Volumes', 'voxelTrainingImage')
         voxelTrainingLabelNodePath = ('Volumes', 'voxelTrainingLabel')
         inputImageNodePath = ('Volumes', 'inputImage')
     
+        # load training images
         dataViewer.addVolumeAndRefreshDataTree(
-                                    loadImageStack(self.voxelTrainingImageFilePath, None),
-                                    voxelTrainingImageNodePath[1])
+            loadImageStack(self.voxelTrainingImageFilePath,
+                           None,
+                           maxNumberOfImages=self.numberOfTrainingLayersToProcess),
+            voxelTrainingImageNodePath[1])
     
-        dataViewer.addVolumeAndRefreshDataTree(
-                                    loadImageStack(self.voxelTrainingLabelFilePath, None),
-                                    voxelTrainingLabelNodePath[1])
-        
-        #inputImage = loadImageStack(inputImageFilePath, None)
-        
+        inputTrainingVolumeDict = odict()
+        inputTrainingVolumeDict['originalVolume'] =\
+            self.dataViewer.getPersistentObject(voxelTrainingImageNodePath)
+        if self._voxelClassificationIteration > 0:
+            inputTrainingVolumeDict['previousResult'] =\
+                self.dataViewer.getPersistentObject(
+                    self.previousVoxelTrainingClassificationResultPath)
+
+        # load training labels
+        rawLabelVolume = loadImageStack(self.voxelTrainingLabelFilePath,
+                            None,
+                            maxNumberOfImages=self.numberOfTrainingLayersToProcess)
+
+        # open input image data to be classified
+        #inputImage = self.dataViewer.getPersistentVolume_old(self.blurredVolumeName)
+        inputImage = self.dataViewer.getPersistentVolume_old(
+                                                    self.voxelClassificationInputVolumeName)
+        # crop input image data if specified
         if numberOfLayersToProcess != None:
             inputImage = inputImage[:, :, 0:numberOfLayersToProcess]
 
+        if maxLabelValue == None:
+            labelVolume = rawLabelVolume >= minLabelValue
+        else:
+            labelVolume =\
+                logical_and(minLabelValue <= rawLabelVolume,
+                            rawLabelVolume <= maxLabelValue)
+
+        dataViewer.addVolumeAndRefreshDataTree(labelVolume, voxelTrainingLabelNodePath[1])
+        
+        #inputImage = loadImageStack(inputImageFilePath, None)
+        
         dataViewer.addVolumeAndRefreshDataTree(inputImage, inputImageNodePath[1])
     
         if self.voxelClassificationMethod == 'randomForest':
 
             # uses training data
             print "learning features of training data"
-            dataViewer.learnFeaturesOfMembraneVoxels(voxelTrainingImageNodePath,
-                                              voxelTrainingLabelNodePath,
-                                              exampleListFileName)
+            dataViewer.learnFeaturesOfMembraneVoxels(inputTrainingVolumeDict,
+                                                     voxelTrainingImageNodePath,
+                                                     voxelTrainingLabelNodePath,
+                                                     exampleListFileName)
         
+            # uses training data, generates voxel probabilities
+            print "classifying training set voxels"
+            dataViewer.classifyVoxels('intermediateTrainingDataLabel1',
+                               self.voxelTrainingClassificationResultPath,
+                               exampleListFileName,
+                               inputTrainingVolumeDict,
+                               voxelTrainingImageNodePath)
+
             # uses test data, generates voxel probabilities
             print "classifying voxels"
-            dataViewer.classifyVoxels('intermediateDataLabel1',
-                               self.filteredVolumeName,
+            dataViewer.classifyVoxels('intermediateTestDataLabel1',
+                               self.voxelClassificationResultPath,
                                exampleListFileName,
+                               inputVolumeDict,
                                inputImageNodePath)
 
         elif self.voxelClassificationMethod == 'neuralNetwork':
@@ -448,7 +573,7 @@ class CellComponentDetector:
             #                                  exampleListFileName)
 
             dataViewer.classifyVoxelsNN('intermediateDataLabel1',
-                               self.filteredVolumeName,
+                               self.voxelClassificationResultPath[1],
                                exampleListFileName,
                                inputImageNodePath)
 
@@ -481,16 +606,16 @@ class CellComponentDetector:
                 #filteredVolume = filteredVolume[:,:,3:]
                 
                 #self.dataViewer.addPersistentVolumeAndRefreshDataTree(blurredVolume, self.blurredVolumeName)
-                #self.dataViewer.addPersistentVolumeAndRefreshDataTree(filteredVolume, self.filteredVolumeName)
+                #self.dataViewer.addPersistentVolumeAndRefreshDataTree(filteredVolume, self.voxelClassificationResultPath[1])
 
                 if numberOfLayersToProcess != None:
                     detector.originalVolume = self.dataViewer.getPersistentVolume_old(self.blurredVolumeName)\
                     [:, :, 0:numberOfLayersToProcess]
-                    detector.filteredVolume = self.dataViewer.getPersistentVolume_old(self.filteredVolumeName)\
+                    detector.filteredVolume = self.dataViewer.getPersistentVolume_old(self.voxelClassificationResultPath[1])\
                     [:, :, 0:numberOfLayersToProcess]
                 else:
                     detector.originalVolume = self.dataViewer.getPersistentVolume_old(self.blurredVolumeName)
-                    detector.filteredVolume = self.dataViewer.getPersistentVolume_old(self.filteredVolumeName)
+                    detector.filteredVolume = self.dataViewer.getPersistentVolume_old(self.voxelClassificationResultPath[1])
     
                 #detector.originalVolume = frm.getPersistentVolume_old(blurredVolumeName)
                 if self.target == 'mitochondria':
@@ -521,8 +646,20 @@ class CellComponentDetector:
                 detector.minPerimeter = 1
                 detector.maxPerimeter = 50
     
+            elif self.target == 'membranes':
+            
+                if numberOfLayersToProcess != None:
+                    detector.originalVolume = self.dataViewer.getPersistentVolume_old(self.originalVolumeName)\
+                    [:, :, 0:numberOfLayersToProcess]
+                    detector.filteredVolume = self.dataViewer.getPersistentVolume_old(self.voxelClassificationResultPath[1])\
+                    [:, :, 0:numberOfLayersToProcess]
+                else:
+                    detector.originalVolume = self.dataViewer.getPersistentVolume_old(self.originalVolumeName)
+                    detector.filteredVolume = self.dataViewer.getPersistentVolume_old(self.voxelClassificationResultPath[1])
+    
             else:
-                print "find_3D_blobs target error"
+
+                raise Exception, "findContours: invalid target: %s" % self.target
     
     
             contoursGroupedByImage = detector.findContours()
@@ -550,10 +687,36 @@ class CellComponentDetector:
             self.dataViewer.refreshTreeControls()
 
 
-    def groupContours(self, contoursGroupedByImage):
+#    def groupContoursByConnectedComponents(self, contoursGroupedByImage):
+#        
+#        #contourList = flattenTreeToNodes(contoursGroupedByImage)
+#        contourList = nonnullObjectNodes(contoursGroupedByImage)
+#
+#        graph = Graph()
+#        
+#        for contour in contourList:
+#            graph.add_node_object(contour)
+#            #print contour.object.getAveragePointLocation()
+#            print contour.name
+#            contour.object.setColor((200, 100, 0))
+#        
+#        for imageIndex in range(len(contoursGroupedByImage.children) - 1):
+#            for contourNode1 in contoursGroupedByImage.children[imageIndex].children:
+#                contour1 = contourNode1.object
+#                center1 = contour1.getAveragePointLocation()
+#                for contourNode2 in contoursGroupedByImage.children[imageIndex + 1].children:
+#                    contour2 = contourNode2.object
+#                    center2 = contour2.getAveragePointLocation()
+#                    if linalg.norm(center1 - center2) < 10.0:
+#                        graph.add_edge(contourNode1.name, contourNode2.name)
+#                    #print linalg.norm(center1 - center2)
+#
+#        return pygraph.algorithms.accessibility.connected_components(graph), graph
+
+
+    def groupContoursByConnectedComponents(self, contoursNode):
         
-        #contourList = flattenTreeToNodes(contoursGroupedByImage)
-        contourList = nonnullObjectNodes(contoursGroupedByImage)
+        contourList = nonnullObjectNodes(contoursNode)
 
         graph = Graph()
         
@@ -563,12 +726,33 @@ class CellComponentDetector:
             print contour.name
             contour.object.setColor((200, 100, 0))
         
+        # regroup contours according to image only, not threshold and image
+        numLayers = contoursNode.children[0].numberOfChildren()
+        contoursGroupedByImage = GroupNode('contoursGroupedByImage')
+
+        for layerIndex in range(numLayers):
+            contoursGroupedByImage.addChild(Node('layer_%d' % layerIndex))
+
+        for imageLayersNode in contoursNode.children:
+            for layerIndex in range(len(imageLayersNode.children) - 1):
+                layerNode = imageLayersNode.children[layerIndex]
+                contoursGroupedByImage.children[layerIndex].addChildren(layerNode.children)
+
+        self.dataViewer.addPersistentSubtreeAndRefreshDataTree((), contoursGroupedByImage)
+
+        contourPairNode = GroupNode('contourPairNode')
+        contourPairNode.children = [None, None]
         for imageIndex in range(len(contoursGroupedByImage.children) - 1):
             for contourNode1 in contoursGroupedByImage.children[imageIndex].children:
                 contour1 = contourNode1.object
                 center1 = contour1.getAveragePointLocation()
                 for contourNode2 in contoursGroupedByImage.children[imageIndex + 1].children:
                     contour2 = contourNode2.object
+                    contourPairNode.children[0] = contourNode1
+                    contourPairNode.children[1] = contourNode2
+                    featureDict = getContourListFeatures(contourPairNode,
+                                        includeIndividualContourFeatures=False)
+                    print featureDict
                     center2 = contour2.getAveragePointLocation()
                     if linalg.norm(center1 - center2) < 10.0:
                         graph.add_edge(contourNode1.name, contourNode2.name)
@@ -718,6 +902,79 @@ class CellComponentDetector:
         self.dataViewer.mainDoc.dataTree.writeSubtree(self.contourPathsNodePath)
     
     
+    def calculateVoxelClassificationAccuracy(self):
+
+        if self.fullManualSegFilePath == None:
+            raise Exception,\
+                "fullManualSegFilePath is None, no actual segmentation specified"
+
+        resultVolume =\
+            self.dataViewer.getPersistentObject(self.voxelClassificationResultPath)
+        fullManualSegVolume = loadImageStack(self.fullManualSegFilePath,
+                                             None,
+                                             maxNumberOfImages=self.numberOfLayersToProcess)
+        self.dataViewer.addVolumeAndRefreshDataTree_new(fullManualSegVolume,
+                                                        self.fullManualSegPath)
+
+        #print resultVolume[10, 10, 10]
+
+        for i in range(0, 20, 1):
+
+            threshold = i / 20.0
+            print "threshold:", threshold
+
+            accuracy = Accuracy(fullManualSegVolume, (resultVolume > threshold))
+            accuracy.printAccuracy()
+
+
+    def calculateFinalAccuracy(self):
+
+        if self.fullManualSegFilePath == None:
+            raise Exception,\
+                "fullManualSegFilePath is None, no actual segmentation specified"
+
+        resultVolume = loadImageStack("O:/images/HPFcere_vol/HPF_rotated_tif/output/blobOutput",
+                                      None,
+                                      maxNumberOfImages=self.numberOfLayersToProcess)
+        self.dataViewer.addVolumeAndRefreshDataTree_new(resultVolume,
+                                                        self.fullManualSegPath)
+
+        fullManualSegVolume = loadImageStack(self.fullManualSegFilePath,
+                                             None,
+                                             maxNumberOfImages=self.numberOfLayersToProcess)
+        self.dataViewer.addVolumeAndRefreshDataTree_new(fullManualSegVolume,
+                                                        self.fullManualSegPath)
+
+        #print resultVolume[10, 10, 10]
+
+        accuracy = Accuracy(fullManualSegVolume, resultVolume)
+        accuracy.printAccuracy()
+
+
+    def calculateFinalAccuracyWithManualCorrection(self):
+
+        if self.fullManualSegFilePath == None:
+            raise Exception,\
+                "fullManualSegFilePath is None, no actual segmentation specified"
+
+        resultVolume = loadImageStack("O:\images\HPFcere_vol\HPF_rotated_tif\output\cleaned with seg3d",
+                                      None,
+                                      maxNumberOfImages=self.numberOfLayersToProcess)
+        self.dataViewer.addVolumeAndRefreshDataTree_new(resultVolume,
+                                                        self.fullManualSegPath)
+
+        fullManualSegVolume = loadImageStack(self.fullManualSegFilePath,
+                                             None,
+                                             maxNumberOfImages=self.numberOfLayersToProcess)
+        self.dataViewer.addVolumeAndRefreshDataTree_new(fullManualSegVolume,
+                                                        self.fullManualSegPath)
+
+        #print resultVolume[10, 10, 10]
+
+        accuracy = Accuracy(fullManualSegVolume, resultVolume)
+        accuracy.printAccuracy()
+
+
     def runInitialize(self):
 
         #defaultStepNumber = 4
@@ -725,31 +982,37 @@ class CellComponentDetector:
         #self.target = 'blankInnerCell'
         #self.target = 'vesicles'
         #numberOfContoursToDisplay = None
-        self.displayParametersDict = {}
-        self.displayParametersDict['mitochondria'] = ContourAndBlobDisplayParameters()
-        self.displayParametersDict['mitochondria'].numberOfContoursToDisplay = None #20
-        self.displayParametersDict['mitochondria'].contourProbabilityThreshold = 0.08
-        self.displayParametersDict['blankInnerCell'] = ContourAndBlobDisplayParameters()
-        self.displayParametersDict['blankInnerCell'].numberOfContoursToDisplay = 20
-        self.displayParametersDict['blankInnerCell'].contourProbabilityThreshold = 0 #0.1
-        self.displayParametersDict['vesicles'] = ContourAndBlobDisplayParameters()
-        self.displayParametersDict['vesicles'].numberOfContoursToDisplay = 5 #500 #5 #20
-        self.displayParametersDict['vesicles'].contourSegmentTubeRadius = 0.1
-        self.displayParametersDict['vesicles'].contourCenterMarkerSize = 0.5
-        self.displayParametersDict['vesicles'].contourProbabilityThreshold = 0.15
-        
-        self.probabilityFunctionDict = {}
-        self.probabilityFunctionDict['mitochondria'] = mitochondriaProbability
-        self.probabilityFunctionDict['vesicles'] = vesicleProbability
-        self.probabilityFunctionDict['blankInnerCell'] = blankInnerCellProbability
-        self.pathLength = {}
-        self.pathLength['mitochondria'] = 3
-        self.pathLength['vesicles'] = 1
-        self.pathLength['blankInnerCell'] = 1
-        self.enable3DPlot = False
-        #numberOfLayersToProcess = 7
-        
-        
+#        self.displayParametersDict = {}
+#        self.displayParametersDict['mitochondria'] = ContourAndBlobDisplayParameters()
+#        self.displayParametersDict['mitochondria'].numberOfContoursToDisplay = None #20
+#        self.displayParametersDict['mitochondria'].contourProbabilityThreshold = 0.08
+#        self.displayParametersDict['blankInnerCell'] = ContourAndBlobDisplayParameters()
+#        self.displayParametersDict['blankInnerCell'].numberOfContoursToDisplay = 20
+#        self.displayParametersDict['blankInnerCell'].contourProbabilityThreshold = 0 #0.1
+#        self.displayParametersDict['vesicles'] = ContourAndBlobDisplayParameters()
+#        self.displayParametersDict['vesicles'].numberOfContoursToDisplay = 5 #500 #5 #20
+#        self.displayParametersDict['vesicles'].contourSegmentTubeRadius = 0.1
+#        self.displayParametersDict['vesicles'].contourCenterMarkerSize = 0.5
+#        self.displayParametersDict['vesicles'].contourProbabilityThreshold = 0.15
+#        
+#        self.probabilityFunctionDict = {}
+#        self.probabilityFunctionDict['mitochondria'] = mitochondriaProbability
+#        self.probabilityFunctionDict['vesicles'] = vesicleProbability
+#        self.probabilityFunctionDict['blankInnerCell'] = blankInnerCellProbability
+#        self.pathLength = {}
+#        self.pathLength['mitochondria'] = 3
+#        self.pathLength['vesicles'] = 1
+#        self.pathLength['blankInnerCell'] = 1
+#        self.enable3DPlot = False
+#        #numberOfLayersToProcess = 7
+#
+#        self.minVoxelLabelValue['mitochondria'] = 1
+#        self.maxVoxelLabelValue['mitochondria'] = None
+#        self.minVoxelLabelValue['blankInnerCell'] = 1
+#        self.maxVoxelLabelValue['blankInnerCell'] = None
+#        self.minVoxelLabelValue['vesicles'] = 1
+#        self.maxVoxelLabelValue['vesicles'] = None
+
         #if len(sys.argv) < 2:
         #    print "step not specified, using default step", defaultStepNumber
         #    stepNumber = defaultStepNumber
@@ -758,16 +1021,16 @@ class CellComponentDetector:
         
         #print "running step number", stepNumber
         
-        self.app = wx.PySimpleApp()
-        self.dataViewer = ClassificationControlsFrame(makeClassifyGUITree())
-        self.dataViewer.Show()
+        #self.app = wx.PySimpleApp()
+        #self.dataViewer = ClassificationControlsFrame(makeClassifyGUITree())
+        #self.dataViewer.Show()
         
         #contoursNodeName = target + 'Contours'
         #self.groupedContoursNodeName = self.target + 'ContoursGroupedByImage'
         self.highProbabilityContoursNodeName = self.target + 'HighProbabilityContours'
     
         if self.target == 'mitochondria':
-            self.fastMarchInputVolumeName = self.filteredVolumeName
+            self.fastMarchInputVolumeName = self.voxelClassificationResultPath[1]
         elif self.target == 'vesicles':
             self.fastMarchInputVolumeName = self.originalVolumeName
         else: print "find_3d_blobs target error"
@@ -782,10 +1045,14 @@ class CellComponentDetector:
     def runClassifyVoxels(self):
 
         self.classifyVoxels(self.dataViewer,
-                            numberOfLayersToProcess=self.numberOfLayersToProcess)
+                            numberOfLayersToProcess=self.numberOfLayersToProcess,
+                            minLabelValue=self.minVoxelLabelValue[self.target],
+                            maxLabelValue=self.maxVoxelLabelValue[self.target])
 
 
     def runFindContours(self):
+
+            #testContours()
 
             self.dataViewer.mainDoc.dataRootNode.addChild(GroupNode(self.contoursNodeName))
 
@@ -806,15 +1073,28 @@ class CellComponentDetector:
                 self.pathLength[self.target])
 
 
-    def runMainLoop(self):
+#    def runMainLoop(self):
+#
+#        print "running main gui loop"
+#
+#        self.app.MainLoop()
 
-        self.app.MainLoop()
+
+    def loadOriginalVolume(self):
+
+        self.dataViewer.getPersistentVolume_old(self.originalVolumeName)
+
+
+    def loadVoxelClassificationResult(self):
+
+        self.dataViewer.getPersistentVolume_old(self.voxelClassificationResultPath[1])
 
 
     def loadItemsForViewing(self):
 
         # load items for viewing and diagnostics
         self.dataViewer.getPersistentVolume_old(self.originalVolumeName)
+        self.dataViewer.getPersistentVolume_old(self.voxelClassificationResultPath[1])
         contoursGroupedByImage = self.dataViewer.mainDoc.dataTree.getSubtree(
                                   (self.contoursNodeName,))
         updateContourProbabilities(contoursGroupedByImage,
@@ -919,6 +1199,57 @@ class CellComponentDetector:
             writeTiffStack(self.blobImageStackOutputFolder, (allBlobs > 0) * 255.0)
 
 
+    def runGroupContoursByConnectedComponents(self):
+            
+            contoursGroupedByImage = self.dataViewer.mainDoc.dataTree.getSubtree(
+                                      (self.contoursNodeName,))
+            updateContourProbabilities(contoursGroupedByImage,
+                                       self.probabilityFunctionDict[self.target])
+            connectedComponents, graph =\
+                self.groupContoursByConnectedComponents(contoursGroupedByImage)
+            
+            #count = 0
+            s = 1.0
+            v = 1.0
+            
+            print connectedComponents
+            
+            for nodeNameKey in connectedComponents:
+                #nodeName = connectedComponents[key]
+                attributes = graph.node_attributes(nodeNameKey)
+                contourNode = attributes[0]
+                #h = 0.05 * count
+                h = 0.05 * connectedComponents[nodeNameKey]
+                print contourNode.object.color()
+                print "h", h, "s", s, "v", v
+                h = remainder(h, 1.0)
+                contourNode.object.setColor(255.0 * array(colorsys.hsv_to_rgb(h, s, v)))
+                #contourNode.object.setColor((200, 200, 200))
+                #count += 1
+
+            originalVolume = self.dataViewer.getPersistentVolume_old(self.originalVolumeName)
+            contourRenderingVolume = zeros((originalVolume.shape[0],
+                                            originalVolume.shape[1],
+                                            originalVolume.shape[2],
+                                            3))
+
+            self.dataViewer.renderPointSetsInVolumeRecursive(contourRenderingVolume,
+                                                      contoursGroupedByImage,
+                                                      valueMode='RGB')
+
+#            writeTiffStackRGB(os.path.join(defaultOutputPath, "rgb"),
+#                              contourRenderingVolume[:, :, :, 0],
+#                              contourRenderingVolume[:, :, :, 1],
+#                              contourRenderingVolume[:, :, :, 2])
+
+            originalVolumeDark = originalVolume * 0.5
+
+            writeTiffStackRGB(os.path.join(defaultOutputPath, "rgb"),
+                              contourRenderingVolume[:, :, :, 0] + originalVolumeDark,
+                              contourRenderingVolume[:, :, :, 1] + originalVolumeDark,
+                              contourRenderingVolume[:, :, :, 2] + originalVolumeDark)
+
+
     def runStep(self, stepNumber):
         
 
@@ -938,7 +1269,7 @@ class CellComponentDetector:
 
         elif stepNumber == 2:
 
-            self.dataViewer.getPersistentVolume_old(self.filteredVolumeName)
+            self.dataViewer.getPersistentVolume_old(self.voxelClassificationResultPath[1])
 
 
         # find contours
@@ -1020,53 +1351,8 @@ class CellComponentDetector:
     
         
         elif stepNumber == 107:
-            
-            contoursGroupedByImage = self.dataViewer.mainDoc.dataTree.getSubtree(
-                                      (self.contoursNodeName,))
-            updateContourProbabilities(contoursGroupedByImage,
-                                       self.probabilityFunctionDict[self.target])
-            connectedComponents, graph = self.groupContours(contoursGroupedByImage)
-            
-            #count = 0
-            s = 0.5
-            v = 0.5
-            
-            print connectedComponents
-            
-            for nodeNameKey in connectedComponents:
-                #nodeName = connectedComponents[key]
-                attributes = graph.node_attributes(nodeNameKey)
-                contourNode = attributes[0]
-                #h = 0.05 * count
-                h = 0.05 * connectedComponents[nodeNameKey]
-                print contourNode.object.color()
-                print "h", h, "s", s, "v", v
-                h = remainder(h, 1.0)
-                contourNode.object.setColor(255.0 * array(colorsys.hsv_to_rgb(h, s, v)))
-                #contourNode.object.setColor((200, 200, 200))
-                #count += 1
 
-            originalVolume = self.dataViewer.getPersistentVolume_old(self.originalVolumeName)
-            contourRenderingVolume = zeros((originalVolume.shape[0],
-                                            originalVolume.shape[1],
-                                            originalVolume.shape[2],
-                                            3))
-
-            self.dataViewer.renderPointSetsInVolumeRecursive(contourRenderingVolume,
-                                                      contoursGroupedByImage,
-                                                      valueMode='RGB')
-
-#            writeTiffStackRGB(os.path.join(defaultOutputPath, "rgb"),
-#                              contourRenderingVolume[:, :, :, 0],
-#                              contourRenderingVolume[:, :, :, 1],
-#                              contourRenderingVolume[:, :, :, 2])
-
-            originalVolumeDark = originalVolume * 0.5
-
-            writeTiffStackRGB(os.path.join(defaultOutputPath, "rgb"),
-                              contourRenderingVolume[:, :, :, 0] + originalVolumeDark,
-                              contourRenderingVolume[:, :, :, 1] + originalVolumeDark,
-                              contourRenderingVolume[:, :, :, 2] + originalVolumeDark)
+            self.runGroupContoursByConnectedComponents()
 
 
         elif stepNumber == 108:

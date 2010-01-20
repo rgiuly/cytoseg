@@ -137,6 +137,9 @@ class Node():
             self.children.remove(childToRemove)
 
 
+    def numberOfChildren(self):
+        return len(self.children)
+
     def __setstate__(self, dict):
         self.__dict__ = dict
         self.guiComponent = None
@@ -225,7 +228,7 @@ class PersistentDataTree:
         #print "setSubtree", pathToParent, newNode.name
         parent = getNode(self.rootNode, pathToParent)
         parent.addChild(newNode)
-        self.writeSubtree(pathToParent + (newNode.name,))
+        self.writeSubtree(tuple(pathToParent) + (newNode.name,))
 
 
 
