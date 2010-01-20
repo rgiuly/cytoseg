@@ -31,8 +31,8 @@ from contour_processing import *
 from accuracy import *
 
 from xml.dom.minidom import Document
-from pygraph import *
-from graph import *
+#from pygraph import *
+#from graph import *
 import os
 import colorsys
 import copy as copy_module
