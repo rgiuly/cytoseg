@@ -16,15 +16,15 @@ subfolder = ""
 
 # full input volume
 #param['originalImageFilePath']="data/sbfsem_080309/data_tifs"
-param['originalImageFilePath']="/ncmirdata1/rgiuly/sbfsem/data_small"
+param['originalImageFilePath']="/ncmirdata1/rgiuly/sbfsem/data_tiny"
 
 # training data image volume
 #param['voxelTrainingImageFilePath']="data/sbfsem_080309/data_tifs"
-param['voxelTrainingImageFilePath']="/ncmirdata1/rgiuly/sbfsem/data_small"
+param['voxelTrainingImageFilePath']="/ncmirdata1/rgiuly/sbfsem/data_tiny"
 
 # training data labels
 # this should have the exact same dimensions as param['voxelTrainingImageFilePath'] 
-param['voxelTrainingLabelFilePath']="/ncmirdata1/rgiuly/sbfsem/seg_small"
+param['voxelTrainingLabelFilePath']="/ncmirdata1/rgiuly/sbfsem/seg_tiny"
 
 # output volume
 param['blobImageStackOutputFolder']="/tmp"
