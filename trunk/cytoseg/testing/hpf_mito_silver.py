@@ -12,11 +12,11 @@ param['voxelTrainingLabelFilePath'] = "O:/images/HPFcere_vol/HPF_rotated_tif/thr
 param['blobImageStackOutputFolder'] = "O:/temp/blobOutput"
 
 detector = Detector(param)
-detector.dataViewer.mainDoc.dataTree.rootFolderPath = "G:/cytoseg_data/hpf"
+detector.dataViewer.mainDoc.dataTree.rootFolderPath = "C:/cytoseg_data/hpf"
 detector.contourClassifier.fullManualSegFilePath =\
-    "O:/images/HPFcere_vol/HPF_rotated_tif/padding_removed/8bit/segmentation"
+    "O:/images/HPFcere_vol/HPF_rotated_tif/padding_removed/8bit/fake_segmentation"
 #detector.dataIdentifier = "hpf"
 #detector.contourTrainer.numberOfLayersToProcess = 14
 #detector.contourTrainer.numberOfTrainingLayersToProcess = 7
 #detector.contourClassifier.minVoxelLabelValue = 3
-detector.run(runAllSteps=0)
+detector.run()
