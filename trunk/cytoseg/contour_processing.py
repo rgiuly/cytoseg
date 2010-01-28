@@ -160,7 +160,7 @@ def testContours():
 ####################################
 
 def progressLog(message):
-    if 1: print "contour_processing.py", message
+    if 0: print "contour_processing.py", message
 
 class XYPlaneEllipse:
     def __init__(self):
@@ -597,7 +597,7 @@ class ContourDetector:
                     
                     # Alloc memory for contour point set.
                     PointArray = cv.cvCreateMat(1, count, cv.CV_32SC2)
-                    PointArray2D32f= cv.cvCreateMat( 1, count, cv.CV_32FC2)
+                    PointArray2D32f = cv.cvCreateMat(1, count, cv.CV_32FC2)
                     
                     # Get contour point set.
                     cv.cvCvtSeqToArray(c, PointArray, cv.cvSlice(0, cv.CV_WHOLE_SEQ_END_INDEX));
@@ -605,6 +605,7 @@ class ContourDetector:
                     # Convert CvPoint set to CvBox2D32f set.
                     cv.cvConvert( PointArray, PointArray2D32f )
                     
+                    # this seems unnecessary
                     box = cv.CvBox2D()
             
                     # Fits ellipse to current contour.
@@ -615,6 +616,19 @@ class ContourDetector:
                     cv.cvDrawContours(contours_image, c, cv.CV_RGB(255,255,255), cv.CV_RGB(255,255,255),0,1,8,cv.cvPoint(0,0));
                     cv.cvDrawContours(contourImage, c, cv.CV_RGB(255,255,255), cv.CV_RGB(255,255,255),0,cv.CV_FILLED,8,cv.cvPoint(0,0));
     
+                    boundingBox = contourObject.get2DBoundingBox()
+                    width = boundingBox[1][0] - boundingBox[0][0] + 1
+                    height = boundingBox[1][1] - boundingBox[0][1] + 1
+                    contourObject.binaryImage = zeros((width, height), dtype=int8)
+                    for x in range(boundingBox[0][0], boundingBox[1][0]+1):
+                        for y in range(boundingBox[0][1], boundingBox[1][1]+1):
+                            if contourImage[y,x] != 0:
+                                value = 1
+                            else:
+                                value = 0
+                            contourObject.binaryImage[x-boundingBox[0][0],
+                                                      y-boundingBox[0][1]] = value
+
                     progressLog("finished drawing contours")
                     
                     # Convert ellipse data from float to integer representation.

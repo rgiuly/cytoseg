@@ -130,6 +130,28 @@ class PointSet(ProbabilityObject):
         return total / float(self.numPoints())
     
 
+    def get2DBoundingBox(self):
+
+        locations = self.locations()
+
+        firstPoint = locations[0]
+
+        minX = firstPoint[0]
+        minY = firstPoint[1]
+        maxX = firstPoint[0]
+        maxY = firstPoint[1]
+
+        for point in locations:
+            x = point[0]
+            y = point[1]
+            if x < minX: minX = x
+            if y < minY: minY = y
+            if x > maxX: maxX = x
+            if y > maxY: maxY = y
+
+        return ((minX, minY), (maxX, maxY))
+
+
     def getXMLObject(self, doc, nodeName):
 
         #print dir(self)
@@ -163,7 +185,10 @@ class Blob(PointSet):
 class Contour(PointSet):
 
     def __init__(self, center=None, size=None, points=None):
+
         PointSet.__init__(self, center, size, points)
+        self.binaryImage = None
+
         self.XMLTag = 'Contour'
 
 

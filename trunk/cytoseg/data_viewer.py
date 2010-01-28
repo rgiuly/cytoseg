@@ -1371,19 +1371,21 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         treeControl = getNode(self.settingsTree, ('particleMotionTool',treeControlName)).guiComponent
         treeControl.DeleteAllItems()
         treeControl.AddRoot("wx.Object")
-        self.generateTreeControlRecursively(self.mainDoc.dataRootNode, treeControl.GetRootItem(), [])
+        self.generateTreeControlRecursively(self.mainDoc.dataRootNode, treeControl.GetRootItem())
 
     # creates tree control gui items and updates the data tree so it has pointers to items in the data tree gui component
-    def generateTreeControlRecursively(self, dataParentNode, treeControlParentNodeID, path):
+    #def generateTreeControlRecursively(self, dataParentNode, treeControlParentNodeID, path):
+    def generateTreeControlRecursively(self, dataParentNode, treeControlParentNodeID):
 
         for dataChildNode in dataParentNode.children:
             #newItem = tree.AppendItem(treeControlParentNode, settingsNode.name)
             treeControl = getNode(self.settingsTree, ('particleMotionTool','dataTree')).guiComponent
-            newPath = appendToNewListAndReturnList(path, (dataChildNode.name)) 
-            newItemID = treeControl.AppendItem(treeControlParentNodeID, str(newPath))
+            #newPath = appendToNewListAndReturnList(path, (dataChildNode.name)) 
+            #newItemID = treeControl.AppendItem(treeControlParentNodeID, str(newPath))
+            newItemID = treeControl.AppendItem(treeControlParentNodeID, dataChildNode.name)
             treeControl.SetPyData(newItemID, dataChildNode)
             dataChildNode.guiComponent = newItemID
-            self.generateTreeControlRecursively(dataChildNode, newItemID, newPath)
+            self.generateTreeControlRecursively(dataChildNode, newItemID)
 
 
 
@@ -2150,7 +2152,25 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
                      else: offset = f
                      dc.DrawRectangle(x - offset*1, y - offset*1, offset*2, offset*2)
                      
+        if 0:
+            dc.SetBrush(wx.Brush(wx.Color(0, 0, 100, 200)))
+            dc.SetPen(wx.Pen(wx.Color(0, 0, 100, 200)))
+            boundingBox = blob.get2DBoundingBox()
+            #if blob != None:
+            if locations[0][2] == z:
+
+                for i in range(blob.binaryImage.shape[0]):
+                    for j in range(blob.binaryImage.shape[1]):
+                        xOffset = boundingBox[0][0]
+                        yOffset = boundingBox[0][1]
+                        x, y = self.fullVolumeXYToScreenXY((i+xOffset, j+yOffset))
+                        #if f < 1: offset = 1
+                        #else: offset = f
+                        offset = 1
+                        if blob.binaryImage[i,j] != 0:
+                            dc.DrawRectangle(x - offset*1, y - offset*1, offset*2, offset*2)
     
+
 def renderPointSetInVolume(volume, pointSet, valueMode):
     
     for labeledPoint in pointSet.points():
@@ -2211,8 +2231,9 @@ def insideLimits(shape, point):
     return newPoint
         
 
-def appendToNewListAndReturnList(list, element):
-    newList = copy_module.deepcopy(list)
+def appendToNewListAndReturnList(sequenceObject, element):
+    #newList = copy_module.deepcopy(list)
+    newList = list(sequenceObject)
     newList.append(element)
     return newList
 
@@ -3833,8 +3854,9 @@ def updateParticlePositions(volume, settingsTree, offsetOfLoadedVolumeInFullVolu
 #volumes = {}
 #volumes = odict()
 
-borderWidthForFeatures = 3
-    
+#borderWidthForFeatures = [3, 3, 3]
+borderWidthForFeatures = [9, 9, 3]
+
 
 def createSampleVolumes():
     
@@ -3953,7 +3975,12 @@ def drawEdges(edges):
 
 def isInsideVolumeWithBorder(volume, point, border):
     s = volume.shape
-    if point[0] < s[0] - border and point[1] < s[1] - border and point[2] < s[2] - border and point[0] >= border and point[1] >= border and point[2] >= border:
+    if point[0] < s[0] - border[0] and\
+        point[1] < s[1] - border[1] and\
+        point[2] < s[2] - border[2] and\
+        point[0] >= border[0] and\
+        point[1] >= border[1] and\
+        point[2] >= border[2]:
         return True
     else:
         return False

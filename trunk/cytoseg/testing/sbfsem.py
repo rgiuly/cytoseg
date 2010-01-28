@@ -3,6 +3,8 @@
 import sys
 sys.path.append("..")
 
+from label_identifier import *
+
 from contour_set_detector import ContourSetDetector
 
 param = {}
@@ -33,10 +35,14 @@ param['blobImageStackOutputFolder']="O:/temp/blobOutput_080309"
 detector = ContourSetDetector(param)
 detector.dataIdentifier = "sbfsem_080309"
 detector.dataViewer.mainDoc.dataTree.rootFolderPath = "G:/cytoseg_data/sbfsem"
+#detector.contourClassifier.numberOfLayersToProcess = 50
 detector.contourClassifier.numberOfLayersToProcess = 14
 detector.contourClassifier.numberOfTrainingLayersToProcess = 7
-detector.contourClassifier.minVoxelLabelValue['mitochondria'] = 3
-detector.contourClassifier.minVoxelLabelValue['membranes'] = 2
-detector.contourClassifier.maxVoxelLabelValue['membranes'] = 2
+#detector.contourClassifier.minVoxelLabelValue['mitochondria'] = 3
+#detector.contourClassifier.minVoxelLabelValue['membranes'] = 2
+#detector.contourClassifier.maxVoxelLabelValue['membranes'] = 2
+detector.contourClassifier.labelIdentifierDict['membranes'] = LabelIdentifier(min=2, max=2)
+detector.contourClassifier.labelIdentifierDict['mitochondria'] = LabelIdentifier(min=3)
 detector.setTarget('membranes')
+#detector.setTarget('membranes_test')
 detector.run(runAllSteps=0)

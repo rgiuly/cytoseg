@@ -29,10 +29,14 @@ from enthought.mayavi.scripts import mayavi2
 from default_path import *
 from contour_processing import *
 from accuracy import *
+from contour_comparison import *
+from label_identifier import *
 
 from xml.dom.minidom import Document
 #from pygraph import *
-#from graph import *
+from pygraph.classes.graph import *
+import pygraph.algorithms.accessibility
+from graph import *
 import os
 import colorsys
 import copy as copy_module
@@ -417,6 +421,7 @@ class CellComponentDetector:
         self.probabilityFunctionDict['vesicles'] = vesicleProbability
         self.probabilityFunctionDict['blankInnerCell'] = blankInnerCellProbability
         self.probabilityFunctionDict['membranes'] = blankInnerCellProbability
+        self.probabilityFunctionDict['membranes_test'] = blankInnerCellProbability
         self.pathLength = {}
         self.pathLength['mitochondria'] = 3
         self.pathLength['vesicles'] = 1
@@ -425,13 +430,19 @@ class CellComponentDetector:
         #numberOfLayersToProcess = 7
 
         targetKeys = ['mitochondria', 'blankInnerCell', 'vesicles', 'membranes'] 
-        self.minVoxelLabelValue = {}
-        self.maxVoxelLabelValue = {}
+        #self.minVoxelLabelValue = {}
+        #self.maxVoxelLabelValue = {}
 
-        # setting defaults so that 1 or greater represents the label
+        self.labelIdentifierDict = {}
+
+        ## setting defaults so that 1 or greater represents the label
+        #for key in targetKeys:
+        #    self.minVoxelLabelValue[key] = 1
+        #    self.maxVoxelLabelValue[key] = None
+
         for key in targetKeys:
-            self.minVoxelLabelValue[key] = 1
-            self.maxVoxelLabelValue[key] = None
+
+            self.labelIdentifierDict[key] = LabelIdentifier(min=1)
 
 
     def writeContoursToImageStack(self, pathToContoursNode):
@@ -455,8 +466,10 @@ class CellComponentDetector:
                           blueVolume=tempVolume)
 
 
+    # todo: numberOfLayersToProcess parameter seems redundant
     def preclassificationFilter(self, dataViewer, numberOfLayersToProcess=None):
 
+        # todo: use runLoadOriginalImage to do this
         originalImageNodePath = ('Volumes', 'originalImage')
 
         originalImage = loadImageStack(self.originalImageFilePath, None)
@@ -478,8 +491,8 @@ class CellComponentDetector:
                                                          self.blurredVolumeName)
 
 
-    def classifyVoxels(self, dataViewer, numberOfLayersToProcess=None,
-                       minLabelValue=1, maxLabelValue=None):
+    def classifyVoxels_old(self, dataViewer, numberOfLayersToProcess=None,
+                           minLabelValue=1, maxLabelValue=None):
 
         inputVolumeDict = odict()
         originalImageNodePath = ('Volumes', 'originalImage')
@@ -546,6 +559,106 @@ class CellComponentDetector:
             # uses training data
             print "learning features of training data"
             dataViewer.learnFeaturesOfMembraneVoxels(inputTrainingVolumeDict,
+                                                     voxelTrainingImageNodePath,
+                                                     voxelTrainingLabelNodePath,
+                                                     exampleListFileName)
+        
+            # uses training data, generates voxel probabilities
+            print "classifying training set voxels"
+            dataViewer.classifyVoxels('intermediateTrainingDataLabel1',
+                               self.voxelTrainingClassificationResultPath,
+                               exampleListFileName,
+                               inputTrainingVolumeDict,
+                               voxelTrainingImageNodePath)
+
+            # uses test data, generates voxel probabilities
+            print "classifying voxels"
+            dataViewer.classifyVoxels('intermediateTestDataLabel1',
+                               self.voxelClassificationResultPath,
+                               exampleListFileName,
+                               inputVolumeDict,
+                               inputImageNodePath)
+
+        elif self.voxelClassificationMethod == 'neuralNetwork':
+
+            #dataViewer.learnFeaturesOfMembraneVoxels(voxelTrainingImageNodePath,
+            #                                  voxelTrainingLabelNodePath,
+            #                                  exampleListFileName)
+
+            dataViewer.classifyVoxelsNN('intermediateDataLabel1',
+                               self.voxelClassificationResultPath[1],
+                               exampleListFileName,
+                               inputImageNodePath)
+
+
+    def classifyVoxels(self, dataViewer, labelIdentifier, numberOfLayersToProcess=None):
+
+        inputVolumeDict = odict()
+        originalImageNodePath = ('Volumes', 'originalImage')
+        inputVolumeDict['originalVolume'] =\
+            self.dataViewer.getPersistentObject(originalImageNodePath)
+        if self._voxelClassificationIteration > 0:
+            inputVolumeDict['previousResult'] =\
+                self.dataViewer.getPersistentObject(
+                    self.previousVoxelClassificationResultPath)
+
+        # inputVolumeName = self.blurredVolumeName for sfn2009 results
+        
+        #inputImageFilePath =\
+        #    driveName + "/images/HPFcere_vol/HPF_rotated_tif/median_then_gaussian_8bit"
+        exampleListFileName = os.path.join(cytosegDataFolder, "exampleList.tab")
+        
+        voxelTrainingImageNodePath = ('Volumes', 'voxelTrainingImage')
+        voxelTrainingLabelNodePath = ('Volumes', 'voxelTrainingLabel')
+        inputImageNodePath = ('Volumes', 'inputImage')
+    
+        # load training images
+        dataViewer.addVolumeAndRefreshDataTree(
+            loadImageStack(self.voxelTrainingImageFilePath,
+                           None,
+                           maxNumberOfImages=self.numberOfTrainingLayersToProcess),
+            voxelTrainingImageNodePath[1])
+    
+        inputTrainingVolumeDict = odict()
+        inputTrainingVolumeDict['originalVolume'] =\
+            self.dataViewer.getPersistentObject(voxelTrainingImageNodePath)
+        if self._voxelClassificationIteration > 0:
+            inputTrainingVolumeDict['previousResult'] =\
+                self.dataViewer.getPersistentObject(
+                    self.previousVoxelTrainingClassificationResultPath)
+
+        # load training labels
+        labelVolume = loadImageStack(self.voxelTrainingLabelFilePath,
+                            None,
+                            maxNumberOfImages=self.numberOfTrainingLayersToProcess)
+
+        # open input image data to be classified
+        #inputImage = self.dataViewer.getPersistentVolume_old(self.blurredVolumeName)
+        inputImage = self.dataViewer.getPersistentVolume_old(
+                                                    self.voxelClassificationInputVolumeName)
+        # crop input image data if specified
+        if numberOfLayersToProcess != None:
+            inputImage = inputImage[:, :, 0:numberOfLayersToProcess]
+
+        #if maxLabelValue == None:
+        #    labelVolume = rawLabelVolume >= minLabelValue
+        #else:
+        #    labelVolume =\
+        #        logical_and(minLabelValue <= rawLabelVolume,
+        #                    rawLabelVolume <= maxLabelValue)
+
+        dataViewer.addVolumeAndRefreshDataTree(labelVolume, voxelTrainingLabelNodePath[1])
+        
+        #inputImage = loadImageStack(inputImageFilePath, None)
+        
+        dataViewer.addVolumeAndRefreshDataTree(inputImage, inputImageNodePath[1])
+    
+        if self.voxelClassificationMethod == 'randomForest':
+
+            # uses training data
+            print "learning features of training data"
+            dataViewer.learnFeaturesOfMembraneVoxels(inputTrainingVolumeDict,
+                                                     self.labelIdentifierDict,
                                                      voxelTrainingImageNodePath,
                                                      voxelTrainingLabelNodePath,
                                                      exampleListFileName)
@@ -645,9 +758,9 @@ class CellComponentDetector:
                 detector.contourFilterFunction2D = greaterThanSurroundingPixelsFilter
                 detector.minPerimeter = 1
                 detector.maxPerimeter = 50
-    
+
             elif self.target == 'membranes':
-            
+
                 if numberOfLayersToProcess != None:
                     detector.originalVolume = self.dataViewer.getPersistentVolume_old(self.originalVolumeName)\
                     [:, :, 0:numberOfLayersToProcess]
@@ -656,12 +769,23 @@ class CellComponentDetector:
                 else:
                     detector.originalVolume = self.dataViewer.getPersistentVolume_old(self.originalVolumeName)
                     detector.filteredVolume = self.dataViewer.getPersistentVolume_old(self.voxelClassificationResultPath[1])
-    
+
+            elif self.target == 'membranes_test':
+            
+                if numberOfLayersToProcess != None:
+                    detector.originalVolume = self.dataViewer.getPersistentVolume_old(self.originalVolumeName)\
+                    [:, :, 0:numberOfLayersToProcess]
+                    detector.filteredVolume = self.dataViewer.getPersistentVolume_old(self.originalVolumeName)\
+                    [:, :, 0:numberOfLayersToProcess]
+                else:
+                    detector.originalVolume = self.dataViewer.getPersistentVolume_old(self.originalVolumeName)
+                    detector.filteredVolume = self.dataViewer.getPersistentVolume_old(self.originalVolumeName)
+
             else:
 
                 raise Exception, "findContours: invalid target: %s" % self.target
-    
-    
+
+
             contoursGroupedByImage = detector.findContours()
             #contoursGroupedByImage.name = self.groupedContoursNodeName
             contoursGroupedByImage.name = groupNodeName
@@ -718,10 +842,10 @@ class CellComponentDetector:
         
         contourList = nonnullObjectNodes(contoursNode)
 
-        graph = Graph()
+        g = Graph()
         
         for contour in contourList:
-            graph.add_node_object(contour)
+            g.add_node_object(contour)
             #print contour.object.getAveragePointLocation()
             print contour.name
             contour.object.setColor((200, 100, 0))
@@ -754,11 +878,15 @@ class CellComponentDetector:
                                         includeIndividualContourFeatures=False)
                     print featureDict
                     center2 = contour2.getAveragePointLocation()
-                    if linalg.norm(center1 - center2) < 10.0:
-                        graph.add_edge(contourNode1.name, contourNode2.name)
+                    #if linalg.norm(center1 - center2) < 10.0:
+                    if linalg.norm(center1 - center2) < 50.0:
+                        if overlap(contour1, contour2) > 0.4:
+                            g.add_edge((contourNode1.name, contourNode2.name))
+                        #print "overlap", overlap(contour1, contour2)
+                    #print len(g.edges())
                     #print linalg.norm(center1 - center2)
 
-        return pygraph.algorithms.accessibility.connected_components(graph), graph
+        return pygraph.algorithms.accessibility.connected_components(g), g
 
 
     def computeContourRegions(self):
@@ -1036,6 +1164,20 @@ class CellComponentDetector:
         else: print "find_3d_blobs target error"
 
 
+    def runPersistentLoadOriginalImage(self):
+
+        originalImageNodePath = ('Volumes', 'originalImage')
+
+        originalImage = loadImageStack(self.originalImageFilePath, None)
+
+        originalImage = originalImage[:, :, 0:self.numberOfLayersToProcess]
+
+        self.dataViewer.addVolumeAndRefreshDataTree(originalImage, originalImageNodePath[1])
+
+        self.dataViewer.addPersistentVolumeAndRefreshDataTree(originalImage,
+                                                         self.originalVolumeName)
+
+
     def runPreclassificationFilter(self):
 
             self.preclassificationFilter(self.dataViewer,
@@ -1045,9 +1187,8 @@ class CellComponentDetector:
     def runClassifyVoxels(self):
 
         self.classifyVoxels(self.dataViewer,
-                            numberOfLayersToProcess=self.numberOfLayersToProcess,
-                            minLabelValue=self.minVoxelLabelValue[self.target],
-                            maxLabelValue=self.maxVoxelLabelValue[self.target])
+                            self.labelIdentifierDict[self.target],
+                            numberOfLayersToProcess=self.numberOfLayersToProcess)
 
 
     def runWriteVoxelClassificationResult(self):

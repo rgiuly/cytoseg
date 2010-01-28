@@ -361,8 +361,8 @@ class ClassificationControlsFrame(ControlsFrame):
                
                 imageArray = zeros((displayedRegionBox.shape()[0], displayedRegionBox.shape()[1]))
                 box = displayedRegionBox
-                for x in range(box.cornerA[0] + borderWidthForFeatures+1, box.cornerB[0] - borderWidthForFeatures-1):
-                    for y in range(box.cornerA[1] + borderWidthForFeatures+1, box.cornerB[1] - borderWidthForFeatures-1):
+                for x in range(box.cornerA[0] + borderWidthForFeatures[0]+1, box.cornerB[0] - borderWidthForFeatures[0]-1):
+                    for y in range(box.cornerA[1] + borderWidthForFeatures[1]+1, box.cornerB[1] - borderWidthForFeatures[1]-1):
                         location = (x, y, box.cornerA[2])
                         
                         # if z value is out of range just return a image that has zeros in it
@@ -421,10 +421,10 @@ class ClassificationControlsFrame(ControlsFrame):
         membraneVoxelVolume = self.getVolume('MembraneVoxel')
         
         border = borderWidthForFeatures
-        for x in range(border,sh[0]-border,2):
+        for x in range(border[0],sh[0]-border[0],2):
             print "%d out of %d" % (x, sh[0])
-            for y in range(border,sh[1]-border,2):
-                for z in range(border,sh[2]-border,2):
+            for y in range(border[1],sh[1]-border[1],2):
+                for z in range(border[2],sh[2]-border[2],2):
                     
                     d = getPointFeaturesAt(currentVolume, self, (x,y,z))
                     
@@ -493,6 +493,7 @@ class ClassificationControlsFrame(ControlsFrame):
 
     def learnFeaturesOfMembraneVoxels(self,
                                       inputVolumeDict,
+                                      labelIdentifierDict,
                                       voxelTrainingImageNodePath,
                                       voxelTrainingLabelNodePath,
                                       voxelExamplesFilename):
@@ -511,9 +512,10 @@ class ClassificationControlsFrame(ControlsFrame):
         volume = numpy.zeros(sh)
         #selected x, y, and z
         
-        # get point features at the arbitrary point [3,3,3] to get a list of feature names
+        # get point features at the arbitrary point borderWidthFeatures
+        # to get a list of feature names
         dictionary = getPointFeaturesAt(inputVolumeDict, filteredVolume,
-                                        'training', self, [3,3,3])
+                                        'training', self, borderWidthForFeatures)
         featureList = []
         for item in dictionary.items():
             key = item[0]
@@ -527,25 +529,30 @@ class ClassificationControlsFrame(ControlsFrame):
         #self.addPersistentVolumeAndRefreshDataTree(membraneVoxelVolume, 'MembraneVoxel')
         
         border = borderWidthForFeatures
-        for x in range(border,sh[0]-border,2):
+        for x in range(border[0],sh[0]-border[0],2):
             print "%d out of %d" % (x, sh[0])
-            for y in range(border,sh[1]-border,2):
-                for z in range(border,sh[2]-border,2):
-                    
+            for y in range(border[1],sh[1]-border[1],2):
+                for z in range(border[2],sh[2]-border[2],2):
+
                     d = getPointFeaturesAt(inputVolumeDict, filteredVolume,
                                            'training', self, (x,y,z))
-                    
+
                     #xG = volumes['xGradient'][x,y,z]
                     #yG = volumes['yGradient'][x,y,z]
                     #zG = volumes['zGradient'][x,y,z]
-        
+
                     #st = structureTensor(xG,yG,zG)
                     #eigenValues = numpy.linalg.eigvals(st)
-                    
-                    self.writeExample(file, d, (membraneVoxelVolume[x,y,z] == True))
 
-                    
-        
+                    className = 'None'
+
+                    for target in labelIdentifierDict:
+                        value = membraneVoxelVolume[x,y,z]
+                        if labelIdentifierDict[target].isMember(value):
+                            className = target
+
+                    self.writeExample(file, d, className)
+
         file.close()
 
 
@@ -1107,6 +1114,7 @@ class ClassificationControlsFrame(ControlsFrame):
         data = orange.ExampleTable(voxelExamplesFilename)
         
         minimumExamples = len(data) / 5
+        #minimumExamples = len(data) / 10
         
         #originalVolume = self.getPersistentObject(originalVolumeNodePath)
         inputVolume = self.getPersistentObject(inputImageNodePath)
@@ -1121,6 +1129,7 @@ class ClassificationControlsFrame(ControlsFrame):
         tree.split.discreteSplitConstructor.measure = \
          tree.split.continuousSplitConstructor.measure = gini
         tree.maxDepth = 5
+        #tree.maxDepth = 10
         tree.split = orngEnsemble.SplitConstructor_AttributeSubset(tree.split, 3)
 
         forest = orngEnsemble.RandomForestLearner(data, trees=50,
@@ -1138,15 +1147,21 @@ class ClassificationControlsFrame(ControlsFrame):
         
         count = 0
 
-        v = zeros(inputVolume.shape)
-        logV = zeros(inputVolume.shape)
+        v = []
+        logV = []
+
+        for i in range(len(data.domain.classVar.values)):
+            v.append(zeros(inputVolume.shape))
+            logV.append(zeros(inputVolume.shape))
         #self.addPersistentVolumeAndRefreshDataTree(v,
         #                                outputNodePath + '_ProbabilityVolume')
 
-        for x in range(borderWidthForFeatures, v.shape[0]-borderWidthForFeatures):
-            print x, "out of", v.shape[0]-borderWidthForFeatures-1
-            for y in range(borderWidthForFeatures,v.shape[1]-borderWidthForFeatures):
-                for z in range(borderWidthForFeatures,v.shape[2]-borderWidthForFeatures):
+        for x in range(borderWidthForFeatures[0], v[0].shape[0]-borderWidthForFeatures[0]):
+            print x, "out of", v[0].shape[0]-borderWidthForFeatures[0]-1
+            for y in range(borderWidthForFeatures[1],
+                           v[0].shape[1]-borderWidthForFeatures[1]):
+                for z in range(borderWidthForFeatures[2],
+                               v[0].shape[2]-borderWidthForFeatures[2]):
                     
                     
                     dictionary = getPointFeaturesAt(inputVolumeDict, inputVolume,
@@ -1155,20 +1170,35 @@ class ClassificationControlsFrame(ControlsFrame):
                     for item in dictionary.items():
                         value = item[1]
                         valueList.append(value)
-                    valueList.append('False') # todo: what would happen if you used True here
+                    #valueList.append('False') # todo: what would happen if you used True here
+                    valueList.append('None')
                     example = orange.Example(data.domain, valueList)
                     p = forest(example, orange.GetProbabilities)    
                     
-                    v[x,y,z] = p[1]
-                    logV[x,y,z] = numpy.log(p[1])
+                    for i in range(len(p)):
+                        v[i][x,y,z] = p[i]
+                        logV[i][x,y,z] = numpy.log(p[i])
+
                     count += 1
 
-        self.addPersistentObjectAndRefreshDataTree(v, outputNodePath)
+        parentNode = getNode(self.mainDoc.dataRootNode, outputNodePath[0:-1])
+        parentNode.addChild(GroupNode(outputNodePath[-1]))
+        parentNode.addChild(GroupNode(outputNodePath[-1] + '_LogProbabilityVolume'))
 
-        logOutputNodePath = list(outputNodePath)
-        logOutputNodePath[-1] = logOutputNodePath[-1] + '_LogProbabilityVolume'
+        for i in range(len(v)):
 
-        self.addPersistentObjectAndRefreshDataTree(logV, logOutputNodePath)
+            volume = v[i]
+            path = appendToNewListAndReturnList(outputNodePath, str(i))
+            self.addPersistentObjectAndRefreshDataTree(volume, path)
+
+        for i in range(len(logV)):
+
+            logVolume = logV[i]
+            logOutputNodePath = list(outputNodePath)
+            logOutputNodePath[-1] = logOutputNodePath[-1] + '_LogProbabilityVolume'
+            path = appendToNewListAndReturnList(logOutputNodePath, str(i))
+
+            self.addPersistentObjectAndRefreshDataTree(logVolume, path)
 
 
     def classifyVoxelsNN(self,
@@ -1297,7 +1327,7 @@ def getPointFeaturesAt(inputVolumeDict, volume, derivativeVolumesIdentifier, gui
     
 
     if not(isInsideVolumeWithBorder(volume, point, borderWidthForFeatures)):
-        raise Exception, 'The point %s is not inside the volume enough. In needs to be away from the border by %d pixels.' % (point, borderWidthForFeatures)
+        raise Exception, 'The point %s is not inside the volume enough. In needs to be away from the border by %d pixels for x, %d pixels for y, and %d pixels for z.' % (point, borderWidthForFeatures[0], borderWidthForFeatures[1], borderWidthForFeatures[2])
     
     f = odict()
 
@@ -1375,8 +1405,10 @@ def getPointFeaturesAt(inputVolumeDict, volume, derivativeVolumesIdentifier, gui
 
         inputVolume = inputVolumeDict[key]
 
-        for xOffset in range(-3, 3):
-            for yOffset in range(-3, 3):
+        windowSize = 10
+
+        for xOffset in range(-(windowSize-1), windowSize, 3):
+            for yOffset in range(-(windowSize-1), windowSize, 3):
                 f['inputVolume_%s_%d_%d' % (key, xOffset, yOffset)] =\
                     inputVolume[point[0] + xOffset, point[1] + yOffset, point[2]]
 

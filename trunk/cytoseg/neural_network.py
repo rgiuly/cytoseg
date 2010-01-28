@@ -68,10 +68,11 @@ class NeuralNetworkLearner:
         self.network.update()
         v = self.trainingOutputVolume
 
-        for x in range(borderWidthForFeatures, v.shape[0]-borderWidthForFeatures):
+        for x in range(borderWidthForFeatures[0], v.shape[0]-borderWidthForFeatures[0]):
             #print x, "out of", v.shape[0]-borderWidthForFeatures-1
-            for y in range(borderWidthForFeatures,v.shape[1]-borderWidthForFeatures):
-                for z in range(borderWidthForFeatures,v.shape[2]-borderWidthForFeatures):
+            for y in range(borderWidthForFeatures[1],v.shape[1]-borderWidthForFeatures[1]):
+                for z in range(borderWidthForFeatures[2],
+                               v.shape[2]-borderWidthForFeatures[2]):
 
                     total += abs(self.network.outputVolume[x,y,z] -
                                  self.trainingOutputVolume[x,y,z])
