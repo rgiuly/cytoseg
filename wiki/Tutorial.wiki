@@ -5,3 +5,20 @@
 [MarkingMultisizedBlobsTutorial Marking Multi-sized Blobs] (under construction)
 
 Membrane Identification Tutorial (under construction)
+
+
+=Command Line Example=
+
+sbfsem_crbs_command input training_data training_label output
+
+input: full input volume folder path
+
+training_data: training data image volume folder path
+
+training_label:
+training data labels folder path
+this should have the exact same dimensions as training data
+
+output: output volume folder path
+
+All parameters point to folders for tiff stacks.
