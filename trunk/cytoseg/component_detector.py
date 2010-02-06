@@ -364,6 +364,7 @@ class CellComponentDetector:
             self.previousVoxelClassificationResultPath = None
 
 
+        # this is for old accuracy check
         self.fullManualSegPath =\
             ('Volumes', dataIdentifier + 'FullManualSeg')
 
@@ -429,7 +430,7 @@ class CellComponentDetector:
         self.enable3DPlot = False
         #numberOfLayersToProcess = 7
 
-        targetKeys = ['mitochondria', 'blankInnerCell', 'vesicles', 'membranes'] 
+        #targetKeys = ['mitochondria', 'blankInnerCell', 'vesicles', 'membranes'] 
         #self.minVoxelLabelValue = {}
         #self.maxVoxelLabelValue = {}
 
@@ -440,9 +441,9 @@ class CellComponentDetector:
         #    self.minVoxelLabelValue[key] = 1
         #    self.maxVoxelLabelValue[key] = None
 
-        for key in targetKeys:
+        #for key in targetKeys:
 
-            self.labelIdentifierDict[key] = LabelIdentifier(min=1)
+        #    self.labelIdentifierDict[key] = LabelIdentifier(min=1)
 
 
     def writeContoursToImageStack(self, pathToContoursNode):
@@ -591,16 +592,22 @@ class CellComponentDetector:
                                inputImageNodePath)
 
 
-    def classifyVoxels(self, dataViewer, labelIdentifier, numberOfLayersToProcess=None):
+    #def classifyVoxels(self, dataViewer, labelIdentifier, numberOfLayersToProcess=None):
+    def classifyVoxels(self, dataViewer, numberOfLayersToProcess=None):
 
         inputVolumeDict = odict()
         originalImageNodePath = ('Volumes', 'originalImage')
         inputVolumeDict['originalVolume'] =\
             self.dataViewer.getPersistentObject(originalImageNodePath)
         if self._voxelClassificationIteration > 0:
-            inputVolumeDict['previousResult'] =\
-                self.dataViewer.getPersistentObject(
-                    self.previousVoxelClassificationResultPath)
+            resultsNode = self.dataViewer.mainDoc.dataTree.getSubtree(
+                            self.previousVoxelClassificationResultPath)
+            #resultsNode = getNode(self.dataViewer.mainDoc.dataRootNode,
+            #                self.previousVoxelClassificationResultPath)
+            for childNode in resultsNode.children:
+                inputVolumeDict['previousResult_' + childNode.name] = childNode.object
+                    #self.dataViewer.getPersistentObject(
+                    #    self.previousVoxelClassificationResultPath)
 
         # inputVolumeName = self.blurredVolumeName for sfn2009 results
         
@@ -623,9 +630,16 @@ class CellComponentDetector:
         inputTrainingVolumeDict['originalVolume'] =\
             self.dataViewer.getPersistentObject(voxelTrainingImageNodePath)
         if self._voxelClassificationIteration > 0:
-            inputTrainingVolumeDict['previousResult'] =\
-                self.dataViewer.getPersistentObject(
-                    self.previousVoxelTrainingClassificationResultPath)
+            #inputTrainingVolumeDict['previousResult'] =\
+            #    self.dataViewer.getPersistentObject(
+            #        self.previousVoxelTrainingClassificationResultPath)
+
+            resultsNode = self.dataViewer.mainDoc.dataTree.getSubtree(
+                            self.previousVoxelTrainingClassificationResultPath)
+
+            for childNode in resultsNode.children:
+                inputTrainingVolumeDict['previousResult_' + childNode.name] =\
+                    childNode.object
 
         # load training labels
         labelVolume = loadImageStack(self.voxelTrainingLabelFilePath,
@@ -656,12 +670,12 @@ class CellComponentDetector:
         if self.voxelClassificationMethod == 'randomForest':
 
             # uses training data
-            print "learning features of training data"
-            dataViewer.learnFeaturesOfMembraneVoxels(inputTrainingVolumeDict,
-                                                     self.labelIdentifierDict,
-                                                     voxelTrainingImageNodePath,
-                                                     voxelTrainingLabelNodePath,
-                                                     exampleListFileName)
+            print "recording features of training data"
+            dataViewer.recordLocalFeatures(inputTrainingVolumeDict,
+                                           self.labelIdentifierDict,
+                                           voxelTrainingImageNodePath,
+                                           voxelTrainingLabelNodePath,
+                                           exampleListFileName)
         
             # uses training data, generates voxel probabilities
             print "classifying training set voxels"
@@ -1079,6 +1093,64 @@ class CellComponentDetector:
         accuracy.printAccuracy()
 
 
+    def calculateVoxelClassificationAccuracy_new(self):
+
+        #if self.fullManualSegFilePath == None:
+        #    raise Exception,\
+        #        "fullManualSegFilePath is None, no actual segmentation specified"
+
+        #resultVolume = loadImageStack("O:/images/HPFcere_vol/HPF_rotated_tif/output/blobOutput",
+        #                              None,
+        #                              maxNumberOfImages=self.numberOfLayersToProcess)
+        #resultVolume = getPersistentObject(self.voxelClassificationResultPath)
+        #self.dataViewer.addVolumeAndRefreshDataTree_new(resultVolume,
+        #                                                self.fullManualSegPath)
+        resultsNode = self.dataViewer.mainDoc.dataTree.getSubtree(
+                                            self.voxelClassificationResultPath)
+
+
+        fullManualSegVolume = loadImageStack(self.voxelTrainingLabelFilePath,
+                                             None,
+                                             maxNumberOfImages=self.numberOfLayersToProcess)
+        self.dataViewer.addVolumeAndRefreshDataTree_new(fullManualSegVolume,
+                                                        self.fullManualSegPath)
+
+
+        for childNode in resultsNode.children:
+
+            target = childNode.name
+
+            resultVolume = childNode.object
+            #self.dataViewer.addVolumeAndRefreshDataTree_new(resultVolume,
+            #                                                self.fullManualSegPath)
+
+            #fullManualSegVolume = loadImageStack(self.fullManualSegFilePath,
+            #                                     None,
+            #                                     maxNumberOfImages=self.numberOfLayersToProcess)
+
+            #print resultVolume[10, 10, 10]
+
+            targetLabel = self.labelIdentifierDict[target].getBooleanVolume(
+                                                                fullManualSegVolume)
+
+            self.dataViewer.addVolumeAndRefreshDataTree_new(targetLabel,
+                                                            ('Volumes',
+                                                             target + 'Label'))
+
+            for i in range(0, 20, 1):
+
+                threshold = i / 20.0
+                print "target:", target
+                print "threshold:", threshold
+
+                b = borderWidthForFeatures
+
+                accuracy = Accuracy(targetLabel[b[0]:-b[0], b[1]:-b[1], b[2]:-b[2]],
+                                    (resultVolume[b[0]:-b[0], b[1]:-b[1], b[2]:-b[2]]
+                                     > threshold))
+                accuracy.printAccuracy()
+
+
     def calculateFinalAccuracyWithManualCorrection(self):
 
         if self.fullManualSegFilePath == None:
@@ -1187,7 +1259,7 @@ class CellComponentDetector:
     def runClassifyVoxels(self):
 
         self.classifyVoxels(self.dataViewer,
-                            self.labelIdentifierDict[self.target],
+                            #self.labelIdentifierDict[self.target],
                             numberOfLayersToProcess=self.numberOfLayersToProcess)
 
 
@@ -1195,9 +1267,18 @@ class CellComponentDetector:
 
             # write classification result to a stack of tiffs
     
-            volume = self.dataViewer.getPersistentObject(self.voxelClassificationResultPath)
+            #volume = self.dataViewer.getPersistentObject(
+            #    list(self.voxelClassificationResultPath).append('0'))
+            resultsNode = self.dataViewer.mainDoc.dataTree.getSubtree(
+                            self.voxelClassificationResultPath)
             self.dataViewer.refreshTreeControls()
-            writeTiffStack(self.blobImageStackOutputFolder, volume * 255.0)
+
+            for childNode in resultsNode.children:
+                volume = childNode.object
+                path = os.path.join(self.blobImageStackOutputFolder, childNode.name)
+                if not(os.path.exists(path)):
+                    os.mkdir(path)
+                writeTiffStack(path, volume * 255.0)
 
 
     def runFindContours(self):

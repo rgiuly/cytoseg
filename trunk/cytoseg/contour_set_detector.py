@@ -120,7 +120,7 @@ class ContourSetDetector:
         if runAllSteps:
 
             self.contourClassifier.runInitialize()
-            self.contourClassifier.runPreclassificationFilter()
+            self.contourClassifier.runPersistentLoadOriginalImage()
             self.contourClassifier.runClassifyVoxels()
             self.contourClassifier.runFindContours()
             self.contourClassifier.runGroupContoursByConnectedComponents()
@@ -130,9 +130,9 @@ class ContourSetDetector:
 
             self.contourClassifier.runInitialize()
             self.contourClassifier.runPersistentLoadOriginalImage()
-            #self.contourClassifier.runPreclassificationFilter()
-            self.contourClassifier.runClassifyVoxels()
+            #self.contourClassifier.runClassifyVoxels()
             #self.contourClassifier.runWriteVoxelClassificationResult()
+            self.contourClassifier.calculateVoxelClassificationAccuracy_new()
             #self.contourClassifier.runFindContours()
             #self.contourClassifier.runGroupContoursByConnectedComponents()
             self.app.MainLoop()

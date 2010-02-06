@@ -124,6 +124,11 @@ class ClassificationControlsFrame(ControlsFrame):
         ControlsFrame.__init__(self, settingsTree)
         print "ClassificationControlsFrame init"
         
+        # classification
+        self.numberOfTrees = 50
+        self.balanceExamples = False
+
+        # gui
         self.mouseClickCallbackDict['updatePointFeaturesAtMouseLocation'] = self.updatePointFeaturesAtMouseLocation
         self.mouseClickCallbackDict['printBlobNameAtMouseLocation'] = self.printBlobNameAtMouseLocation
         self.refreshGUI()
@@ -491,12 +496,12 @@ class ClassificationControlsFrame(ControlsFrame):
 #        
 #        file.close()
 
-    def learnFeaturesOfMembraneVoxels(self,
-                                      inputVolumeDict,
-                                      labelIdentifierDict,
-                                      voxelTrainingImageNodePath,
-                                      voxelTrainingLabelNodePath,
-                                      voxelExamplesFilename):
+    def recordLocalFeatures(self,
+                            inputVolumeDict,
+                            labelIdentifierDict,
+                            voxelTrainingImageNodePath,
+                            voxelTrainingLabelNodePath,
+                            voxelExamplesFilename):
 
 
         file = open(voxelExamplesFilename, "w")
@@ -506,7 +511,7 @@ class ClassificationControlsFrame(ControlsFrame):
 
         #originalVolume = self.getPersistentObject(originalVolumeNodePath)
 
-        print "learnFeaturesOfMembraneVoxels dimensions", sh
+        print "learnLocalFeatures dimensions", sh
         self.calculateDerivatives(filteredVolume, 'training')
 
         volume = numpy.zeros(sh)
@@ -516,6 +521,7 @@ class ClassificationControlsFrame(ControlsFrame):
         # to get a list of feature names
         dictionary = getPointFeaturesAt(inputVolumeDict, filteredVolume,
                                         'training', self, borderWidthForFeatures)
+        #dictionary = testDict
         featureList = []
         for item in dictionary.items():
             key = item[0]
@@ -528,30 +534,68 @@ class ClassificationControlsFrame(ControlsFrame):
         
         #self.addPersistentVolumeAndRefreshDataTree(membraneVoxelVolume, 'MembraneVoxel')
         
+        if self.balanceExamples:
+
+            membranesCount = labelIdentifierDict['membranes'].count(membraneVoxelVolume)
+            blankInnerCellCount =\
+                labelIdentifierDict['blankInnerCell'].count(membraneVoxelVolume)
+            print 'membranes count', membranesCount
+            print 'blankInnerCell count', blankInnerCellCount
+            ratio = round(float(blankInnerCellCount) / float(membranesCount))
+            print "ratio", ratio
+
+        step = 1
+
+        countDict = {}
+        countDict[str(None)] = 0
+        for target in labelIdentifierDict:
+            countDict[target] = 0
+
+        recordedExampleCountDict = {}
+        for target in labelIdentifierDict:
+            recordedExampleCountDict[target] = 0
+
         border = borderWidthForFeatures
-        for x in range(border[0],sh[0]-border[0],2):
+        for x in range(border[0], sh[0]-border[0], step):
             print "%d out of %d" % (x, sh[0])
-            for y in range(border[1],sh[1]-border[1],2):
-                for z in range(border[2],sh[2]-border[2],2):
+            for y in range(border[1], sh[1]-border[1], step):
+                for z in range(border[2], sh[2]-border[2], step):
 
-                    d = getPointFeaturesAt(inputVolumeDict, filteredVolume,
-                                           'training', self, (x,y,z))
-
-                    #xG = volumes['xGradient'][x,y,z]
-                    #yG = volumes['yGradient'][x,y,z]
-                    #zG = volumes['zGradient'][x,y,z]
-
-                    #st = structureTensor(xG,yG,zG)
-                    #eigenValues = numpy.linalg.eigvals(st)
-
-                    className = 'None'
+                    className = None
 
                     for target in labelIdentifierDict:
                         value = membraneVoxelVolume[x,y,z]
                         if labelIdentifierDict[target].isMember(value):
                             className = target
 
-                    self.writeExample(file, d, className)
+                    countDict[str(className)] += 1
+
+                    #print className
+
+                    if className != None:
+
+                        # This records an example.
+                        # It skips over some examples to balance the number.
+                        if not(self.balanceExamples) or\
+                            className != 'blankInnerCell' or\
+                            (countDict['blankInnerCell'] % ratio) == 0:
+
+                            recordedExampleCountDict[className] += 1
+
+                            d = getPointFeaturesAt(inputVolumeDict, filteredVolume,
+                                               'training', self, (x,y,z))
+                            #d = {'dummy': 1}
+
+                            #xG = volumes['xGradient'][x,y,z]
+                            #yG = volumes['yGradient'][x,y,z]
+                            #zG = volumes['zGradient'][x,y,z]
+
+                            #st = structureTensor(xG,yG,zG)
+                            #eigenValues = numpy.linalg.eigvals(st)
+
+                            self.writeExample(file, d, className)
+
+        print "recorded example counts", recordedExampleCountDict
 
         file.close()
 
@@ -1113,8 +1157,8 @@ class ClassificationControlsFrame(ControlsFrame):
 
         data = orange.ExampleTable(voxelExamplesFilename)
         
-        minimumExamples = len(data) / 5
-        #minimumExamples = len(data) / 10
+        #minimumExamples = len(data) / 5
+        minimumExamples = len(data) / 10
         
         #originalVolume = self.getPersistentObject(originalVolumeNodePath)
         inputVolume = self.getPersistentObject(inputImageNodePath)
@@ -1128,14 +1172,14 @@ class ClassificationControlsFrame(ControlsFrame):
         gini = orange.MeasureAttribute_gini()
         tree.split.discreteSplitConstructor.measure = \
          tree.split.continuousSplitConstructor.measure = gini
-        tree.maxDepth = 5
-        #tree.maxDepth = 10
+        #tree.maxDepth = 5
+        tree.maxDepth = 10
         tree.split = orngEnsemble.SplitConstructor_AttributeSubset(tree.split, 3)
 
-        forest = orngEnsemble.RandomForestLearner(data, trees=50,
+        forest = orngEnsemble.RandomForestLearner(data, self.numberOfTrees,
                                                   name="forest", learner=tree)
-        
-       
+
+
         print "Possible classes:", data.domain.classVar.values
         if False:
             for i in range(len(data)):
@@ -1171,7 +1215,7 @@ class ClassificationControlsFrame(ControlsFrame):
                         value = item[1]
                         valueList.append(value)
                     #valueList.append('False') # todo: what would happen if you used True here
-                    valueList.append('None')
+                    valueList.append(data.domain.classVar.values[0])
                     example = orange.Example(data.domain, valueList)
                     p = forest(example, orange.GetProbabilities)    
                     
@@ -1182,23 +1226,35 @@ class ClassificationControlsFrame(ControlsFrame):
                     count += 1
 
         parentNode = getNode(self.mainDoc.dataRootNode, outputNodePath[0:-1])
-        parentNode.addChild(GroupNode(outputNodePath[-1]))
-        parentNode.addChild(GroupNode(outputNodePath[-1] + '_LogProbabilityVolume'))
+
+        outputNode = GroupNode(outputNodePath[-1])
+        logOutputNode = GroupNode(outputNodePath[-1] + '_LogProbabilityVolume')
+        parentNode.addChild(outputNode)
+        parentNode.addChild(logOutputNode)
 
         for i in range(len(v)):
 
             volume = v[i]
-            path = appendToNewListAndReturnList(outputNodePath, str(i))
-            self.addPersistentObjectAndRefreshDataTree(volume, path)
+            #path = appendToNewListAndReturnList(outputNodePath, str(i))
+            #self.addPersistentObjectAndRefreshDataTree(volume, path)
+            #volumeNode = Node(str(i))
+            volumeNode = Node(data.domain.classVar.values[i])
+            volumeNode.object = volume
+            outputNode.addChild(volumeNode)
 
         for i in range(len(logV)):
 
             logVolume = logV[i]
-            logOutputNodePath = list(outputNodePath)
-            logOutputNodePath[-1] = logOutputNodePath[-1] + '_LogProbabilityVolume'
-            path = appendToNewListAndReturnList(logOutputNodePath, str(i))
+            #logOutputNodePath = list(outputNodePath)
+            #logOutputNodePath[-1] = logOutputNodePath[-1] + '_LogProbabilityVolume'
+            #path = appendToNewListAndReturnList(logOutputNodePath, str(i))
 
-            self.addPersistentObjectAndRefreshDataTree(logVolume, path)
+            #self.addPersistentObjectAndRefreshDataTree(logVolume, path)
+            volumeNode = Node(str(i))
+            volumeNode.object = logVolume
+            logOutputNode.addChild(volumeNode)
+
+        self.mainDoc.dataTree.writeSubtree(outputNodePath)
 
 
     def classifyVoxelsNN(self,
@@ -1318,7 +1374,20 @@ class FaceBlob(Blob):
 #    getItemIdWithData(data):
 #        root = self.GetRootItem()
         
-    
+#testDict = odict()    
+#def getPointFeaturesAt(inputVolumeDict, volume, derivativeVolumesIdentifier, gui, point):
+#    f = testDict
+#    for (key, value) in inputVolumeDict.items():
+#
+#        inputVolume = inputVolumeDict[key]
+#
+#        windowSize = 10
+#
+#        for xOffset in range(-(windowSize-1), windowSize, 3):
+#            for yOffset in range(-(windowSize-1), windowSize, 3):
+#                f['inputVolume_%s_%d_%d' % (key, xOffset, yOffset)] =\
+#                    inputVolume[point[0] + xOffset, point[1] + yOffset, point[2]]
+#    return testDict
 
 # todo: rename to getPointFeaturesAt
 # todo: gui parameter should just be the node that has the volumes you need as its children
@@ -1352,65 +1421,91 @@ def getPointFeaturesAt(inputVolumeDict, volume, derivativeVolumesIdentifier, gui
         
         #(CUBE_3X3, CUBE_5X5, CUBE_7X7) = (0, 1, 2)     
         
-        #i = 0
-        #todo: note that getVolume may be a slow operation
-        xG = at(gui.getVolume('%s_0Gradient_blur%d' % (derivativeVolumesIdentifier, i)), point)
-        yG = at(gui.getVolume('%s_1Gradient_blur%d' % (derivativeVolumesIdentifier, i)), point)
-        zG = at(gui.getVolume('%s_2Gradient_blur%d' % (derivativeVolumesIdentifier, i)), point)
+        if 1:
 
-        if i == 0:
-            f['grayValue'] = at(volume, point)
-            #'differenceOfGaussian'
-            f['gradientMagnitude'] = sqrt(pow(xG,2) + pow(yG,2) + pow(zG,2))
+            #i = 0
+            #todo: note that getVolume may be a slow operation
+            xGVolume = gui.getVolume('%s_0Gradient_blur%d' %\
+                                     (derivativeVolumesIdentifier, i))
+            xG = at(xGVolume, point)
+            yGVolume = gui.getVolume('%s_1Gradient_blur%d' %\
+                                     (derivativeVolumesIdentifier, i))
+            yG = at(yGVolume, point)
+            zGVolume = gui.getVolume('%s_2Gradient_blur%d' %\
+                                     (derivativeVolumesIdentifier, i))
+            zG = at(zGVolume, point)
+
+            if i == 0:
+                f['grayValue'] = at(volume, point)
+                #'differenceOfGaussian'
+                f['gradientMagnitude'] = sqrt(pow(xG,2) + pow(yG,2) + pow(zG,2))
             
             
-        stAtSelectedPoint = structureTensor(xG,yG,zG)
+        if 1:
+
+            stAtSelectedPoint = structureTensor(xG,yG,zG)
         
-        sortedEigAtSelectedPoint = numpy.linalg.eigvals(stAtSelectedPoint)
-        sortedEigAtSelectedPoint.sort()
+            sortedEigAtSelectedPoint = numpy.linalg.eigvals(stAtSelectedPoint)
+            sortedEigAtSelectedPoint.sort()
 
-        prefix = sizeIdentifiers[i] + '_'
+            prefix = sizeIdentifiers[i] + '_'
         
-        f[prefix + 'eig0'] = sortedEigAtSelectedPoint[0]
-        f[prefix + 'eig1'] = sortedEigAtSelectedPoint[1]
-        f[prefix + 'eig2'] = sortedEigAtSelectedPoint[2]
+            f[prefix + 'eig0'] = sortedEigAtSelectedPoint[0]
+            f[prefix + 'eig1'] = sortedEigAtSelectedPoint[1]
+            f[prefix + 'eig2'] = sortedEigAtSelectedPoint[2]
     
-        values = v.flatten(1)
-        #print "i", i, "values", values
+            values = v.flatten(1)
+            #print "i", i, "values", values
     
-        moments = statistics.moments(values)
-        f[prefix + 'mean'] = moments[0]
-        f[prefix + 'standardDeviation'] = moments[1]
-        f[prefix + 'thirdMoment'] = moments[2]
-        f[prefix + 'fourthMoment'] = moments[3]
+            moments = statistics.moments(values)
+            f[prefix + 'mean'] = moments[0]
+            f[prefix + 'standardDeviation'] = moments[1]
+            f[prefix + 'thirdMoment'] = moments[2]
+            f[prefix + 'fourthMoment'] = moments[3]
         
-        quantiles = statistics.sortAndReturnQuantiles(values)
-        f[prefix + 'minimum'] = quantiles[0]
-        f[prefix + '0.25-quantile'] = quantiles[1]
-        f[prefix + 'median'] = quantiles[2]
-        f[prefix + '0.75-quantile'] = quantiles[3]
-        f[prefix + 'maximum'] = quantiles[4]
+            quantiles = statistics.sortAndReturnQuantiles(values)
+            f[prefix + 'minimum'] = quantiles[0]
+            f[prefix + '0.25-quantile'] = quantiles[1]
+            f[prefix + 'median'] = quantiles[2]
+            f[prefix + '0.75-quantile'] = quantiles[3]
+            f[prefix + 'maximum'] = quantiles[4]
 
-        # Distribution of the gradient magnitude
-        #'gmStandardDeviation'
-        #'gmThirdMoment'
-        #'gmFourthMoment'
-        #'gmMinimum'
-        #'gm0.25-quantile'
-        #'gmMedian'
-        #'gm0.75-quantile'
-        #'gmtMaximum'
+            # Distribution of the gradient magnitude
+            #'gmStandardDeviation'
+            #'gmThirdMoment'
+            #'gmFourthMoment'
+            #'gmMinimum'
+            #'gm0.25-quantile'
+            #'gmMedian'
+            #'gm0.75-quantile'
+            #'gmtMaximum'
     
-    for (key, value) in inputVolumeDict.items():
+    if 1:
 
-        inputVolume = inputVolumeDict[key]
+        for (key, value) in inputVolumeDict.items():
 
-        windowSize = 10
+            inputVolume = inputVolumeDict[key]
 
-        for xOffset in range(-(windowSize-1), windowSize, 3):
-            for yOffset in range(-(windowSize-1), windowSize, 3):
-                f['inputVolume_%s_%d_%d' % (key, xOffset, yOffset)] =\
-                    inputVolume[point[0] + xOffset, point[1] + yOffset, point[2]]
+            for xOffset in range(-9, 10, 3):
+                for yOffset in range(-9, 10, 3):
+                    f['inputVolume_%s_%d_%d' % (key, xOffset, yOffset)] =\
+                        inputVolume[point[0] + xOffset, point[1] + yOffset, point[2]]
+
+            windowSize = 3
+
+            step = 1
+
+            for xOffset in range(-(windowSize+1), windowSize, step):
+                for yOffset in range(-(windowSize+1), windowSize, step):
+                    f['focus_%s_%d_%d' % (key, xOffset, yOffset)] =\
+                        inputVolume[point[0] + xOffset, point[1] + yOffset, point[2]]
+
+        for xOffset in range(-(windowSize+1), windowSize, step):
+            for yOffset in range(-(windowSize+1), windowSize, step):
+                f['xG_%d_%d' % (xOffset, yOffset)] =\
+                    xGVolume[point[0] + xOffset, point[1] + yOffset, point[2]]
+                f['yG_%d_%d' % (xOffset, yOffset)] =\
+                    yGVolume[point[0] + xOffset, point[1] + yOffset, point[2]]
 
     return f
 

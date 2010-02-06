@@ -40,7 +40,25 @@ class Accuracy:
 
     def actualPositives(self):
 
+        # todo: there may be a simpler way to convert to a boolean
         return sum(1 * logical_not(logical_not(self.actualLabelVolume)))
+
+
+    def actualNegatives(self):
+
+        return sum(1 * logical_not(self.actualLabelVolume))
+
+
+    def truePositiveRate(self):
+
+        return float(self.truePositives()) /\
+               float(self.actualPositives())
+
+
+    def falsePositiveRate(self):
+
+        return float(self.falsePositives()) /\
+               float(self.actualNegatives())
 
 
     def printAccuracy(self):
@@ -52,10 +70,12 @@ class Accuracy:
         print "error:",\
             float(self.falsePositives() + self.falseNegatives()) /\
             float(size(self.actualLabelVolume))
-        print "true positives / actual positives:",\
-            float(self.truePositives()) /\
-            float(self.actualPositives())
-        print "false positives / actual positives:",\
-            float(self.falsePositives()) /\
-            float(self.actualPositives())
+        #print "true positives / actual positives:",\
+        #    float(self.truePositives()) /\
+        #    float(self.actualPositives())
+        #print "false positives / actual positives:",\
+        #    float(self.falsePositives()) /\
+        #    float(self.actualPositives())
+        print "true positive rate:", self.truePositiveRate()
+        print "false positive rate:", self.falsePositiveRate()
 
