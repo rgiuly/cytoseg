@@ -5,6 +5,8 @@ http://code.google.com/p/cytoseg/wiki/Installation
 Download the training data and example data:
 http://cytoseg.googlecode.com/files/machine_learning_tutorial.zip
 
+You need to be in the cytoseg/testing folder to run:
+<pre>python machine_learning_command.py</pre>
 
 ----
 
@@ -16,7 +18,7 @@ The suggested folder to unzip into is C:\temp
 
 Enter this line at your operating system's command prompt:
 
-python machine_learning_command.py C:\temp\machine_learning_tutorial\b C:\temp\machine_learning_tutorial\a C:\temp\machine_learning_tutorial\a_membranes c:\temp c:\temp
+<pre>python machine_learning_command.py C:\temp\machine_learning_tutorial\b C:\temp\machine_learning_tutorial\a C:\temp\machine_learning_tutorial\a_membranes c:\temp c:\temp</pre>
 
 (If you are not using C:\temp, you will need to adjust this appropriately.)
 
@@ -44,7 +46,7 @@ These are the files that make up the output stack, you can now view them.
 
 Here's the meaning of the command:
 
-python machine_learning_command.py input training_data training_labels output temporary
+<pre>python machine_learning_command.py input training_data training_labels output temporary</pre>
 
  * input: Image stack folder that contains raw data input that you want to process.
  * training_data: Image stack used for training. This can be the same as input but it doesn't have to be.
@@ -64,4 +66,4 @@ Put this in a folder, for example, my_seg
 
 Then run the following command:
 
-python machine_learning_command.py my_input my_input my_seg c:\temp c:\temp
+<pre>python machine_learning_command.py my_input my_input my_seg c:\temp c:\temp</pre>
