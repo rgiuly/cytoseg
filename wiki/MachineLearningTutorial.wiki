@@ -1,0 +1,14 @@
+
+
+
+python machine_learning_command.py C:\temp\machine_learning_tutorial\b C:\temp\machine_learning_tutorial\a C:\temp\machine_learning_tutorial\a_membranes c:\temp c:\temp
+
+c:\temp\membranes\output000.tif
+c:\temp\membranes\output001.tif
+c:\temp\membranes\output002.tif
+c:\temp\membranes\output003.tif
+c:\temp\membranes\output004.tif
+c:\temp\membranes\output005.tif
+c:\temp\membranes\output006.tif
+c:\temp\membranes\output007.tif
+c:\temp\membranes\output008.tif
