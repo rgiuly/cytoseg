@@ -11,35 +11,39 @@ from contour_set_detector import ContourSetDetector
 def sbfsem(blobImageStackOutputFolder="O:/temp/blobOutput_080309",
            numberOfTrees=50,
            numberOfTrainingLayersToProcess=7,
-           numberOfLayersToProcess=8):
+           numberOfLayersToProcess=8,
+           voxelClassificationIteration=0):
 
     param = {}
 
     # each volume is a stack of 8 bit tiff images
 
 
-    #subfolder = ""
-    subfolder = "/small_crop"
+    subfolder = ""
+    #subfolder = "/small_crop"
     #subfolder = "/tiny_crop"
 
     # full input volume
     #param['originalImageFilePath'] = "data/sbfsem_080309/data_tifs"
-    param['originalImageFilePath'] = "O:/images/ncmirdata1/obayashi/for_TD/3viewdata/080309/wbc_segtrainer_forRG/amira/data_tifs/last/8bit/350x350/crop" + subfolder
+    #param['originalImageFilePath'] = "O:/images/ncmirdata1/obayashi/for_TD/3viewdata/080309/wbc_segtrainer_forRG/amira/data_tifs/last/8bit/350x350/crop" + subfolder
+    param['originalImageFilePath'] = "O:/images/ncmirdata1/obayashi/for_TD/3viewdata/080309/wbc_segtrainer_forRG/amira/data_tifs/last/8bit/350x350/crop/43-51" + subfolder
 
     # training data image volume
     #param['voxelTrainingImageFilePath'] = "data/sbfsem_080309/data_tifs"
-    param['voxelTrainingImageFilePath'] = "O:/images/ncmirdata1/obayashi/for_TD/3viewdata/080309/wbc_segtrainer_forRG/amira/data_tifs/last/8bit/350x350/crop" + subfolder
+    #param['voxelTrainingImageFilePath'] = "O:/images/ncmirdata1/obayashi/for_TD/3viewdata/080309/wbc_segtrainer_forRG/amira/data_tifs/last/8bit/350x350/crop" + subfolder
+    param['voxelTrainingImageFilePath'] = "O:/images/ncmirdata1/obayashi/for_TD/3viewdata/080309/wbc_segtrainer_forRG/amira/data_tifs/last/8bit/350x350/crop/43-51" + subfolder
 
     # training data labels
     # this should have the exact same dimensions as param['voxelTrainingImageFilePath'] 
     #param['voxelTrainingLabelFilePath'] = "O:/images/ncmirdata1/obayashi/for_TD/3viewdata/080309/wbc_segtrainer_forRG/amira/seg_tifs/350x350/vesicles_and_membranes" + subfolder
-    param['voxelTrainingLabelFilePath'] = "O:/images/ncmirdata1/obayashi/for_TD/3viewdata/080309/wbc_segtrainer_forRG/amira/seg_tifs/350x350/crop" + subfolder
+    #param['voxelTrainingLabelFilePath'] = "O:/images/ncmirdata1/obayashi/for_TD/3viewdata/080309/wbc_segtrainer_forRG/amira/seg_tifs/350x350/crop" + subfolder
+    param['voxelTrainingLabelFilePath'] = "O:/images/ncmirdata1/obayashi/for_TD/3viewdata/080309/wbc_segtrainer_forRG/amira/seg_tifs2/350x350/crop/43-51" + subfolder
 
     # output volume
     param['blobImageStackOutputFolder'] = blobImageStackOutputFolder
 
     #detector = Detector(param)
-    detector = ContourSetDetector(param)
+    detector = ContourSetDetector(param, voxelClassificationIteration)
     detector.dataIdentifier = "sbfsem_080309"
     detector.dataViewer.mainDoc.dataTree.rootFolderPath = "G:/cytoseg_data/sbfsem" +\
         subfolder
@@ -56,12 +60,22 @@ def sbfsem(blobImageStackOutputFolder="O:/temp/blobOutput_080309",
         LabelIdentifier(min=2, max=2)
     #detector.contourClassifier.labelIdentifierDict['mitochondria'] =\
     #    LabelIdentifier(min=3, max=250)
+    detector.contourClassifier.labelIdentifierDict['mitochondria'] =\
+        LabelIdentifier(min=141, max=141)
     #detector.contourClassifier.labelIdentifierDict['blankInnerCell'] =\
     #    LabelIdentifier(min=150, max=150)
+    #detector.contourClassifier.labelIdentifierDict['blankInnerCell'] =\
+    #    LabelIdentifier(min=0, max=0)
     detector.contourClassifier.labelIdentifierDict['blankInnerCell'] =\
-        LabelIdentifier(min=0, max=0)
+        LabelIdentifier(min=3, max=100)
+    #detector.contourClassifier.labelIdentifierDict['vesicles'] =\
+    #    LabelIdentifier(min=255, max=255)
     detector.contourClassifier.labelIdentifierDict['vesicles'] =\
-        LabelIdentifier(min=255, max=255)
+        LabelIdentifier(min=138, max=138)
+
+    # this setting is probably obsolete
     detector.setTarget('membranes')
     #detector.setTarget('membranes_test')
+
     detector.run(runAllSteps=0)
+

@@ -122,7 +122,7 @@ class Node():
         for child in self.children:
             if child.name == name:
                 return child
-        raise NodeDoesNotExist, ("Tried to access node named %s but it wasn't there. (parent node %s.)" % (name, self.name))
+        raise NodeDoesNotExist, ("Tried to access node named %s but it wasn't there. (parent node name: %s) (parent node: %s)" % (name, self.name, self))
 
 
     def removeChild(self, name):

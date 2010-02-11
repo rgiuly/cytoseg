@@ -5,7 +5,7 @@ from component_detector import *
 
 class ContourSetDetector:
 
-    def __init__(self, parameterDict):
+    def __init__(self, parameterDict, voxelClassificationIteration=0):
 
         #testContours()  # crash
         target_depricated = 'mitochondria'
@@ -28,7 +28,8 @@ class ContourSetDetector:
 
         print "mode: %s" % mode
         
-        if len(sys.argv) < 2:
+        #if len(sys.argv) < 2:
+        if True:
             print "step not specified, using default step", defaultStepNumber
             stepNumber = defaultStepNumber
         else:
@@ -82,7 +83,7 @@ class ContourSetDetector:
             contourListTrainingExamplesIdentifier="contourPathFeatures" + "_" + dataIdentifier,
             voxelTrainingImageFilePath=parameterDict['voxelTrainingImageFilePath'],
             voxelTrainingLabelFilePath=parameterDict['voxelTrainingLabelFilePath'],
-            voxelClassificationIteration=0)
+            voxelClassificationIteration=voxelClassificationIteration)
     
         #self.contourClassifier.voxelClassificationInputVolumeName =\
         #    self.contourClassifier.blurredVolumeName
@@ -130,9 +131,9 @@ class ContourSetDetector:
 
             self.contourClassifier.runInitialize()
             self.contourClassifier.runPersistentLoadOriginalImage()
-            #self.contourClassifier.runClassifyVoxels()
-            #self.contourClassifier.runWriteVoxelClassificationResult()
-            self.contourClassifier.calculateVoxelClassificationAccuracy_new()
+            self.contourClassifier.runClassifyVoxels()
+            self.contourClassifier.runWriteVoxelClassificationResult()
+            #self.contourClassifier.calculateVoxelClassificationAccuracy_new()
             #self.contourClassifier.runFindContours()
             #self.contourClassifier.runGroupContoursByConnectedComponents()
-            self.app.MainLoop()
+            #self.app.MainLoop()

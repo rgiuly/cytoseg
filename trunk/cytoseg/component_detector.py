@@ -339,29 +339,29 @@ class CellComponentDetector:
         self.blurredVolumeName = dataIdentifier + 'BlurredVolume'
         self._voxelClassificationIteration = voxelClassificationIteration
 
-        self.voxelTrainingClassificationResultPath =\
-            ('Volumes', dataIdentifier + 'VoxelTrainingClassificationResult'
-             + '_' + str(self._voxelClassificationIteration))
-
-        self.voxelClassificationResultPath =\
-            ('Volumes', dataIdentifier + 'VoxelClassificationResult'
-             + '_' + str(self._voxelClassificationIteration))
-
-
-        if self._voxelClassificationIteration > 0:
-
-            self.previousVoxelTrainingClassificationResultPath =\
-                ('Volumes', dataIdentifier + 'VoxelTrainingClassificationResult'
-                 + '_' + str(self._voxelClassificationIteration - 1))
-
-            self.previousVoxelClassificationResultPath =\
-                ('Volumes', dataIdentifier + 'VoxelClassificationResult'
-                 + '_' + str(self._voxelClassificationIteration - 1))
-
-        else:
-
-            self.previousVoxelTrainingClassificationResultPath = None
-            self.previousVoxelClassificationResultPath = None
+#        self.voxelTrainingClassificationResultPath =\
+#            ('Volumes', dataIdentifier + 'VoxelTrainingClassificationResult'
+#             + '_' + str(self._voxelClassificationIteration))
+#
+#        self.voxelClassificationResultPath =\
+#            ('Volumes', dataIdentifier + 'VoxelClassificationResult'
+#             + '_' + str(self._voxelClassificationIteration))
+#
+#
+#        if self._voxelClassificationIteration > 0:
+#
+#            self.previousVoxelTrainingClassificationResultPath =\
+#                ('Volumes', dataIdentifier + 'VoxelTrainingClassificationResult'
+#                 + '_' + str(self._voxelClassificationIteration - 1))
+#
+#            self.previousVoxelClassificationResultPath =\
+#                ('Volumes', dataIdentifier + 'VoxelClassificationResult'
+#                 + '_' + str(self._voxelClassificationIteration - 1))
+#
+#        else:
+#
+#            self.previousVoxelTrainingClassificationResultPath = None
+#            self.previousVoxelClassificationResultPath = None
 
 
         # this is for old accuracy check
@@ -444,6 +444,56 @@ class CellComponentDetector:
         #for key in targetKeys:
 
         #    self.labelIdentifierDict[key] = LabelIdentifier(min=1)
+
+
+#    def voxelTrainingClassificationResultPaths():
+#
+#        paths = []
+#        for i in range(self._voxelClassificationIteration + 1):
+#            paths.append(('Volumes', dataIdentifier + 'VoxelTrainingClassificationResult'
+#                          + '_' + str(self._voxelClassificationIteration)))
+#
+#
+#    def voxelClassificationResultPaths():
+#
+#        paths = []
+#        for i in range(self._voxelClassificationIteration + 1):
+#            paths.append(('Volumes', dataIdentifier + 'VoxelClassificationResult'
+#                          + '_' + str(self._voxelClassificationIteration)))
+
+
+    def voxelTrainingClassificationResultPath(self, iteration):
+
+        return ('Volumes', self.dataIdentifier + 'VoxelTrainingClassificationResult'
+                + '_' + str(iteration))
+
+
+    def voxelClassificationResultPath(self, iteration):
+
+        return ('Volumes', self.dataIdentifier + 'VoxelClassificationResult'
+                + '_' + str(iteration))
+
+
+    def currentVoxelTrainingClassificationResultPath(self):
+
+        return self.voxelTrainingClassificationResultPath(
+                                    self._voxelClassificationIteration)
+
+
+    def currentVoxelClassificationResultPath(self):
+
+        return self.voxelClassificationResultPath(self._voxelClassificationIteration)
+
+
+    def previousVoxelTrainingClassificationResultPath(self):
+
+        return self.voxelTrainingClassificationResultPath(
+                                    self._voxelClassificationIteration - 1)
+
+
+    def previousVoxelClassificationResultPath(self):
+
+        return self.voxelClassificationResultPath(self._voxelClassificationIteration - 1)
 
 
     def writeContoursToImageStack(self, pathToContoursNode):
@@ -567,7 +617,7 @@ class CellComponentDetector:
             # uses training data, generates voxel probabilities
             print "classifying training set voxels"
             dataViewer.classifyVoxels('intermediateTrainingDataLabel1',
-                               self.voxelTrainingClassificationResultPath,
+                               self.currentVoxelTrainingClassificationResultPath(),
                                exampleListFileName,
                                inputTrainingVolumeDict,
                                voxelTrainingImageNodePath)
@@ -575,7 +625,7 @@ class CellComponentDetector:
             # uses test data, generates voxel probabilities
             print "classifying voxels"
             dataViewer.classifyVoxels('intermediateTestDataLabel1',
-                               self.voxelClassificationResultPath,
+                               self.currentVoxelClassificationResultPath(),
                                exampleListFileName,
                                inputVolumeDict,
                                inputImageNodePath)
@@ -587,7 +637,7 @@ class CellComponentDetector:
             #                                  exampleListFileName)
 
             dataViewer.classifyVoxelsNN('intermediateDataLabel1',
-                               self.voxelClassificationResultPath[1],
+                               self.currentVoxelClassificationResultPath()[1],
                                exampleListFileName,
                                inputImageNodePath)
 
@@ -601,7 +651,7 @@ class CellComponentDetector:
             self.dataViewer.getPersistentObject(originalImageNodePath)
         if self._voxelClassificationIteration > 0:
             resultsNode = self.dataViewer.mainDoc.dataTree.getSubtree(
-                            self.previousVoxelClassificationResultPath)
+                            self.previousVoxelClassificationResultPath())
             #resultsNode = getNode(self.dataViewer.mainDoc.dataRootNode,
             #                self.previousVoxelClassificationResultPath)
             for childNode in resultsNode.children:
@@ -635,7 +685,7 @@ class CellComponentDetector:
             #        self.previousVoxelTrainingClassificationResultPath)
 
             resultsNode = self.dataViewer.mainDoc.dataTree.getSubtree(
-                            self.previousVoxelTrainingClassificationResultPath)
+                            self.previousVoxelTrainingClassificationResultPath())
 
             for childNode in resultsNode.children:
                 inputTrainingVolumeDict['previousResult_' + childNode.name] =\
@@ -680,7 +730,7 @@ class CellComponentDetector:
             # uses training data, generates voxel probabilities
             print "classifying training set voxels"
             dataViewer.classifyVoxels('intermediateTrainingDataLabel1',
-                               self.voxelTrainingClassificationResultPath,
+                               self.currentVoxelTrainingClassificationResultPath(),
                                exampleListFileName,
                                inputTrainingVolumeDict,
                                voxelTrainingImageNodePath)
@@ -688,7 +738,7 @@ class CellComponentDetector:
             # uses test data, generates voxel probabilities
             print "classifying voxels"
             dataViewer.classifyVoxels('intermediateTestDataLabel1',
-                               self.voxelClassificationResultPath,
+                               self.currentVoxelClassificationResultPath(),
                                exampleListFileName,
                                inputVolumeDict,
                                inputImageNodePath)
@@ -700,7 +750,7 @@ class CellComponentDetector:
             #                                  exampleListFileName)
 
             dataViewer.classifyVoxelsNN('intermediateDataLabel1',
-                               self.voxelClassificationResultPath[1],
+                               self.currentVoxelClassificationResultPath()[1],
                                exampleListFileName,
                                inputImageNodePath)
 
@@ -738,11 +788,11 @@ class CellComponentDetector:
                 if numberOfLayersToProcess != None:
                     detector.originalVolume = self.dataViewer.getPersistentVolume_old(self.blurredVolumeName)\
                     [:, :, 0:numberOfLayersToProcess]
-                    detector.filteredVolume = self.dataViewer.getPersistentVolume_old(self.voxelClassificationResultPath[1])\
+                    detector.filteredVolume = self.dataViewer.getPersistentVolume_old(self.currentVoxelClassificationResultPath()[1])\
                     [:, :, 0:numberOfLayersToProcess]
                 else:
                     detector.originalVolume = self.dataViewer.getPersistentVolume_old(self.blurredVolumeName)
-                    detector.filteredVolume = self.dataViewer.getPersistentVolume_old(self.voxelClassificationResultPath[1])
+                    detector.filteredVolume = self.dataViewer.getPersistentVolume_old(self.currentVoxelClassificationResultPath()[1])
     
                 #detector.originalVolume = frm.getPersistentVolume_old(blurredVolumeName)
                 if self.target == 'mitochondria':
@@ -778,11 +828,11 @@ class CellComponentDetector:
                 if numberOfLayersToProcess != None:
                     detector.originalVolume = self.dataViewer.getPersistentVolume_old(self.originalVolumeName)\
                     [:, :, 0:numberOfLayersToProcess]
-                    detector.filteredVolume = self.dataViewer.getPersistentVolume_old(self.voxelClassificationResultPath[1])\
+                    detector.filteredVolume = self.dataViewer.getPersistentVolume_old(self.currentVoxelClassificationResultPath()[1])\
                     [:, :, 0:numberOfLayersToProcess]
                 else:
                     detector.originalVolume = self.dataViewer.getPersistentVolume_old(self.originalVolumeName)
-                    detector.filteredVolume = self.dataViewer.getPersistentVolume_old(self.voxelClassificationResultPath[1])
+                    detector.filteredVolume = self.dataViewer.getPersistentVolume_old(self.currentVoxelClassificationResultPath()[1])
 
             elif self.target == 'membranes_test':
             
@@ -1051,7 +1101,7 @@ class CellComponentDetector:
                 "fullManualSegFilePath is None, no actual segmentation specified"
 
         resultVolume =\
-            self.dataViewer.getPersistentObject(self.voxelClassificationResultPath)
+            self.dataViewer.getPersistentObject(self.currentVoxelClassificationResultPath())
         fullManualSegVolume = loadImageStack(self.fullManualSegFilePath,
                                              None,
                                              maxNumberOfImages=self.numberOfLayersToProcess)
@@ -1095,6 +1145,8 @@ class CellComponentDetector:
 
     def calculateVoxelClassificationAccuracy_new(self):
 
+        import matplotlib.pyplot as pyplot
+
         #if self.fullManualSegFilePath == None:
         #    raise Exception,\
         #        "fullManualSegFilePath is None, no actual segmentation specified"
@@ -1105,10 +1157,8 @@ class CellComponentDetector:
         #resultVolume = getPersistentObject(self.voxelClassificationResultPath)
         #self.dataViewer.addVolumeAndRefreshDataTree_new(resultVolume,
         #                                                self.fullManualSegPath)
-        resultsNode = self.dataViewer.mainDoc.dataTree.getSubtree(
-                                            self.voxelClassificationResultPath)
 
-
+        # load and display full manual segmentation
         fullManualSegVolume = loadImageStack(self.voxelTrainingLabelFilePath,
                                              None,
                                              maxNumberOfImages=self.numberOfLayersToProcess)
@@ -1116,39 +1166,77 @@ class CellComponentDetector:
                                                         self.fullManualSegPath)
 
 
-        for childNode in resultsNode.children:
+        #pyplot.hold(False)
 
-            target = childNode.name
+        # for each type of subcellular component
+        #for childNode in resultsNode.children:
+        for target in self.labelIdentifierDict:
 
-            resultVolume = childNode.object
-            #self.dataViewer.addVolumeAndRefreshDataTree_new(resultVolume,
-            #                                                self.fullManualSegPath)
+            pyplot.hold(True)
 
-            #fullManualSegVolume = loadImageStack(self.fullManualSegFilePath,
-            #                                     None,
-            #                                     maxNumberOfImages=self.numberOfLayersToProcess)
+            for iteration in range(self._voxelClassificationIteration + 1):
 
-            #print resultVolume[10, 10, 10]
+                resultsNode = self.dataViewer.mainDoc.dataTree.getSubtree(
+                                            self.voxelClassificationResultPath(iteration))
 
-            targetLabel = self.labelIdentifierDict[target].getBooleanVolume(
+
+                #target = childNode.name
+
+                #resultVolume = childNode.object
+
+                try:
+
+                    resultVolume = resultsNode.getChild(target).object
+
+                    #self.dataViewer.addVolumeAndRefreshDataTree_new(resultVolume,
+                    #                                                self.fullManualSegPath)
+
+                    #fullManualSegVolume = loadImageStack(self.fullManualSegFilePath,
+                    #                                     None,
+                    #                                     maxNumberOfImages=self.numberOfLayersToProcess)
+
+                    #print resultVolume[10, 10, 10]
+
+                    targetLabel = self.labelIdentifierDict[target].getBooleanVolume(
                                                                 fullManualSegVolume)
 
-            self.dataViewer.addVolumeAndRefreshDataTree_new(targetLabel,
-                                                            ('Volumes',
-                                                             target + 'Label'))
+                    self.dataViewer.addVolumeAndRefreshDataTree_new(targetLabel,
+                                                                ('Volumes',
+                                                                 target + 'Label'))
 
-            for i in range(0, 20, 1):
+                    truePositiveRates = []
+                    falsePositiveRates = []
 
-                threshold = i / 20.0
-                print "target:", target
-                print "threshold:", threshold
+                    for i in range(0, 20, 1):
 
-                b = borderWidthForFeatures
+                        threshold = i / 20.0
+                        print "target:", target
+                        print "threshold:", threshold
 
-                accuracy = Accuracy(targetLabel[b[0]:-b[0], b[1]:-b[1], b[2]:-b[2]],
-                                    (resultVolume[b[0]:-b[0], b[1]:-b[1], b[2]:-b[2]]
-                                     > threshold))
-                accuracy.printAccuracy()
+                        b = borderWidthForFeatures
+
+                        accuracy = Accuracy(targetLabel[b[0]:-b[0], b[1]:-b[1], b[2]:-b[2]],
+                                            (resultVolume[b[0]:-b[0], b[1]:-b[1], b[2]:-b[2]]
+                                             > threshold))
+                        accuracy.printAccuracy()
+
+                        truePositiveRates.append(accuracy.truePositiveRate())
+                        falsePositiveRates.append(accuracy.falsePositiveRate())
+
+
+                    pyplot.plot(falsePositiveRates, truePositiveRates)
+                    pyplot.axis([0, 0.3, 0.7, 1])
+                    pyplot.title(target)
+                    pyplot.xlabel('False Positive Rate')
+                    pyplot.ylabel('True Positive Rate')
+                    pyplot.grid(True)
+
+                except NodeDoesNotExist:
+
+                    warnings.warn("Subcellular component node %s does not exist." %
+                                  target)
+
+            pyplot.show()
 
 
     def calculateFinalAccuracyWithManualCorrection(self):
@@ -1230,7 +1318,7 @@ class CellComponentDetector:
         self.highProbabilityContoursNodeName = self.target + 'HighProbabilityContours'
     
         if self.target == 'mitochondria':
-            self.fastMarchInputVolumeName = self.voxelClassificationResultPath[1]
+            self.fastMarchInputVolumeName = self.currentVoxelClassificationResultPath()[1]
         elif self.target == 'vesicles':
             self.fastMarchInputVolumeName = self.originalVolumeName
         else: print "find_3d_blobs target error"
@@ -1270,7 +1358,7 @@ class CellComponentDetector:
             #volume = self.dataViewer.getPersistentObject(
             #    list(self.voxelClassificationResultPath).append('0'))
             resultsNode = self.dataViewer.mainDoc.dataTree.getSubtree(
-                            self.voxelClassificationResultPath)
+                            self.currentVoxelClassificationResultPath())
             self.dataViewer.refreshTreeControls()
 
             for childNode in resultsNode.children:
@@ -1318,14 +1406,16 @@ class CellComponentDetector:
 
     def loadVoxelClassificationResult(self):
 
-        self.dataViewer.getPersistentVolume_old(self.voxelClassificationResultPath[1])
+        self.dataViewer.getPersistentVolume_old(
+                                self.currentVoxelClassificationResultPath()[1])
 
 
     def loadItemsForViewing(self):
 
         # load items for viewing and diagnostics
         self.dataViewer.getPersistentVolume_old(self.originalVolumeName)
-        self.dataViewer.getPersistentVolume_old(self.voxelClassificationResultPath[1])
+        self.dataViewer.getPersistentVolume_old(
+                                self.currentVoxelClassificationResultPath()[1])
         contoursGroupedByImage = self.dataViewer.mainDoc.dataTree.getSubtree(
                                   (self.contoursNodeName,))
         updateContourProbabilities(contoursGroupedByImage,
@@ -1500,7 +1590,8 @@ class CellComponentDetector:
 
         elif stepNumber == 2:
 
-            self.dataViewer.getPersistentVolume_old(self.voxelClassificationResultPath[1])
+            self.dataViewer.getPersistentVolume_old(
+                                    self.currentVoxelClassificationResultPath()[1])
 
 
         # find contours

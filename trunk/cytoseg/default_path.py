@@ -3,7 +3,7 @@ import os
 
 
 from socket import gethostname; hostname = gethostname()
-if hostname == "panther":
+if hostname == "panther1":
         defaultTemporaryFolder = "G:/cytoseg_data"
         driveName = "/folder_not_set/"
         cytosegDataFolder = defaultTemporaryFolder

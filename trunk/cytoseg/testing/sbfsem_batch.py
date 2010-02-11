@@ -14,10 +14,12 @@ import os
 #for numTrees in (1, 10, 40, 160, 640):
 for numTrees in (25,):
 
-    path = "G:/blobOutput_numberOfTrees/" + str(numTrees)
+    for iteration in range(0, 2):
 
-    if not(os.path.exists(path)):
-        os.mkdir(path)
+        path = "G:/blobOutput_numberOfTrees/" + str(numTrees)
 
-    sbfsem(path, numTrees, 6+1, 6+2)
+        if not(os.path.exists(path)):
+            os.mkdir(path)
+
+        sbfsem(path, numTrees, 6+1, 6+2, iteration)
 
