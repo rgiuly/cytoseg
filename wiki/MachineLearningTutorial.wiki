@@ -1,4 +1,12 @@
 
+If cytoseg is not installed, follow these instructions:
+
+http://code.google.com/p/cytoseg/wiki/Installation
+
+Download the training data and example data from:
+
+
+python machine_learning_command.py [input] [training_data] [training_labels] [output] [temporary]
 
 
 python machine_learning_command.py C:\temp\machine_learning_tutorial\b C:\temp\machine_learning_tutorial\a C:\temp\machine_learning_tutorial\a_membranes c:\temp c:\temp
