@@ -38,8 +38,28 @@ These are the files that make up the output stack, you can now view them.
 
 ----
 
+=Running with Your Data=
+
 Here's the meaning of the command:
 
 python machine_learning_command.py [input] [training_data] [training_labels] [output] [temporary]
 
+[input]: Image stack folder that contains raw data input that you want to process.
+[training_data]: Image stack used for training. This can be the same as input but it doesn't have to be.
+[training_labels]: Image stack of labels, this marks voxels with a number to identify the type of object. This dataset must match [training_data] exactly in dimensions.
+[output]: Output folder
+[temporary]: Folder for storing temporary files
 
+
+To test things out, here's how you can classify training data.
+
+Crop out an image stack with dimensions 175x175x9
+Put it in a folder, for example my_input
+
+Create a label volume that also has dimensions 175x175x9
+You'll need to paint the voxel where the objects of interest are with nonzero values.
+Put this in a folder, for example, my_seg
+
+Then run the following command:
+
+python machine_learning_command.py my_input my_input my_seg c:\temp c:\temp
