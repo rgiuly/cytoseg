@@ -24,6 +24,7 @@ It will take some time for this to finish running.
 
 
 When the processing is complete, you will see this output text:
+<pre>
 c:\temp\membranes\output000.tif
 c:\temp\membranes\output001.tif
 c:\temp\membranes\output002.tif
@@ -33,6 +34,7 @@ c:\temp\membranes\output005.tif
 c:\temp\membranes\output006.tif
 c:\temp\membranes\output007.tif
 c:\temp\membranes\output008.tif
+</pre>
 
 These are the files that make up the output stack, you can now view them.
 
