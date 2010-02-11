@@ -1,16 +1,29 @@
-
 If cytoseg is not installed, follow these instructions:
 
 http://code.google.com/p/cytoseg/wiki/Installation
 
-Download the training data and example data from:
+Download the training data and example data:
+http://cytoseg.googlecode.com/files/machine_learning_tutorial.zip
 
 
-python machine_learning_command.py [input] [training_data] [training_labels] [output] [temporary]
+----
 
+=Running with Example Data=
+
+Unzip this and note where the a, a_membranes, and b folders are located.
+
+The suggested folder to unzip into is C:\temp
+
+Enter this line at your operating system's command prompt:
 
 python machine_learning_command.py C:\temp\machine_learning_tutorial\b C:\temp\machine_learning_tutorial\a C:\temp\machine_learning_tutorial\a_membranes c:\temp c:\temp
 
+(If you are not using C:\temp, you will need to adjust this appropriately.)
+
+It will take some time for this to finish running.
+
+
+When the processing is complete, you will see this output text:
 c:\temp\membranes\output000.tif
 c:\temp\membranes\output001.tif
 c:\temp\membranes\output002.tif
@@ -20,3 +33,13 @@ c:\temp\membranes\output005.tif
 c:\temp\membranes\output006.tif
 c:\temp\membranes\output007.tif
 c:\temp\membranes\output008.tif
+
+These are the files that make up the output stack, you can now view them.
+
+----
+
+Here's the meaning of the command:
+
+python machine_learning_command.py [input] [training_data] [training_labels] [output] [temporary]
+
+
