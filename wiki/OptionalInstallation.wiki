@@ -1,1 +1,1 @@
-  # Optional: Install [http://mlabwrap.sourceforge.net/ mlabwrap] which interfaces python to MATLAB (only needed for blob detection)
+  # Optional: Install [http://mlabwrap.sourceforge.net/ mlabwrap] which interfaces python to MATLAB (only needed for some functions)
