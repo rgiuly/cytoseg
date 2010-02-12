@@ -15,6 +15,9 @@ You need to be in the cytoseg/testing folder to run:
 Unzip this and note where the a, a_membranes, and b folders are located.
 
 The suggested folder to unzip into is C:\temp
+http://cytoseg.googlecode.com/svn/trunk/cytoseg/docs/b.png
+http://cytoseg.googlecode.com/svn/trunk/cytoseg/docs/a.png
+http://cytoseg.googlecode.com/svn/trunk/cytoseg/docs/a_membranes.png
 
 Enter this line at your operating system's command prompt:
 
