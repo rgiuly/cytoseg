@@ -2,7 +2,7 @@ If cytoseg is not installed, follow these instructions:
 
 http://code.google.com/p/cytoseg/wiki/Installation
 
-Download the training data and example data:
+Download the neuropil segmentation example data at:
 http://cytoseg.googlecode.com/files/machine_learning_tutorial.zip
 
 You need to be in the cytoseg/testing folder to run:
@@ -14,7 +14,7 @@ python machine_learning_command.py ...
 
 =Running with Example Data=
 
-Unzip this and note where the a, a_membranes, and b folders are located.
+Unzip machine_learning_tutorial.zip and note where the a, a_membranes, and b folders are located.
 
 The suggested folder to unzip into is C:\temp
 
