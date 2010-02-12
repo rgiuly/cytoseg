@@ -6,7 +6,9 @@ Download the training data and example data:
 http://cytoseg.googlecode.com/files/machine_learning_tutorial.zip
 
 You need to be in the cytoseg/testing folder to run:
-{{{python machine_learning_command.py ...}}}
+{{{
+python machine_learning_command.py ...
+}}}
 
 ----
 
