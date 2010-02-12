@@ -51,6 +51,12 @@ c:\temp\membranes\output007.tif
 c:\temp\membranes\output008.tif
 </pre>
 
+The first and last 3 images of the output will always be blank.
+
+Here's an example from the output, output003.tif:
+
+http://cytoseg.googlecode.com/svn/trunk/cytoseg/docs/output003.png
+
 These are the files that make up the output stack, you can now view them.
 
 ----
