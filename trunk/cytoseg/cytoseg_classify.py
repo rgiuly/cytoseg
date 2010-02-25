@@ -9,6 +9,8 @@ from neural_network import *
 import statistics
 import os
 import threading
+import random
+
 try:
     import orange, orngTree, orngEnsemble
     print "orange loaded"
@@ -127,6 +129,7 @@ class ClassificationControlsFrame(ControlsFrame):
         # classification
         self.numberOfTrees = 50
         self.balanceExamples = False
+        #self.balanceExamples = True
 
         # gui
         self.mouseClickCallbackDict['updatePointFeaturesAtMouseLocation'] = self.updatePointFeaturesAtMouseLocation
@@ -572,7 +575,10 @@ class ClassificationControlsFrame(ControlsFrame):
 
                     #print className
 
-                    if className != None:
+                    if className != None and\
+                        (random.random() < 0.01 or\
+                            (className == 'vesicles' and random.random() < 0.01) or\
+                            (className == 'membranes' and random.random() < 0.02)):
 
                         # This records an example.
                         # It skips over some examples to balance the number.
@@ -594,6 +600,11 @@ class ClassificationControlsFrame(ControlsFrame):
                             #eigenValues = numpy.linalg.eigvals(st)
 
                             self.writeExample(file, d, className)
+
+                            #if className == 'vesicles':
+                            #    print "vesicle"
+                            #    for i in range(5):
+                            #        self.writeExample(file, d, className)
 
         print "recorded example counts", recordedExampleCountDict
 
@@ -1158,7 +1169,7 @@ class ClassificationControlsFrame(ControlsFrame):
         data = orange.ExampleTable(voxelExamplesFilename)
         
         #minimumExamples = len(data) / 5
-        minimumExamples = len(data) / 10
+        minimumExamples = len(data) / 40
         
         #originalVolume = self.getPersistentObject(originalVolumeNodePath)
         inputVolume = self.getPersistentObject(inputImageNodePath)
@@ -1173,7 +1184,7 @@ class ClassificationControlsFrame(ControlsFrame):
         tree.split.discreteSplitConstructor.measure = \
          tree.split.continuousSplitConstructor.measure = gini
         #tree.maxDepth = 5
-        tree.maxDepth = 10
+        tree.maxDepth = 40
         tree.split = orngEnsemble.SplitConstructor_AttributeSubset(tree.split, 3)
 
         forest = orngEnsemble.RandomForestLearner(data, self.numberOfTrees,
@@ -1389,7 +1400,7 @@ class FaceBlob(Blob):
 #                    inputVolume[point[0] + xOffset, point[1] + yOffset, point[2]]
 #    return testDict
 
-# todo: rename to getPointFeaturesAt
+# todo: rename to getLocalFeaturesAt
 # todo: gui parameter should just be the node that has the volumes you need as its children
 def getPointFeaturesAt(inputVolumeDict, volume, derivativeVolumesIdentifier, gui, point):
     # f is dictionary of features
@@ -1435,13 +1446,15 @@ def getPointFeaturesAt(inputVolumeDict, volume, derivativeVolumesIdentifier, gui
                                      (derivativeVolumesIdentifier, i))
             zG = at(zGVolume, point)
 
+        if 0:
+
             if i == 0:
                 f['grayValue'] = at(volume, point)
                 #'differenceOfGaussian'
                 f['gradientMagnitude'] = sqrt(pow(xG,2) + pow(yG,2) + pow(zG,2))
             
             
-        if 1:
+        if 0:
 
             stAtSelectedPoint = structureTensor(xG,yG,zG)
         
@@ -1485,13 +1498,22 @@ def getPointFeaturesAt(inputVolumeDict, volume, derivativeVolumesIdentifier, gui
         for (key, value) in inputVolumeDict.items():
 
             inputVolume = inputVolumeDict[key]
+            #print "inputs", inputVolumeDict.keys()
 
-            for xOffset in range(-9, 10, 3):
-                for yOffset in range(-9, 10, 3):
-                    f['inputVolume_%s_%d_%d' % (key, xOffset, yOffset)] =\
-                        inputVolume[point[0] + xOffset, point[1] + yOffset, point[2]]
+            if 0:
+                for xOffset in range(-9, 10, 3):
+                    for yOffset in range(-9, 10, 3):
+                        f['inputVolume_%s_%d_%d' % (key, xOffset, yOffset)] =\
+                            inputVolume[point[0] + xOffset, point[1] + yOffset, point[2]]
 
-            windowSize = 3
+            #windowSize = 3
+            #windowSize = 5
+
+            if key == 'originalVolume':
+                windowSize = 6
+            else:
+                windowSize = 2
+
 
             step = 1
 
@@ -1500,12 +1522,13 @@ def getPointFeaturesAt(inputVolumeDict, volume, derivativeVolumesIdentifier, gui
                     f['focus_%s_%d_%d' % (key, xOffset, yOffset)] =\
                         inputVolume[point[0] + xOffset, point[1] + yOffset, point[2]]
 
-        for xOffset in range(-(windowSize+1), windowSize, step):
-            for yOffset in range(-(windowSize+1), windowSize, step):
-                f['xG_%d_%d' % (xOffset, yOffset)] =\
-                    xGVolume[point[0] + xOffset, point[1] + yOffset, point[2]]
-                f['yG_%d_%d' % (xOffset, yOffset)] =\
-                    yGVolume[point[0] + xOffset, point[1] + yOffset, point[2]]
+        if 0:
+            for xOffset in range(-(windowSize+1), windowSize, step):
+                for yOffset in range(-(windowSize+1), windowSize, step):
+                    f['xG_%d_%d' % (xOffset, yOffset)] =\
+                        xGVolume[point[0] + xOffset, point[1] + yOffset, point[2]]
+                    f['yG_%d_%d' % (xOffset, yOffset)] =\
+                        yGVolume[point[0] + xOffset, point[1] + yOffset, point[2]]
 
     return f
 

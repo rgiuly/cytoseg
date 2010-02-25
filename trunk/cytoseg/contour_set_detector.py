@@ -116,9 +116,24 @@ class ContourSetDetector:
         self.contourClassifier.target = target
 
 
-    def run(self, runAllSteps=True):
+    def run(self, steps=True):
 
-        if runAllSteps:
+        if steps == 'accuracy':
+
+            self.contourClassifier.runInitialize()
+            self.contourClassifier.runPersistentLoadOriginalImage()
+            self.contourClassifier.calculateVoxelClassificationAccuracy_new()
+
+        if steps == 'contours':
+
+            self.contourClassifier.runInitialize()
+            self.contourClassifier.runPersistentLoadOriginalImage()
+            #self.contourClassifier.runClassifyVoxels()
+            self.contourClassifier.runFindContours()
+            #self.contourClassifier.runGroupContoursByConnectedComponents()
+            self.app.MainLoop()
+
+        elif steps == True:
 
             self.contourClassifier.runInitialize()
             self.contourClassifier.runPersistentLoadOriginalImage()
@@ -127,7 +142,7 @@ class ContourSetDetector:
             self.contourClassifier.runGroupContoursByConnectedComponents()
             self.app.MainLoop()
 
-        else:
+        elif steps == 'classifyVoxels':
 
             self.contourClassifier.runInitialize()
             self.contourClassifier.runPersistentLoadOriginalImage()

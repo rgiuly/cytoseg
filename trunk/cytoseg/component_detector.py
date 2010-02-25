@@ -27,7 +27,7 @@ from fill import *
 #import sys
 from enthought.mayavi.scripts import mayavi2
 from default_path import *
-from contour_processing import *
+#from contour_processing import *
 from accuracy import *
 from contour_comparison import *
 from label_identifier import *
@@ -365,7 +365,7 @@ class CellComponentDetector:
 
 
         # this is for old accuracy check
-        self.fullManualSegPath =\
+        self.fullManualSegNodePath =\
             ('Volumes', dataIdentifier + 'FullManualSeg')
 
         #self.voxelTrainingImageFilePath =\
@@ -1106,7 +1106,7 @@ class CellComponentDetector:
                                              None,
                                              maxNumberOfImages=self.numberOfLayersToProcess)
         self.dataViewer.addVolumeAndRefreshDataTree_new(fullManualSegVolume,
-                                                        self.fullManualSegPath)
+                                                        self.fullManualSegNodePath)
 
         #print resultVolume[10, 10, 10]
 
@@ -1129,13 +1129,13 @@ class CellComponentDetector:
                                       None,
                                       maxNumberOfImages=self.numberOfLayersToProcess)
         self.dataViewer.addVolumeAndRefreshDataTree_new(resultVolume,
-                                                        self.fullManualSegPath)
+                                                        self.fullManualSegNodePath)
 
         fullManualSegVolume = loadImageStack(self.fullManualSegFilePath,
                                              None,
                                              maxNumberOfImages=self.numberOfLayersToProcess)
         self.dataViewer.addVolumeAndRefreshDataTree_new(fullManualSegVolume,
-                                                        self.fullManualSegPath)
+                                                        self.fullManualSegNodePath)
 
         #print resultVolume[10, 10, 10]
 
@@ -1156,14 +1156,17 @@ class CellComponentDetector:
         #                              maxNumberOfImages=self.numberOfLayersToProcess)
         #resultVolume = getPersistentObject(self.voxelClassificationResultPath)
         #self.dataViewer.addVolumeAndRefreshDataTree_new(resultVolume,
-        #                                                self.fullManualSegPath)
+        #                                                self.fullManualSegNodePath)
 
         # load and display full manual segmentation
-        fullManualSegVolume = loadImageStack(self.voxelTrainingLabelFilePath,
+        #fullManualSegVolume = loadImageStack(self.voxelTrainingLabelFilePath,
+        #                                     None,
+        #                                     maxNumberOfImages=self.numberOfLayersToProcess)
+        fullManualSegVolume = loadImageStack(self.fullManualSegFilePath,
                                              None,
                                              maxNumberOfImages=self.numberOfLayersToProcess)
         self.dataViewer.addVolumeAndRefreshDataTree_new(fullManualSegVolume,
-                                                        self.fullManualSegPath)
+                                                        self.fullManualSegNodePath)
 
 
         #pyplot.hold(False)
@@ -1189,7 +1192,7 @@ class CellComponentDetector:
                     resultVolume = resultsNode.getChild(target).object
 
                     #self.dataViewer.addVolumeAndRefreshDataTree_new(resultVolume,
-                    #                                                self.fullManualSegPath)
+                    #                                                self.fullManualSegNodePath)
 
                     #fullManualSegVolume = loadImageStack(self.fullManualSegFilePath,
                     #                                     None,
@@ -1249,13 +1252,13 @@ class CellComponentDetector:
                                       None,
                                       maxNumberOfImages=self.numberOfLayersToProcess)
         self.dataViewer.addVolumeAndRefreshDataTree_new(resultVolume,
-                                                        self.fullManualSegPath)
+                                                        self.fullManualSegNodePath)
 
         fullManualSegVolume = loadImageStack(self.fullManualSegFilePath,
                                              None,
                                              maxNumberOfImages=self.numberOfLayersToProcess)
         self.dataViewer.addVolumeAndRefreshDataTree_new(fullManualSegVolume,
-                                                        self.fullManualSegPath)
+                                                        self.fullManualSegNodePath)
 
         #print resultVolume[10, 10, 10]
 

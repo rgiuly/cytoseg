@@ -12,7 +12,8 @@ def sbfsem(blobImageStackOutputFolder="O:/temp/blobOutput_080309",
            numberOfTrees=50,
            numberOfTrainingLayersToProcess=7,
            numberOfLayersToProcess=8,
-           voxelClassificationIteration=0):
+           voxelClassificationIteration=0,
+           steps=False):
 
     param = {}
 
@@ -26,24 +27,34 @@ def sbfsem(blobImageStackOutputFolder="O:/temp/blobOutput_080309",
     # full input volume
     #param['originalImageFilePath'] = "data/sbfsem_080309/data_tifs"
     #param['originalImageFilePath'] = "O:/images/ncmirdata1/obayashi/for_TD/3viewdata/080309/wbc_segtrainer_forRG/amira/data_tifs/last/8bit/350x350/crop" + subfolder
-    param['originalImageFilePath'] = "O:/images/ncmirdata1/obayashi/for_TD/3viewdata/080309/wbc_segtrainer_forRG/amira/data_tifs/last/8bit/350x350/crop/43-51" + subfolder
+    #param['originalImageFilePath'] = "O:/images/ncmirdata1/obayashi/for_TD/3viewdata/080309/wbc_segtrainer_forRG/amira/data_tifs/last/8bit/350x350/crop/43-51" + subfolder
+    #param['originalImageFilePath'] = "O:/images/ncmirdata1/obayashi/for_TD/3viewdata/080309/wbc_segtrainer_forRG/amira/data_tifs/last55/350x350/crop/8bit/last" + subfolder
+    param['originalImageFilePath'] = "O:/images/ncmirdata1/obayashi/for_TD/3viewdata/080309/wbc_segtrainer_forRG/amira/data_tifs/last55/350x350/crop/8bit/last/test" + subfolder
 
     # training data image volume
     #param['voxelTrainingImageFilePath'] = "data/sbfsem_080309/data_tifs"
     #param['voxelTrainingImageFilePath'] = "O:/images/ncmirdata1/obayashi/for_TD/3viewdata/080309/wbc_segtrainer_forRG/amira/data_tifs/last/8bit/350x350/crop" + subfolder
-    param['voxelTrainingImageFilePath'] = "O:/images/ncmirdata1/obayashi/for_TD/3viewdata/080309/wbc_segtrainer_forRG/amira/data_tifs/last/8bit/350x350/crop/43-51" + subfolder
+    #param['voxelTrainingImageFilePath'] = "O:/images/ncmirdata1/obayashi/for_TD/3viewdata/080309/wbc_segtrainer_forRG/amira/data_tifs/last/8bit/350x350/crop/43-51" + subfolder
+    #param['voxelTrainingImageFilePath'] = "O:/images/ncmirdata1/obayashi/for_TD/3viewdata/080309/wbc_segtrainer_forRG/amira/data_tifs/last55/350x350/crop/8bit/last" + subfolder
+    param['voxelTrainingImageFilePath'] = "O:/images/ncmirdata1/obayashi/for_TD/3viewdata/080309/wbc_segtrainer_forRG/amira/data_tifs/last55/350x350/crop/8bit/last/training" + subfolder
 
     # training data labels
     # this should have the exact same dimensions as param['voxelTrainingImageFilePath'] 
     #param['voxelTrainingLabelFilePath'] = "O:/images/ncmirdata1/obayashi/for_TD/3viewdata/080309/wbc_segtrainer_forRG/amira/seg_tifs/350x350/vesicles_and_membranes" + subfolder
     #param['voxelTrainingLabelFilePath'] = "O:/images/ncmirdata1/obayashi/for_TD/3viewdata/080309/wbc_segtrainer_forRG/amira/seg_tifs/350x350/crop" + subfolder
-    param['voxelTrainingLabelFilePath'] = "O:/images/ncmirdata1/obayashi/for_TD/3viewdata/080309/wbc_segtrainer_forRG/amira/seg_tifs2/350x350/crop/43-51" + subfolder
+    #param['voxelTrainingLabelFilePath'] = "O:/images/ncmirdata1/obayashi/for_TD/3viewdata/080309/wbc_segtrainer_forRG/amira/seg_tifs2/350x350/crop/43-51" + subfolder
+    #param['voxelTrainingLabelFilePath'] = "O:/images/ncmirdata1/obayashi/for_TD/3viewdata/080309/wbc_segtrainer_forRG/amira/seg_tifs3/350x350/crop/last" + subfolder
+    param['voxelTrainingLabelFilePath'] = "O:/images/ncmirdata1/obayashi/for_TD/3viewdata/080309/wbc_segtrainer_forRG/amira/seg_tifs3/350x350/crop/last/training_seg" + subfolder
 
     # output volume
     param['blobImageStackOutputFolder'] = blobImageStackOutputFolder
 
     #detector = Detector(param)
     detector = ContourSetDetector(param, voxelClassificationIteration)
+
+    #detector.contourClassifier.fullManualSegFilePath = param['voxelTrainingLabelFilePath']
+    detector.contourClassifier.fullManualSegFilePath = "O:/images/ncmirdata1/obayashi/for_TD/3viewdata/080309/wbc_segtrainer_forRG/amira/seg_tifs3/350x350/crop/last/test_seg" + subfolder
+
     detector.dataIdentifier = "sbfsem_080309"
     detector.dataViewer.mainDoc.dataTree.rootFolderPath = "G:/cytoseg_data/sbfsem" +\
         subfolder
@@ -77,5 +88,5 @@ def sbfsem(blobImageStackOutputFolder="O:/temp/blobOutput_080309",
     detector.setTarget('membranes')
     #detector.setTarget('membranes_test')
 
-    detector.run(runAllSteps=0)
+    detector.run(steps)
 
