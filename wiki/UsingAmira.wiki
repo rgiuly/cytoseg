@@ -1,3 +1,6 @@
+
+You can use [http://www.videolan.org/ VLC] to play these tutorials:
+
   * 1. Opening Data and starting a segmentation
    * 1a. Opening data and displaying the slice by slice, adjusting contrast
     * http://cytoseg.googlecode.com/files/cytosegmovie1a.ogv
