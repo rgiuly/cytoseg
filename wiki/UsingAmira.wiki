@@ -1,6 +1,5 @@
-
   * 1. Opening Data and starting a segmentation
-  * 1a. Opening data and displaying the slice by slice, adjusting contrast
+   * 1a. Opening data and displaying the slice by slice, adjusting contrast
   * http://cytoseg.googlecode.com/files/cytosegmovie1a.ogv
   * 1b. starting segmentation
   * http://cytoseg.googlecode.com/files/cytoseg_movie1b.ogv
