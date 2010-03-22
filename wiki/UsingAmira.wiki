@@ -1,4 +1,3 @@
-
 You can use [http://www.videolan.org/ VLC] to play these tutorials:
 
   * 1. Opening Data and starting a segmentation
@@ -24,3 +23,6 @@ You can use [http://www.videolan.org/ VLC] to play these tutorials:
     * http://cytoseg.googlecode.com/files/cytoseg_movie2e.ogv
    * 3. Exporting segmentation as MRC
     * http://cytoseg.googlecode.com/files/cytoseg_movie3.ogv
+
+----
+Thanks to James "Obi" Obayashi for creating these videos.
