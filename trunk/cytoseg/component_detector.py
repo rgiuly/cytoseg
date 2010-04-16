@@ -19,13 +19,17 @@
 #THE SOFTWARE.
 
 
+import warnings
 import numpy
 from cytoseg_classify import *
 from contour_list_classification import *
 #from mitochondria import *
 from fill import *
 #import sys
-from enthought.mayavi.scripts import mayavi2
+try:
+    from enthought.mayavi.scripts import mayavi2
+except ImportError:
+    warnings.warn("enthought.mayavi.scripts module is not installed")
 from default_path import *
 #from contour_processing import *
 from accuracy import *
@@ -34,8 +38,11 @@ from label_identifier import *
 
 from xml.dom.minidom import Document
 #from pygraph import *
-from pygraph.classes.graph import *
-import pygraph.algorithms.accessibility
+try:
+    from pygraph.classes.graph import *
+    import pygraph.algorithms.accessibility
+except ImportError:
+    warnings.warn("pygraph module is not installed")
 from graph import *
 import os
 import colorsys
