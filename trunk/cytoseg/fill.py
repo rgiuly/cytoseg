@@ -23,7 +23,7 @@ import warnings
 try:
     import itk
 except ImportError:
-    warnings.warning("itk module is not installed") 
+    warnings.warn("itk module is not installed") 
 
 from sys import argv, stderr, exit
 
