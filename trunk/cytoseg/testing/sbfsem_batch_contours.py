@@ -18,7 +18,7 @@ for numTrees in (25,):
 
     for iteration in range(1, 2):
 
-        path = "G:/blobOutput_numberOfTrees/" + str(numTrees)
+        path = "Z:/blobOutput_numberOfTrees/" + str(numTrees)
 
         if not(os.path.exists(path)):
             os.mkdir(path)

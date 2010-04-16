@@ -152,3 +152,8 @@ class ContourSetDetector:
             #self.contourClassifier.runFindContours()
             #self.contourClassifier.runGroupContoursByConnectedComponents()
             #self.app.MainLoop()
+
+        else:
+
+            raise Exception, "Invalid steps parameter: %s" % str(steps)
+

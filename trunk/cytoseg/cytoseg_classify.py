@@ -577,7 +577,7 @@ class ClassificationControlsFrame(ControlsFrame):
 
                     if className != None and\
                         (random.random() < 0.01 or\
-                            (className == 'vesicles' and random.random() < 0.01) or\
+                            (className == 'vesicles' and random.random() < 0.04) or\
                             (className == 'membranes' and random.random() < 0.02)):
 
                         # This records an example.
@@ -1367,6 +1367,16 @@ class ClassificationControlsFrame(ControlsFrame):
                         itemId = childNode.guiComponent
                         treeControl.SelectItem(itemId)
                         self.setBlobFeatureSliders(blob)
+
+
+    def writeExample(self, file, dictionary, classification):
+        for item in dictionary.items():
+            value = item[1]
+            file.write("%f\t" % value)
+                        
+        #file.write("%s" % particleGroup.containsIntegerPoint((x,y,z)))
+        file.write("%s" % classification)
+        file.write("\n")
 
 
 

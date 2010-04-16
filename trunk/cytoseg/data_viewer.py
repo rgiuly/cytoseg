@@ -2972,10 +2972,13 @@ def loadImageStack(path, subvolumeBox, maxNumberOfImages=None):
     
     if subvolumeBox == None:
         NOT_SET = -1
-        box = Box((NOT_SET,NOT_SET,0),(NOT_SET,NOT_SET,numImages))
+        box = Box((NOT_SET, NOT_SET, 0), (NOT_SET, NOT_SET, numImages))
     else:
         box = subvolumeBox
     
+    if box.cornerA[2] == None: box.cornerA[2] = 0
+    if box.cornerB[2] == None: box.cornerB[2] = numImages
+
     indexRange = range(box.cornerA[2], box.cornerB[2]) 
     if maxNumberOfImages != None:
         indexRange = indexRange[0:maxNumberOfImages] 
@@ -2989,7 +2992,7 @@ def loadImageStack(path, subvolumeBox, maxNumberOfImages=None):
         #        filename = "/ncmir_data/caulobacter/bmp/c%03d.bmp" % i
         
         filename = os.path.join(path, fileList[i])    
-            
+
         #surface1 = pygame.image.load(filename)
         #array3dFromSurface = pygame.surfarray.array3d(surface1)
         #array2d = array3dFromSurface[:,:,RED]
@@ -3014,13 +3017,20 @@ def loadImageStack(path, subvolumeBox, maxNumberOfImages=None):
             array2d.shape = im1.size[1], im1.size[0]
             #print "old shape %d %d" % (im1.size[1], im1.size[0])
             
+            #print "subvolumeBox", subvolumeBox
+
             if (subvolumeBox == None):
+
                 box.cornerA[0] = 0
                 box.cornerB[0] = im1.size[1]
             
                 box.cornerA[1] = 0
                 box.cornerB[1] = im1.size[0]
     
+            else:
+
+                box = subvolumeBox.getBoxForShape((im1.size[1], im1.size[0], numImages))
+
             # get X and Y dimensions from the first image and initialize the 3D volume
             if firstImage:
                 #volume = numpy.zeros((imRed.shape[0],imRed.shape[1],numImages))
@@ -3029,6 +3039,8 @@ def loadImageStack(path, subvolumeBox, maxNumberOfImages=None):
                 #print "shape %s" % str(box.shape())
                 #print "array2d %s" % str(array2d.shape)
                 
+                print box.cornerA
+                print box.cornerB
                 volumeShape = box.shape()
                 if maxNumberOfImages != None:
                     volumeShape[2] = min(volumeShape[2], maxNumberOfImages)

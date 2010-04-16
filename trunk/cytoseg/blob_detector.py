@@ -117,6 +117,8 @@ class BlobDetector:
 
     def run(self, runAllSteps=True):
 
+        print "blob_detector: runAllsteps=%s" % str(runAllSteps)
+
         if runAllSteps:
 
             self.contourClassifier.runInitialize()

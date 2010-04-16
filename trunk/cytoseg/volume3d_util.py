@@ -4,6 +4,47 @@ import Image
 import os
 
 
+class Box:
+
+    def __init__(self, cornerA=None, cornerB=None):
+        
+        # 3D point
+        if cornerA == None:
+            self.cornerA = [None, None, None]
+        else:
+            self.cornerA = list(cornerA)
+        
+        # 3D point
+        if cornerB == None:
+            self.cornerB = [None, None, None]
+        else:
+            self.cornerB = list(cornerB)
+        
+    def shape(self):
+        return array(self.cornerB) - array(self.cornerA)
+
+
+    # None for an initial parameter mean start from 0
+    # None for a final parameter means go to the last index
+    def getBoxForShape(self, shape):
+
+        resultBox = Box()
+
+        for coordinateIndex in range(3):
+            #print type(self.cornerA[coordinateIndex])
+            #print type(self.cornerB[coordinateIndex])
+            if self.cornerA[coordinateIndex] == None:
+                resultBox.cornerA[coordinateIndex] = 0
+            else:
+                resultBox.cornerA[coordinateIndex] = self.cornerA[coordinateIndex]
+            if self.cornerB[coordinateIndex] == None:
+                resultBox.cornerB[coordinateIndex] = shape[coordinateIndex]
+            else:
+                resultBox.cornerB[coordinateIndex] = self.cornerB[coordinateIndex]
+
+        return resultBox
+
+
 def isInsideVolume(volume, point):
     s = volume.shape
     if point[0] < s[0] and point[1] < s[1] and point[2] < s[2] and point[0] >= 0 and point[1] >= 0 and point[2] >= 0:

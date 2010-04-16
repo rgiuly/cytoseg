@@ -737,6 +737,10 @@ class CellComponentDetector:
 
             # uses test data, generates voxel probabilities
             print "classifying voxels"
+            print "volume shapes"
+            for item in inputVolumeDict.items():
+                key = item[0]
+                print key, inputVolumeDict[key].shape
             dataViewer.classifyVoxels('intermediateTestDataLabel1',
                                self.currentVoxelClassificationResultPath(),
                                exampleListFileName,
@@ -1331,7 +1335,7 @@ class CellComponentDetector:
 
         originalImageNodePath = ('Volumes', 'originalImage')
 
-        originalImage = loadImageStack(self.originalImageFilePath, None)
+        originalImage = loadImageStack(self.originalImageFilePath, self.regionToClassify)
 
         originalImage = originalImage[:, :, 0:self.numberOfLayersToProcess]
 

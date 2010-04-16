@@ -15,26 +15,33 @@ import sys
 #taskToPerform = 'accuracy'
 taskToPerform = 'classifyVoxels'
 
+#subfolder = r"\30x30"
+subfolder = ""
+originalImageFilePath = r"O:\images\ncmirdata1\obayashi\for_TD\3viewdata\080309\wbc_segtrainer_forRG\amira\data_tifs\last55\350x350\crop\8bit\last40\a" + subfolder
+voxelTrainingImageFilePath = r"O:\images\ncmirdata1\obayashi\for_TD\3viewdata\080309\wbc_segtrainer_forRG\amira\data_tifs\last55\350x350\crop\8bit\last40\b" + subfolder
+voxelTrainingLabelFilePath = r"O:\images\ncmirdata1\obayashi\for_TD\3viewdata\080309\wbc_segtrainer_forRG\amira\seg_tifs70\50-69\crop" + subfolder
+
 #for numTrees in (1, 10, 40, 160, 640):
 print "sbfsem_batch"
 for numTrees in (25,):
 
-    for iteration in range(0, 5):
+    for iteration in range(0, 1):
 
-        path = "G:/blobOutput_numberOfTrees/" + str(numTrees)
+        path = "Z:/blobOutput_numberOfTrees/" + str(numTrees)
+        numberOfLayersToClassify = 6 + 1
 
         if not(os.path.exists(path)):
             os.mkdir(path)
 
         # true or false
-        multipleProcesses = 1
+        startNewProcesses = 0
 
-        if multipleProcesses:
+        if startNewProcesses:
 
             #command = "%s start_sbfsem.py %s %d %d %d %d %s" %\
             #    (sys.executable, path, numTrees, 6+4, 6+1, iteration, taskToPerform)
             command = "%s start_sbfsem.py %s %d %d %d %d %s" %\
-                (sys.executable, path, numTrees, 6+4, 6+20, iteration, taskToPerform)
+                (sys.executable, path, numTrees, 6+1, 6+1, iteration, taskToPerform)
             print command
             os.system(command)
 
@@ -42,5 +49,8 @@ for numTrees in (25,):
 
             from sbfsem import *
             #sbfsem(path, numTrees, 6+1, 6+2, iteration, taskToPerform)
-            sbfsem(path, numTrees, 6+4, 6+20, iteration, taskToPerform)
+            sbfsem(originalImageFilePath,
+                   voxelTrainingImageFilePath,
+                   voxelTrainingLabelFilePath,
+                   path, numTrees, 6+1, None, 5, 5+numberOfLayersToClassify, iteration, taskToPerform)
 

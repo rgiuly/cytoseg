@@ -3,22 +3,30 @@ import numpy
 
 class LabelIdentifier:
 
-    def __init__(self, min, max=None):
+    def __init__(self, min=None, max=None, values=None):
 
         self.min = min
         self.max = max
+        self.values = values
 
 
     def isMember(self, value):
 
-        if self.max == None:
-            if value >= self.min:
-                return True
-        else:
+        returnValue = False
+
+        #if self.max == None:
+        #    if value >= self.min:
+        #        return True
+        #else:
+        if self.min != None and self.max != None:
             if self.min <= value <= self.max:
-                return True
-            else:
-                return False
+                returnValue = True
+
+        if self.values != None:
+            if value in self.values:
+                returnValue = True
+
+        return returnValue
 
 
     def count(self, volume):
@@ -37,8 +45,20 @@ class LabelIdentifier:
     # select a single label volume from the set of labels in inputLabel
     def getBooleanVolume(self, inputLabel):
 
-        if self.max == None:
-            return inputLabel >= self.min
-        else:
-            return numpy.logical_and(self.min <= inputLabel, inputLabel <= self.max)
+        returnVolume = numpy.zeros(inputLabel.shape, dtype=bool)
+
+        #if self.max == None:
+        #    return inputLabel >= self.min
+        #else:
+        #    return numpy.logical_and(self.min <= inputLabel, inputLabel <= self.max)
+        if self.min != None and self.max != None:
+            returnVolume = numpy.logical_and(self.min <= inputLabel, inputLabel <= self.max)
+
+        if self.values != None:
+            for value in self.values:
+                returnVolume |= (inputLabel == value)
+            #if value in self.values:
+            #    returnValue = True
+
+        return returnVolume
 
