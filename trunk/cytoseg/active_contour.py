@@ -1,4 +1,6 @@
 
+import warnings
+
 try:
     import itk
 except ImportError:
