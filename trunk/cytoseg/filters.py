@@ -1,7 +1,10 @@
 from numpy import *
 import numpy
 import geometry
-import itk
+try:
+    import itk
+except ImportError:
+    warnings.warning("itk module is not installed") 
 from containers import *
 
 
