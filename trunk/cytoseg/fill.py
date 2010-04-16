@@ -18,6 +18,8 @@
 #     OUTPUTS: [FastMarchingFilterOutput3.png]
 #     40 90 0.5  -0.3  2.0   200 100
 
+import warnings
+
 try:
     import itk
 except ImportError:

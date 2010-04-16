@@ -1,3 +1,4 @@
+import warnings
 from numpy import *
 import numpy
 import geometry
