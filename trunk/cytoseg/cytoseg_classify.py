@@ -561,6 +561,7 @@ class ClassificationControlsFrame(ControlsFrame):
         border = borderWidthForFeatures
         for x in range(border[0], sh[0]-border[0], step):
             print "%d out of %d" % (x, sh[0])
+            sys.stdout.flush()
             for y in range(border[1], sh[1]-border[1], step):
                 for z in range(border[2], sh[2]-border[2], step):
 
@@ -1213,6 +1214,7 @@ class ClassificationControlsFrame(ControlsFrame):
 
         for x in range(borderWidthForFeatures[0], v[0].shape[0]-borderWidthForFeatures[0]):
             print x, "out of", v[0].shape[0]-borderWidthForFeatures[0]-1
+            sys.stdout.flush()
             for y in range(borderWidthForFeatures[1],
                            v[0].shape[1]-borderWidthForFeatures[1]):
                 for z in range(borderWidthForFeatures[2],
