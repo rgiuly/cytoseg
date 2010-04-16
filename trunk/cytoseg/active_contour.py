@@ -1,5 +1,9 @@
 
-import itk
+try:
+    import itk
+except ImportError:
+    warnings.warn("itk module is not installed")
+
 from sys import argv, stderr
 #itk.auto_progress(2)
 

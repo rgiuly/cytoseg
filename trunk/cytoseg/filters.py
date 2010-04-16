@@ -5,7 +5,7 @@ import geometry
 try:
     import itk
 except ImportError:
-    warnings.warn("itk module is not installed") 
+    warnings.warn("itk module is not installed")
 from containers import *
 
 
