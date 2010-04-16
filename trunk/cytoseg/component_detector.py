@@ -404,6 +404,7 @@ class CellComponentDetector:
         self.numberOfTrainingLayersToProcess = None
 
         self.numberOfLayersToProcess = None
+        self.regionToClassify = None
         self.numberOfThresholds = 1
         self.firstThreshold = 0.5
         self.thresholdStep = 0.1
