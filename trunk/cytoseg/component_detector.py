@@ -41,9 +41,9 @@ from xml.dom.minidom import Document
 try:
     from pygraph.classes.graph import *
     import pygraph.algorithms.accessibility
+    from graph import *
 except ImportError:
     warnings.warn("pygraph module is not installed")
-from graph import *
 import os
 import colorsys
 import copy as copy_module
