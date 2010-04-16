@@ -18,7 +18,11 @@
 #     OUTPUTS: [FastMarchingFilterOutput3.png]
 #     40 90 0.5  -0.3  2.0   200 100
 
-import itk
+try:
+    import itk
+except ImportError:
+    warnings.warning("itk module is not installed") 
+
 from sys import argv, stderr, exit
 
 from numpy import *
