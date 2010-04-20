@@ -25,6 +25,7 @@ from cytoseg_classify import *
 from contour_list_classification import *
 #from mitochondria import *
 from fill import *
+
 #import sys
 try:
     from enthought.mayavi.scripts import mayavi2
@@ -48,6 +49,21 @@ import os
 import colorsys
 import copy as copy_module
 
+enableMPI = 0
+
+if enableMPI:
+
+    # MPI code
+    from mpi4py import MPI
+    
+    comm = MPI.COMM_WORLD
+    mpiRank = comm.Get_rank()
+    mpiCommSize = comm.Get_size()
+
+else:
+
+    mpiRank = 0
+    
 enablePathProbabilityFilter = True # use True for mitochondria
 
 
@@ -671,7 +687,7 @@ class CellComponentDetector:
         
         #inputImageFilePath =\
         #    driveName + "/images/HPFcere_vol/HPF_rotated_tif/median_then_gaussian_8bit"
-        exampleListFileName = os.path.join(cytosegDataFolder, "exampleList.tab")
+        exampleListFileName = os.path.join(cytosegDataFolder, "exampleList%d.tab" % mpiRank)
         
         voxelTrainingImageNodePath = ('Volumes', 'voxelTrainingImage')
         voxelTrainingLabelNodePath = ('Volumes', 'voxelTrainingLabel')
@@ -1381,7 +1397,10 @@ class CellComponentDetector:
                 path = os.path.join(self.blobImageStackOutputFolder, childNode.name)
                 if not(os.path.exists(path)):
                     os.mkdir(path)
-                writeTiffStack(path, volume * 255.0)
+                b = borderWidthForFeatures
+                writeTiffStack(path,
+                               volume[b[0]:-b[0], b[1]:-b[1], b[2]:-b[2]] * 255.0,
+                               startIndex=self.regionToClassify.cornerA[2] + b[2])
 
 
     def runFindContours(self):

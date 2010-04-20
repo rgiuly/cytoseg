@@ -569,13 +569,16 @@ class ClassificationControlsFrame(ControlsFrame):
 
                     for target in labelIdentifierDict:
                         value = membraneVoxelVolume[x,y,z]
+                        #print value
                         if labelIdentifierDict[target].isMember(value):
                             className = target
 
+                    #print className
                     countDict[str(className)] += 1
 
                     #print className
 
+                    #if className != None:
                     if className != None and\
                         (random.random() < 0.01 or\
                             (className == 'vesicles' and random.random() < 0.04) or\
@@ -586,6 +589,7 @@ class ClassificationControlsFrame(ControlsFrame):
                         if not(self.balanceExamples) or\
                             className != 'blankInnerCell' or\
                             (countDict['blankInnerCell'] % ratio) == 0:
+                        #if 1:
 
                             recordedExampleCountDict[className] += 1
 
@@ -601,6 +605,8 @@ class ClassificationControlsFrame(ControlsFrame):
                             #eigenValues = numpy.linalg.eigvals(st)
 
                             self.writeExample(file, d, className)
+                            #print d
+                            #print className
 
                             #if className == 'vesicles':
                             #    print "vesicle"

@@ -87,7 +87,7 @@ def writeTiffStack_version1(path, redVolume, greenVolume, blueVolume):
         image.save(fullName)
 
 
-def writeTiffStack(path, volume, baseFileName="output"):
+def writeTiffStack(path, volume, baseFileName="output", startIndex=0):
 
     maxValue = 255
     
@@ -102,7 +102,8 @@ def writeTiffStack(path, volume, baseFileName="output"):
         image = Image.fromstring("L", (aTransposed.shape[1],aTransposed.shape[0]),
                                  aTransposed.tostring())
 
-        fullName = os.path.join(path, ('%s%0.3d%s' % (baseFileName, i, '.tif')))
+        fullName = os.path.join(path,
+                    ('%s%0.3d%s' % (baseFileName, startIndex + i, '.tif')))
         print fullName
         image.save(fullName)
 
