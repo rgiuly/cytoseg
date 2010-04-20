@@ -28,7 +28,7 @@ for numTrees in (25,):
     for iteration in range(0, 1):
 
         path = "Z:/blobOutput_numberOfTrees/" + str(numTrees)
-        numberOfLayersToClassify = 6 + 1
+        numberOfLayersToClassify = 6 + 3
 
         if not(os.path.exists(path)):
             os.mkdir(path)
