@@ -1398,9 +1398,12 @@ class CellComponentDetector:
                 if not(os.path.exists(path)):
                     os.mkdir(path)
                 b = borderWidthForFeatures
-                writeTiffStack(path,
-                               volume[b[0]:-b[0], b[1]:-b[1], b[2]:-b[2]] * 255.0,
-                               startIndex=self.regionToClassify.cornerA[2] + b[2])
+                if self.regionToClassify == None:
+                    writeTiffStack(path, volume * 255.0)
+                else:
+                    writeTiffStack(path,
+                                volume[b[0]:-b[0], b[1]:-b[1], b[2]:-b[2]] * 255.0,
+                                startIndex=self.regionToClassify.cornerA[2]+b[2])
 
 
     def runFindContours(self):
