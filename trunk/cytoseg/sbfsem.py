@@ -6,6 +6,7 @@ import sys
 from label_identifier import *
 from contour_set_detector import ContourSetDetector
 from volume3d_util import Box
+import default_path
 
 
 def sbfsem(originalImageFilePath=r"O:\images\ncmirdata1\obayashi\for_TD\3viewdata\080309\wbc_segtrainer_forRG\amira\data_tifs\last55\350x350\crop\8bit\last40\a",
@@ -68,7 +69,7 @@ def sbfsem(originalImageFilePath=r"O:\images\ncmirdata1\obayashi\for_TD\3viewdat
     #detector.dataViewer.mainDoc.dataTree.rootFolderPath = "Z:/cytoseg_data/sbfsem" +\
     #    subfolder
     detector.dataViewer.mainDoc.dataTree.rootFolderPath =\
-        cytosegDataFolder + subfolder
+        default_path.cytosegDataFolder + subfolder
     detector.dataViewer.numberOfTrees = numberOfTrees
     #detector.contourClassifier.numberOfLayersToProcess = 50
     #detector.contourClassifier.numberOfLayersToProcess = 14
