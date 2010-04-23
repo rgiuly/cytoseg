@@ -6,6 +6,13 @@ import numpy, Image
 try:
     from opencv import highgui
     from opencv import cv
+
+    # definition of some colors
+    _red = cv.cvScalar (0, 0, 255, 0);
+    _green = cv.cvScalar (0, 255, 0, 0);
+    _white = cv.cvRealScalar (255)
+    _black = cv.cvRealScalar (0)
+
 except ImportError:
     warnings.warn("highgui and cv modules not installed")
 
@@ -33,12 +40,6 @@ print "OpenCV Python version of contours"
 # some default constants
 _SIZE = 500
 _DEFAULT_LEVEL = 3
-
-# definition of some colors
-_red = cv.cvScalar (0, 0, 255, 0);
-_green = cv.cvScalar (0, 255, 0, 0);
-_white = cv.cvRealScalar (255)
-_black = cv.cvRealScalar (0)
 
 
 def testContours():
