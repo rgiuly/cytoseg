@@ -65,8 +65,10 @@ def sbfsem(originalImageFilePath=r"O:\images\ncmirdata1\obayashi\for_TD\3viewdat
     detector.contourClassifier.fullManualSegFilePath = r"O:\images\ncmirdata1\obayashi\for_TD\3viewdata\080309\wbc_segtrainer_forRG\amira\seg_tifs70\30-49\crop"
 
     detector.dataIdentifier = "sbfsem_080309"
-    detector.dataViewer.mainDoc.dataTree.rootFolderPath = "Z:/cytoseg_data/sbfsem" +\
-        subfolder
+    #detector.dataViewer.mainDoc.dataTree.rootFolderPath = "Z:/cytoseg_data/sbfsem" +\
+    #    subfolder
+    detector.dataViewer.mainDoc.dataTree.rootFolderPath =\
+        cytosegDataFolder + subfolder
     detector.dataViewer.numberOfTrees = numberOfTrees
     #detector.contourClassifier.numberOfLayersToProcess = 50
     #detector.contourClassifier.numberOfLayersToProcess = 14
