@@ -1,8 +1,13 @@
 
 from numpy import *
 import numpy, Image
-from opencv import highgui
-from opencv import cv
+
+try:
+    from opencv import highgui
+    from opencv import cv
+except ImportError:
+    warnings.warn("highgui and cv modules not installed")
+
 from math import *
 from matplotlib.pyplot import plot
 from matplotlib.pyplot import show
