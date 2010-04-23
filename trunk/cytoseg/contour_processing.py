@@ -27,8 +27,8 @@ import wx
 print "OpenCV Python version of contours"
 
 # import the necessary things for OpenCV
-from opencv import cv
-from opencv import highgui
+#from opencv import cv
+#from opencv import highgui
 
 # some default constants
 _SIZE = 500
