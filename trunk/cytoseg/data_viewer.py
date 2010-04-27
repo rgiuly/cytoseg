@@ -1233,9 +1233,9 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
             node.guiComponent = slider
 
         #elif node.type == 'slidersFromDictionary':
-            
-            
-            
+
+
+
         elif node.type == 'text':
 
             

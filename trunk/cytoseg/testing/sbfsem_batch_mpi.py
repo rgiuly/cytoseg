@@ -8,7 +8,7 @@ import default_path
 
 from command_reader import CommandReader
 
-enableMPI = 1
+enableMPI = 0
 
 if enableMPI:
     # MPI code
@@ -20,6 +20,8 @@ if enableMPI:
 else:
     mpiRank = 0
     mpiCommSize = 10
+
+print "DISPLAY", os.getenv("DISPLAY")
 
 #for trainingLayers in (1, 2, 4, 8):
 #
