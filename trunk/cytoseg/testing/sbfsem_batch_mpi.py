@@ -62,6 +62,7 @@ subfolder = ""
 
 commandReader = CommandReader()
 param = commandReader.param
+param['cytosegDataFolder'] = param['cytosegDataFolder'] + str(mpiRank)
 
 #for numTrees in (1, 10, 40, 160, 640):
 print "sbfsem_batch"
