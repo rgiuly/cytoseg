@@ -67,7 +67,7 @@ param = commandReader.param
 print "sbfsem_batch"
 for numTrees in (25,):
 
-    for iteration in range(1, 3):
+    for iteration in range(0, 3):
 
         path = param['blobImageStackOutputFolder'] + str(numTrees)
         numberOfLayersToClassify = 6 + 1
