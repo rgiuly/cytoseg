@@ -34,7 +34,7 @@ import sys
 #from Tkinter import *
 #import Tkinter
 import Image            #PIL
-import wx
+##import wx
 
 #from pygame.locals import *
 #from pgu import gui
@@ -3594,16 +3594,17 @@ def writeTiffStackButton(arg1):
     writeTiffStack(form['saveImageStackPathTextBox'].value, volume, volume, volume)                        
                          
 
-class TimerHandler(wx.EvtHandler):
-
-    #def OnTimerEvent(self, evt):
-    #     print 'timer'
-    #     updateParticlePositions()
+if 0:
+    class TimerHandler(wx.EvtHandler):
     
-    def onTimerEvent(self, evt):
-        #print 'timer'
-        updateParticlePositions()
-        a = 1
+        #def OnTimerEvent(self, evt):
+        #     print 'timer'
+        #     updateParticlePositions()
+        
+        def onTimerEvent(self, evt):
+            #print 'timer'
+            updateParticlePositions()
+            a = 1
 
 
 def updateParticlePositions(volume, settingsTree, offsetOfLoadedVolumeInFullVolume):
@@ -4133,7 +4134,8 @@ dn = DataNode("test_name", "test_type", "test_params", "test_value")
 
 filenames = ['O:\images\LFong\cropped\8bit_smaller\8bit_smaller0000.tif' ]
 
-timerHandlerTest = TimerHandler()
+if 0:
+    timerHandlerTest = TimerHandler()
 
 
 
