@@ -7,7 +7,7 @@ import math
 
 from command_reader import CommandReader
 
-enableMPI = 0
+enableMPI = 1
 
 if enableMPI:
     # MPI code
@@ -67,7 +67,7 @@ param = commandReader.param
 print "sbfsem_batch"
 for numTrees in (25,):
 
-    for iteration in range(0, 1):
+    for iteration in range(1, 3):
 
         path = param['blobImageStackOutputFolder'] + str(numTrees)
         numberOfLayersToClassify = 6 + 1
@@ -97,6 +97,7 @@ for numTrees in (25,):
             zEndOffset = 3
             zMax = zSlices - zEndOffset
             zBlock = math.ceil((zMax - zStartOffset) / mpiCommSize)
+            print "zBlock", zBlock
 	    
             zStart = zStartOffset + zBlock * mpiRank 
             zStop = zStart + zBlock - 1
@@ -105,16 +106,18 @@ for numTrees in (25,):
 
             print "Process # ", mpiRank, " -> ", zStart, zStop
 
-            #sbfsem(originalImageFilePath,
-       	    #       voxelTrainingImageFilePath,
-       	    #       voxelTrainingLabelFilePath,
-       	    #       path, numTrees, 6+1, None, zStart - zStartOffset, zStop + zEndOffset, iteration, taskToPerform)
             sbfsem(param['originalImageFilePath'],
-                   param['voxelTrainingImageFilePath'],
-                   param['voxelTrainingLabelFilePath'],
-                   path, numTrees, 6+1, None, 0, 7, iteration, taskToPerform)
-            sbfsem(param['originalImageFilePath'],
-                   param['voxelTrainingImageFilePath'],
-                   param['voxelTrainingLabelFilePath'],
-                   path, numTrees, 6+1, None, 1, 8, iteration, taskToPerform)
+       	           param['voxelTrainingImageFilePath'],
+       	           param['voxelTrainingLabelFilePath'],
+       	           path, numTrees, 6+1, None, zStart - zStartOffset, zStop + zEndOffset + 1, iteration, taskToPerform)
+            print "zStart - zStartOffset", zStart - zStartOffset
+	    print "zStop + zEndOffset", zStop + zEndOffset
+            #sbfsem(param['originalImageFilePath'],
+            #       param['voxelTrainingImageFilePath'],
+            #       param['voxelTrainingLabelFilePath'],
+            #       path, numTrees, 6+1, None, 0, 7, iteration, taskToPerform)
+            #sbfsem(param['originalImageFilePath'],
+            #       param['voxelTrainingImageFilePath'],
+            #       param['voxelTrainingLabelFilePath'],
+            #       path, numTrees, 6+1, None, 1, 8, iteration, taskToPerform)
 

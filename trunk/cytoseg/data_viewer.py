@@ -175,8 +175,11 @@ def setNodeValueCallback(node, value):
 
 class ControlsFrame(wx.Frame, wx.EvtHandler):
     
-    def __init__(self, settingsTree):
+    def __init__(self, settingsTree, guiVisible=True):
         
+        self.guiVisible = guiVisible
+        print "ControlsFrame guiVisible:", self.guiVisible
+
         # functions that get called at every update, either from the timer event (or from the user requesting an update if this functionallity exists)
         self.updateFunctions = {}
 
@@ -333,7 +336,9 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         flexGridSizerContainer = wx.FlexGridSizer(cols=2, hgap=10, vgap=10)
         
         panel.SetSizer(flexGridSizerContainer)
-        frame.Show()
+
+        if self.guiVisible:
+            frame.Show()
         
         
         #frame.Bind(wx.EVT_CLOSE, self.onCloseChildFrame)

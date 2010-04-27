@@ -122,8 +122,8 @@ class ClassificationSequenceThread(threading.Thread):
 class ClassificationControlsFrame(ControlsFrame):
 
 
-    def __init__(self, settingsTree):
-        ControlsFrame.__init__(self, settingsTree)
+    def __init__(self, settingsTree, guiVisible=True):
+        ControlsFrame.__init__(self, settingsTree, guiVisible=guiVisible)
         print "ClassificationControlsFrame init"
         
         # classification

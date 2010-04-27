@@ -5,7 +5,8 @@ from component_detector import *
 
 class ContourSetDetector:
 
-    def __init__(self, parameterDict, voxelClassificationIteration=0):
+    def __init__(self, parameterDict, voxelClassificationIteration=0,
+                 guiVisible=True):
 
         #testContours()  # crash
         target_depricated = 'mitochondria'
@@ -23,8 +24,10 @@ class ContourSetDetector:
         #contourListClassificationMethod='randomForest'
         
         self.app = wx.PySimpleApp()
-        self.dataViewer = ClassificationControlsFrame(makeClassifyGUITree())
-        self.dataViewer.Show()
+        self.dataViewer = ClassificationControlsFrame(makeClassifyGUITree(),
+                                                      guiVisible=guiVisible)
+        if guiVisible:
+            self.dataViewer.Show()
 
         print "mode: %s" % mode
         

@@ -59,7 +59,8 @@ def sbfsem(originalImageFilePath=r"O:\images\ncmirdata1\obayashi\for_TD\3viewdat
     param['blobImageStackOutputFolder'] = blobImageStackOutputFolder
 
     #detector = Detector(param)
-    detector = ContourSetDetector(param, voxelClassificationIteration)
+    detector = ContourSetDetector(param, voxelClassificationIteration,
+                                  guiVisible=False)
 
     #detector.contourClassifier.fullManualSegFilePath = param['voxelTrainingLabelFilePath']
     #detector.contourClassifier.fullManualSegFilePath = "O:/images/ncmirdata1/obayashi/for_TD/3viewdata/080309/wbc_segtrainer_forRG/amira/seg_tifs3/350x350/crop/last/test_seg" + subfolder
