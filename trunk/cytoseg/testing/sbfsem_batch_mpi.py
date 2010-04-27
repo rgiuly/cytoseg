@@ -4,6 +4,7 @@ import os
 import sys
 sys.path.append("..")
 import math
+import default_path
 
 from command_reader import CommandReader
 
