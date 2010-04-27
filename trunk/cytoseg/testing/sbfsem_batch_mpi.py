@@ -100,24 +100,27 @@ for numTrees in (25,):
             from sbfsem import *
             #sbfsem(path, numTrees, 6+1, 6+2, iteration, taskToPerform)
 	    
-            zSlices = 9
-            zStartOffset = 3
-            zEndOffset = 3
-            zMax = zSlices - zEndOffset
-            zBlock = math.ceil((zMax - zStartOffset) / mpiCommSize)
-            print "zBlock", zBlock
-	    
-            zStart = zStartOffset + zBlock * mpiRank 
-            zStop = zStart + zBlock - 1
-            if(zStop > (zMax - 1)):
-                zStop = zMax - 1
+#            zSlices = 9
+#            zStartOffset = 3
+#            zEndOffset = 3
+#            zMax = zSlices - zEndOffset
+#            zBlock = math.ceil((zMax - zStartOffset) / mpiCommSize)
+#            print "zBlock", zBlock
+#	    
+#            zStart = zStartOffset + zBlock * mpiRank 
+#            zStop = zStart + zBlock - 1
+#            if(zStop > (zMax - 1)):
+#                zStop = zMax - 1
+            zStart = mpiRank
+            zStop = mpiRank + 6
 
             print "Process # ", mpiRank, " -> ", zStart, zStop
 
             sbfsem(param['originalImageFilePath'],
        	           param['voxelTrainingImageFilePath'],
        	           param['voxelTrainingLabelFilePath'],
-       	           path, numTrees, 6+1, None, zStart - zStartOffset, zStop + zEndOffset + 1, iteration, taskToPerform)
+       	           #path, numTrees, 6+1, None, zStart - zStartOffset, zStop + zEndOffset + 1, iteration, taskToPerform)
+                   path, numTrees, 6+1, None, zStart, zStop, iteration, taskToPerform)
             print "zStart - zStartOffset", zStart - zStartOffset
 	    print "zStop + zEndOffset", zStop + zEndOffset
             #sbfsem(param['originalImageFilePath'],
