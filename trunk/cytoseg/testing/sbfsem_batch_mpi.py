@@ -62,7 +62,11 @@ subfolder = ""
 
 commandReader = CommandReader()
 param = commandReader.param
-param['cytosegDataFolder'] = param['cytosegDataFolder'] + str(mpiRank)
+cytosegDataFolder = param['cytosegDataFolder'] + str(mpiRank)
+default_path.defaultTemporaryFolder = cytosegDataFolder
+default_path.cytosegDataFolder = cytosegDataFolder
+default_path.contourOutputTemporaryFolder = cytosegDataFolder
+default_path.defaultOutputPath = cytosegDataFolder
 
 #for numTrees in (1, 10, 40, 160, 640):
 print "sbfsem_batch"
