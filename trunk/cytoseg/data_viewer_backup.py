@@ -173,8 +173,7 @@ def setNodeValueCallback(node, value):
 
 #class MyTextBox(Entry):
 
-#class ControlsFrame(wx.Frame, wx.EvtHandler):
-class ControlsFrame():
+class ControlsFrame(wx.Frame, wx.EvtHandler):
     
     def __init__(self, settingsTree, guiVisible=True):
         
@@ -217,61 +216,59 @@ class ControlsFrame():
         self.totals = []     
         self.childFrames = []
         
-        if guiVisible:
-
-            wx.Frame.__init__(self, None, -1, 'Cytoseg - Main Window',
-                              size=(800, 800))
-            
-            self.Move((750,100))
-            self.SetSize((480, 400))
-            
-            self.Bind(wx.EVT_CLOSE, self.onExit)
-                    
-            self.panel = wx.ScrolledWindow(self, id=-1, pos=wx.DefaultPosition,
-                                           size=wx.DefaultSize, style=wx.HSCROLL | wx.VSCROLL,
-                                           name="scrolledWindow")
-            self.panel.SetScrollbars(1, 1, 1600, 1400)
-            fgs = wx.FlexGridSizer(cols=2, hgap=10, vgap=10)
-            
-            imageLabel = wx.StaticText(self.panel, -1, "Image")
-            fgs.Add(imageLabel)
+        wx.Frame.__init__(self, None, -1, 'Cytoseg - Main Window',
+                          size=(800, 800))
         
-            for name in filenames:
-                height = 200
-                width = 100
-    
-                array = numpy.ones( (height, width, 3),numpy.int8)
-                array[:,:,0] = 200
+        self.Move((750,100))
+        self.SetSize((480, 400))
+        
+        self.Bind(wx.EVT_CLOSE, self.onExit)
                 
-                image = wx.EmptyImage(width,height)
-                image.SetData(array.tostring())
-    
-                bitmap = image.ConvertToBitmap()# wx.BitmapFromImage(image)
-    
-                # todo: rename sb1 to something like staticBitmapForXYView
-                self.sb1 = wx.StaticBitmap(self.panel, -1, wx.BitmapFromImage(image))
-                self.sb1.Bind(wx.EVT_LEFT_DOWN, self.onClickedImage)
-                self.sb1.Bind(wx.EVT_MOTION, self.onMouseMotionOnImage)
-                self.sb1.Bind(wx.EVT_LEFT_UP, self.onButtonUp)
-    
-                fgs.Add(self.sb1)
-               
-                
-    
-            self.settingsTree = settingsTree
-     
-            self.generateComponents(settingsTree, 0, [], None, None, None)
-    
-            self.refreshGUI()
+        self.panel = wx.ScrolledWindow(self, id=-1, pos=wx.DefaultPosition,
+                                       size=wx.DefaultSize, style=wx.HSCROLL | wx.VSCROLL,
+                                       name="scrolledWindow")
+        self.panel.SetScrollbars(1, 1, 1600, 1400)
+        fgs = wx.FlexGridSizer(cols=2, hgap=10, vgap=10)
+        
+        imageLabel = wx.StaticText(self.panel, -1, "Image")
+        fgs.Add(imageLabel)
+        
+        for name in filenames:
+            height = 200
+            width = 100
+
+            array = numpy.ones( (height, width, 3),numpy.int8)
+            array[:,:,0] = 200
             
+            image = wx.EmptyImage(width,height)
+            image.SetData(array.tostring())
+
+            bitmap = image.ConvertToBitmap()# wx.BitmapFromImage(image)
+
+            # todo: rename sb1 to something like staticBitmapForXYView
+            self.sb1 = wx.StaticBitmap(self.panel, -1, wx.BitmapFromImage(image))
+            self.sb1.Bind(wx.EVT_LEFT_DOWN, self.onClickedImage)
+            self.sb1.Bind(wx.EVT_MOTION, self.onMouseMotionOnImage)
+            self.sb1.Bind(wx.EVT_LEFT_UP, self.onButtonUp)
+
+            fgs.Add(self.sb1)
+           
             
-            print 'timer start controls frame'
-            self.startTimer()
-            
-            self.makeNewSubgroup()
-            
-            
-            self.panel.SetSizer(fgs)
+
+        self.settingsTree = settingsTree
+ 
+        self.generateComponents(settingsTree, 0, [], None, None, None)
+
+        self.refreshGUI()
+        
+        
+        print 'timer start controls frame'
+        self.startTimer()
+        
+        self.makeNewSubgroup()
+        
+        
+        self.panel.SetSizer(fgs)
 
         #self.loadedVolumeBoxInFullVolumeCoords = Box((0,0,0), self.getCurrentVolume().shape)
         self.loadedVolumeBoxInFullVolumeCoords = Box((0,0,0), (0,0,0))
@@ -283,8 +280,7 @@ class ControlsFrame():
         self.derivativeHasBeenComputed = False
 
 
-        if guiVisible:
-            self.setControlEnable(('particleMotionTool','loadPartialImageStack'), False)
+        self.setControlEnable(('particleMotionTool','loadPartialImageStack'), False)
         
         self.currentFilename = "untitled.cytoseg"
 
@@ -422,11 +418,10 @@ class ControlsFrame():
             listBox.SetSelection(listBoxNode.object)
 
     def refreshGUI(self):
-        if self.guiVisible:
-            #self.refreshBlobList()
-            self.refreshTreeControls()
-            self.refreshVolumeList()
-            self.refreshMouseClickCallbackList()
+        #self.refreshBlobList()
+        self.refreshTreeControls()
+        self.refreshVolumeList()
+        self.refreshMouseClickCallbackList()
 
     #def refreshBlobList(self):
     #    listBoxNode = getNode(self.settingsTree, ('particleMotionTool','blobList'))
@@ -1378,11 +1373,10 @@ class ControlsFrame():
         self.refreshTreeControl('dataTreeForVolumeSelection')
 
     def refreshTreeControl(self, treeControlName):
-        if self.guiVisible:
-            treeControl = getNode(self.settingsTree, ('particleMotionTool',treeControlName)).guiComponent
-            treeControl.DeleteAllItems()
-            treeControl.AddRoot("wx.Object")
-            self.generateTreeControlRecursively(self.mainDoc.dataRootNode, treeControl.GetRootItem())
+        treeControl = getNode(self.settingsTree, ('particleMotionTool',treeControlName)).guiComponent
+        treeControl.DeleteAllItems()
+        treeControl.AddRoot("wx.Object")
+        self.generateTreeControlRecursively(self.mainDoc.dataRootNode, treeControl.GetRootItem())
 
     # creates tree control gui items and updates the data tree so it has pointers to items in the data tree gui component
     #def generateTreeControlRecursively(self, dataParentNode, treeControlParentNodeID, path):

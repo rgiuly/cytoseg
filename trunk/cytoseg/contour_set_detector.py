@@ -23,7 +23,8 @@ class ContourSetDetector:
         contourListClassificationMethod='bayes' # use for mitochondria
         #contourListClassificationMethod='randomForest'
         
-        self.app = wx.PySimpleApp()
+        if guiVisible:
+            self.app = wx.PySimpleApp()
         self.dataViewer = ClassificationControlsFrame(makeClassifyGUITree(),
                                                       guiVisible=guiVisible)
         if guiVisible:
