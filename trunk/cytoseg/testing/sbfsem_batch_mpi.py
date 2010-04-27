@@ -121,8 +121,8 @@ for numTrees in (25,):
        	           param['voxelTrainingLabelFilePath'],
        	           #path, numTrees, 6+1, None, zStart - zStartOffset, zStop + zEndOffset + 1, iteration, taskToPerform)
                    path, numTrees, 6+1, None, zStart, zStop, iteration, taskToPerform)
-            print "zStart - zStartOffset", zStart - zStartOffset
-	    print "zStop + zEndOffset", zStop + zEndOffset
+            #print "zStart - zStartOffset", zStart - zStartOffset
+	    #print "zStop + zEndOffset", zStop + zEndOffset
             #sbfsem(param['originalImageFilePath'],
             #       param['voxelTrainingImageFilePath'],
             #       param['voxelTrainingLabelFilePath'],
