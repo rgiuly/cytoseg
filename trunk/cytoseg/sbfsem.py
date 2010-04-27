@@ -81,9 +81,11 @@ def sbfsem(originalImageFilePath=r"O:\images\ncmirdata1\obayashi\for_TD\3viewdat
         numberOfTrainingLayersToProcess
     #detector.contourClassifier.minVoxelLabelValue['mitochondria'] = 3
     #detector.contourClassifier.minVoxelLabelValue['membranes'] = 2
-    detector.contourClassifier.maxVoxelLabelValue['membranes'] = 2
+    #detector.contourClassifier.maxVoxelLabelValue['membranes'] = 2
     #detector.contourClassifier.labelIdentifierDict['membranes'] =\
     #    LabelIdentifier(min=100, max=300)
+    detector.contourClassifier.labelIdentifierDict['membranes'] =\
+        LabelIdentifier(min=2, max=2)
     #detector.contourClassifier.labelIdentifierDict['mitochondria'] =\
     #    LabelIdentifier(min=3, max=250)
     detector.contourClassifier.labelIdentifierDict['mitochondria'] =\
