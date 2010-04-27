@@ -112,7 +112,7 @@ for numTrees in (25,):
 #            if(zStop > (zMax - 1)):
 #                zStop = zMax - 1
             zStart = mpiRank
-            zStop = mpiRank + 6
+            zStop = mpiRank + 6 + 1
 
             print "Process # ", mpiRank, " -> ", zStart, zStop
 
