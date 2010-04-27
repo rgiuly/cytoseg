@@ -81,9 +81,9 @@ def sbfsem(originalImageFilePath=r"O:\images\ncmirdata1\obayashi\for_TD\3viewdat
         numberOfTrainingLayersToProcess
     #detector.contourClassifier.minVoxelLabelValue['mitochondria'] = 3
     #detector.contourClassifier.minVoxelLabelValue['membranes'] = 2
-    #detector.contourClassifier.maxVoxelLabelValue['membranes'] = 2
-    detector.contourClassifier.labelIdentifierDict['membranes'] =\
-        LabelIdentifier(min=100, max=300)
+    detector.contourClassifier.maxVoxelLabelValue['membranes'] = 2
+    #detector.contourClassifier.labelIdentifierDict['membranes'] =\
+    #    LabelIdentifier(min=100, max=300)
     #detector.contourClassifier.labelIdentifierDict['mitochondria'] =\
     #    LabelIdentifier(min=3, max=250)
     detector.contourClassifier.labelIdentifierDict['mitochondria'] =\
@@ -92,10 +92,10 @@ def sbfsem(originalImageFilePath=r"O:\images\ncmirdata1\obayashi\for_TD\3viewdat
     #    LabelIdentifier(min=150, max=150)
     #detector.contourClassifier.labelIdentifierDict['blankInnerCell'] =\
     #    LabelIdentifier(min=0, max=0)
-    ##detector.contourClassifier.labelIdentifierDict['blankInnerCell'] =\
-    ##    LabelIdentifier(values=range(3,100+1)+[142])
     detector.contourClassifier.labelIdentifierDict['blankInnerCell'] =\
-        LabelIdentifier(values=(0,))
+        LabelIdentifier(values=range(3,100+1)+[142])
+    ##detector.contourClassifier.labelIdentifierDict['blankInnerCell'] =\
+    ##    LabelIdentifier(values=(0,))
     #detector.contourClassifier.labelIdentifierDict['vesicles'] =\
     #    LabelIdentifier(min=255, max=255)
     detector.contourClassifier.labelIdentifierDict['vesicles'] =\
