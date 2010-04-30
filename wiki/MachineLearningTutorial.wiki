@@ -4,7 +4,7 @@ http://code.google.com/p/cytoseg/wiki/Installation
 
 Download the neuropil segmentation example data at:
 
-http://cytoseg.googlecode.com/files/machine_learning_tutorial4.zip
+http://cytoseg.googlecode.com/files/machine_learning_tutorial.zip
 
 You need to be in the cytoseg/testing folder to run:
 {{{
