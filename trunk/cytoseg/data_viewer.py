@@ -34,7 +34,7 @@ import sys
 #from Tkinter import *
 #import Tkinter
 import Image            #PIL
-##import wx
+import wx
 
 #from pygame.locals import *
 #from pgu import gui
@@ -173,8 +173,10 @@ def setNodeValueCallback(node, value):
 
 #class MyTextBox(Entry):
 
-#class ControlsFrame(wx.Frame, wx.EvtHandler):
-class ControlsFrame():
+#class MainFrame(wx.Frame, wx.EvtHandler):
+
+class ControlsFrame(wx.Frame, wx.EvtHandler):
+#class ControlsFrame():
     
     def __init__(self, settingsTree, guiVisible=True):
         
@@ -2182,21 +2184,39 @@ class ControlsFrame():
                             dc.DrawRectangle(x - offset*1, y - offset*1, offset*2, offset*2)
     
 
-def renderPointSetInVolume(volume, pointSet, valueMode):
+def renderPointSetInVolume(volume, pointSet, valueMode, fill=True):
     
-    for labeledPoint in pointSet.points():
-        loc = labeledPoint.loc
+    points = pointSet.points()
 
-        if valueMode == 'constant':
-            volume[loc[0], loc[1], loc[2]] = 255
-        elif valueMode == 'probability':
-            volume[loc[0], loc[1], loc[2]] = min(pointSet.probability() * 255.0 * 6.0,
+    if fill:
+
+        boundingBox = pointSet.get2DBoundingBox()
+
+        z = points[0].loc[2]
+
+        for i in range(pointSet.binaryImage.shape[0]):
+            for j in range(pointSet.binaryImage.shape[1]):
+                xOffset = boundingBox[0][0]
+                yOffset = boundingBox[0][1]
+                x, y = (i+xOffset, j+yOffset)
+                if pointSet.binaryImage[i,j] != 0:
+                    volume[x, y, z] = 255
+
+    else:
+
+        for labeledPoint in points:
+            loc = labeledPoint.loc
+
+            if valueMode == 'constant':
+                volume[loc[0], loc[1], loc[2]] = 255
+            elif valueMode == 'probability':
+                volume[loc[0], loc[1], loc[2]] = min(pointSet.probability() * 255.0 * 6.0,
                                                  255.0)
-        elif valueMode == 'RGB':
-            for colorIndex in range(3):
-                volume[loc[0], loc[1], loc[2], colorIndex] = pointSet.color()[colorIndex]
-        else:
-            raise Exception, "Invalid valueMode"
+            elif valueMode == 'RGB':
+                for colorIndex in range(3):
+                    volume[loc[0], loc[1], loc[2], colorIndex] = pointSet.color()[colorIndex]
+            else:
+                raise Exception, "Invalid valueMode"
 
 
 adjacentOffsets = [array([-1, -1, +1]),

@@ -53,7 +53,7 @@ class ContourSetDetector:
         labelFilePaths['mitochondria']['process_2'] = "O:/images/Eric_07-10-09/process_traces/Working crop x116 y105 w362 h315/set/2"
         labelFilePaths['vesicles']['all'] = "O:/images/HPFcere_vol/HPF_rotated_tif/vesicles/label/one_label/0_to_25"
     
-        self.contourTrainer = CellComponentDetector(
+        self.contourTrainer = ComponentDetector(
             dataViewer=self.dataViewer,
             dataIdentifier=mode,
             target='not_set',
@@ -75,7 +75,7 @@ class ContourSetDetector:
         # process the contours in a full dataset
         #elif mode == 'hpf_test':
         
-        self.contourClassifier = CellComponentDetector(
+        self.contourClassifier = ComponentDetector(
             dataViewer=self.dataViewer,
             dataIdentifier=mode,
             target='not_set',
@@ -100,14 +100,14 @@ class ContourSetDetector:
         self.contourClassifier.numberOfLayersToProcess = None
     
         # for mitochondria
-        self.contourClassifier.numberOfThresholds = 1 #1 #4
-        self.contourClassifier.firstThreshold = 160 #0.05 #0.4 #0.2
+        self.contourClassifier.numberOfThresholds = 1 #1 #1 #4
+        self.contourClassifier.firstThreshold = 70 #160 #0.05 #0.4 #0.2
     
         # not for mitochondria
         #self.contourClassifier.numberOfThresholds = 1 #4
         #self.contourClassifier.firstThreshold = 0.4 #0.2
     
-        self.contourClassifier.thresholdStep = 0.05
+        self.contourClassifier.thresholdStep = 50 #0.05
 
         self.setTarget('mitochondria')
         #self.setTarget('vesicles')
@@ -134,8 +134,11 @@ class ContourSetDetector:
             self.contourClassifier.runPersistentLoadOriginalImage()
             #self.contourClassifier.runClassifyVoxels()
             self.contourClassifier.runFindContours()
+            self.contourClassifier.runWriteContoursToImageStack()
+            self.contourClassifier.runContourProbabilityFilter()
             #self.contourClassifier.runGroupContoursByConnectedComponents()
-            self.app.MainLoop()
+            if self.dataViewer.guiVisible:
+                self.app.MainLoop()
 
         elif steps == True:
 

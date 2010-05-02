@@ -88,6 +88,17 @@ def mitochondriaProbability(features):
     return overlapValue * perimeterValue * grayValueMatch * areaMatch * areaMatch
 
 
+def mitochondria_newProbability(features):
+
+    amplitude = 1
+    overlapValue = gaussian(1.0 - features['ellipseOverlap'], amplitude, 0.2)
+    perimeterValue = gaussian(abs(131.0 - features['perimeter']), amplitude, 75)
+    grayValueMatch = gaussian(abs(1 - features['averageGrayValue']), amplitude, 0.25)
+    area = math.sqrt(features['contourArea']) / 635.0
+    #return overlapValue * perimeterValue * grayValueMatch * area * area
+    return grayValueMatch * area * area
+
+
 def blankInnerCellProbability(features):
 
     amplitude = 1
@@ -119,7 +130,17 @@ def updateContourProbabilities(contoursGroupedByImage, probabilityFunction):
         p = probabilityFunction(contour.features)
         contour.setProbability(p)
         print p
-        color = 255.0 * array((1.0 - (p * 10.0), (p * 10.0), 0))
+
+        if p < 0:
+            limitedProbability = 0
+        elif p > 1:
+            limitedProbability = 1
+        else:
+            limitedProbability = p
+
+        color = 255.0 * array(((1.0 - limitedProbability) * 10.0,
+                               (limitedProbability * 10.0),
+                               0))
         contour.setColor(color)
 
 
@@ -321,7 +342,7 @@ def saveBlobsToJinxFileRecursiveHelper(node, document, documentElement):
 
 
 
-class CellComponentDetector:
+class ComponentDetector:
 
 
     def __init__(self,
@@ -432,6 +453,9 @@ class CellComponentDetector:
         self.displayParametersDict['mitochondria'] = ContourAndBlobDisplayParameters()
         self.displayParametersDict['mitochondria'].numberOfContoursToDisplay = None #20
         self.displayParametersDict['mitochondria'].contourProbabilityThreshold = 0.08
+        self.displayParametersDict['mitochondria_new'] = ContourAndBlobDisplayParameters()
+        self.displayParametersDict['mitochondria_new'].numberOfContoursToDisplay = None #20
+        self.displayParametersDict['mitochondria_new'].contourProbabilityThreshold = 0.04
         self.displayParametersDict['blankInnerCell'] = ContourAndBlobDisplayParameters()
         self.displayParametersDict['blankInnerCell'].numberOfContoursToDisplay = 20
         self.displayParametersDict['blankInnerCell'].contourProbabilityThreshold = 0 #0.1
@@ -443,6 +467,8 @@ class CellComponentDetector:
         
         self.probabilityFunctionDict = {}
         self.probabilityFunctionDict['mitochondria'] = mitochondriaProbability
+        self.probabilityFunctionDict['mitochondria_new'] =\
+            mitochondria_newProbability
         self.probabilityFunctionDict['vesicles'] = vesicleProbability
         self.probabilityFunctionDict['blankInnerCell'] = blankInnerCellProbability
         self.probabilityFunctionDict['membranes'] = blankInnerCellProbability
@@ -521,6 +547,8 @@ class CellComponentDetector:
 
 
     def writeContoursToImageStack(self, pathToContoursNode):
+
+        print "writing contours to image stack", defaultOutputPath
 
         #contoursNode = frm.mainDoc.dataTree.getSubtree((highProbabilityContoursNodeName,))
         #contoursNode = frm.mainDoc.dataTree.getSubtree((contoursNodeName,))
@@ -863,6 +891,17 @@ class CellComponentDetector:
                     detector.filteredVolume = self.dataViewer.getPersistentVolume_old(self.currentVoxelClassificationResultPath()[1])
 
             elif self.target == 'membranes_test':
+            
+                if numberOfLayersToProcess != None:
+                    detector.originalVolume = self.dataViewer.getPersistentVolume_old(self.originalVolumeName)\
+                    [:, :, 0:numberOfLayersToProcess]
+                    detector.filteredVolume = self.dataViewer.getPersistentVolume_old(self.originalVolumeName)\
+                    [:, :, 0:numberOfLayersToProcess]
+                else:
+                    detector.originalVolume = self.dataViewer.getPersistentVolume_old(self.originalVolumeName)
+                    detector.filteredVolume = self.dataViewer.getPersistentVolume_old(self.originalVolumeName)
+
+            elif self.target == 'mitochondria_new':
             
                 if numberOfLayersToProcess != None:
                     detector.originalVolume = self.dataViewer.getPersistentVolume_old(self.originalVolumeName)\
@@ -1434,6 +1473,11 @@ class CellComponentDetector:
 #        print "running main gui loop"
 #
 #        self.app.MainLoop()
+
+
+    def runWriteContoursToImageStack(self):
+
+        self.writeContoursToImageStack(self.contoursNodePath)
 
 
     def loadOriginalVolume(self):

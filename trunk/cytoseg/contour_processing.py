@@ -780,7 +780,8 @@ class ContourDetector:
             #contourResultTree.addChild(contoursInImage)
         
             #print outputFilename
-        print "output written to file stack"
+        #print "output written to file stack"
+        print "end of contour detection"
         
         #highgui.cvWaitKey(0)
     

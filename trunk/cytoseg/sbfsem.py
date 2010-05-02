@@ -1,4 +1,4 @@
-# data location configuration file
+# This file configures the values of labels corresponding to each object.
 
 import sys
 #sys.path.append("..")
@@ -9,17 +9,18 @@ from volume3d_util import Box
 import default_path
 
 
-def sbfsem(originalImageFilePath=r"O:\images\ncmirdata1\obayashi\for_TD\3viewdata\080309\wbc_segtrainer_forRG\amira\data_tifs\last55\350x350\crop\8bit\last40\a",
-           voxelTrainingImageFilePath=r"O:\images\ncmirdata1\obayashi\for_TD\3viewdata\080309\wbc_segtrainer_forRG\amira\data_tifs\last55\350x350\crop\8bit\last40\b",
-           voxelTrainingLabelFilePath=r"O:\images\ncmirdata1\obayashi\for_TD\3viewdata\080309\wbc_segtrainer_forRG\amira\seg_tifs70\50-69\crop",
-           blobImageStackOutputFolder="O:/temp/blobOutput_080309",
+def sbfsem(originalImageFilePath,
+           voxelTrainingImageFilePath,
+           voxelTrainingLabelFilePath,
+           blobImageStackOutputFolder,
            numberOfTrees=50,
            numberOfTrainingLayersToProcess=7,
            numberOfLayersToProcess=8,
            classifyStartZ=None,
            classifyEndZ=None,
            voxelClassificationIteration=0,
-           steps=False):
+           steps=False,
+           guiVisible=False):
 
     param = {}
 
@@ -60,7 +61,7 @@ def sbfsem(originalImageFilePath=r"O:\images\ncmirdata1\obayashi\for_TD\3viewdat
 
     #detector = Detector(param)
     detector = ContourSetDetector(param, voxelClassificationIteration,
-                                  guiVisible=False)
+                                  guiVisible=guiVisible)
 
     #detector.contourClassifier.fullManualSegFilePath = param['voxelTrainingLabelFilePath']
     #detector.contourClassifier.fullManualSegFilePath = "O:/images/ncmirdata1/obayashi/for_TD/3viewdata/080309/wbc_segtrainer_forRG/amira/seg_tifs3/350x350/crop/last/test_seg" + subfolder
@@ -103,8 +104,10 @@ def sbfsem(originalImageFilePath=r"O:\images\ncmirdata1\obayashi\for_TD\3viewdat
     detector.contourClassifier.labelIdentifierDict['vesicles'] =\
         LabelIdentifier(min=138, max=138)
 
-    # this setting is probably obsolete
-    detector.setTarget('membranes')
+    # this setting affects contour detection (not voxel processing)
+    #detector.setTarget('membranes')
+    detector.setTarget('mitochondria_new')
+
     #detector.setTarget('membranes_test')
 
     print "sbfsem.py detector: run", steps

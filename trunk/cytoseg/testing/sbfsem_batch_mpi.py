@@ -8,7 +8,7 @@ import default_path
 
 from command_reader import CommandReader
 
-enableMPI = 1
+enableMPI = 0
 
 if enableMPI:
     # MPI code
@@ -65,7 +65,10 @@ subfolder = ""
 
 commandReader = CommandReader()
 param = commandReader.param
-cytosegDataFolder = param['cytosegDataFolder'] + str(mpiRank)
+cytosegDataFolder = os.path.join(param['cytosegDataFolder'], "process%03d" % mpiRank)
+print "cytosegDataFolder", cytosegDataFolder
+if not(os.path.exists(cytosegDataFolder)):
+    os.mkdir(cytosegDataFolder)
 default_path.defaultTemporaryFolder = cytosegDataFolder
 default_path.cytosegDataFolder = cytosegDataFolder
 default_path.contourOutputTemporaryFolder = cytosegDataFolder
@@ -75,7 +78,7 @@ default_path.defaultOutputPath = cytosegDataFolder
 print "sbfsem_batch"
 for numTrees in (25,):
 
-    for iteration in range(0, 3):
+    for iteration in range(0, 1):
 
         path = param['blobImageStackOutputFolder'] + str(numTrees)
         numberOfLayersToClassify = 6 + 1
