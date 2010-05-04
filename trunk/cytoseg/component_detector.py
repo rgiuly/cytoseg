@@ -49,20 +49,20 @@ import os
 import colorsys
 import copy as copy_module
 
-enableMPI = 0
-
-if enableMPI:
-
-    # MPI code
-    from mpi4py import MPI
-    
-    comm = MPI.COMM_WORLD
-    mpiRank = comm.Get_rank()
-    mpiCommSize = comm.Get_size()
-
-else:
-
-    mpiRank = 0
+#enableMPI = 0
+#
+#if enableMPI:
+#
+#    # MPI code
+#    from mpi4py import MPI
+#    
+#    comm = MPI.COMM_WORLD
+#    mpiRank = comm.Get_rank()
+#    mpiCommSize = comm.Get_size()
+#
+#else:
+#
+#    mpiRank = 0
     
 enablePathProbabilityFilter = True # use True for mitochondria
 
@@ -715,7 +715,8 @@ class ComponentDetector:
         
         #inputImageFilePath =\
         #    driveName + "/images/HPFcere_vol/HPF_rotated_tif/median_then_gaussian_8bit"
-        exampleListFileName = os.path.join(cytosegDataFolder, "exampleList%d.tab" % mpiRank)
+        #exampleListFileName = os.path.join(cytosegDataFolder, "exampleList%d.tab" % mpiRank)
+        exampleListFileName = os.path.join(cytosegDataFolder, "exampleList.tab")
         
         voxelTrainingImageNodePath = ('Volumes', 'voxelTrainingImage')
         voxelTrainingLabelNodePath = ('Volumes', 'voxelTrainingLabel')

@@ -8,7 +8,7 @@ import default_path
 
 from command_reader import CommandReader
 
-enableMPI = 0
+enableMPI = 1
 
 if enableMPI:
     # MPI code
@@ -73,6 +73,9 @@ default_path.defaultTemporaryFolder = cytosegDataFolder
 default_path.cytosegDataFolder = cytosegDataFolder
 default_path.contourOutputTemporaryFolder = cytosegDataFolder
 default_path.defaultOutputPath = cytosegDataFolder
+
+logging.basicConfig(level=logging.DEBUG,
+                    filename=os.path.join(cytosegDataFolder, 'log.txt'))
 
 #for numTrees in (1, 10, 40, 160, 640):
 print "sbfsem_batch"

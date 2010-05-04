@@ -3,24 +3,37 @@ from numpy import *
 from scipy import ndimage
 from data_viewer import borderWidthForFeatures
 
-class NeuralNetwork():
+class StencilNeuralNetwork():
+
+
+    offsets = {(0,0):1,
+               (1,1):1, (3,3):1, (5,5):1,
+               (-1,1):1, (-3,3):1, (-5,5):1,
+               (-1,-1):1, (-3,-3):1, (-5,-5):1,
+               (1,-1):1, (3,-3):1, (5,-5):1,
+               (1,0):1, (3,0):1, (5,0):1,
+               (-1,0):1, (-3,0):1, (-5,0):1,
+               (0,1):1, (0,3):1, (0,5):1,
+               (0,-1):1, (0,-3):1, (0,-5):1}
 
 
     def __init__(self, inputVolume):
 
         self.inputVolume = inputVolume
         self.outputVolume = zeros(inputVolume.shape, dtype=float32)
-        self.weights = ones((11, 11, 1), dtype=float32)
 
 
     def update(self):
 
-        sh = self.weights.shape
+        weights = zeros((11, 11, 1), dtype=float32)
+
+        for key in self.offsets:
+
+            weights[key[0] + 5, key[1] + 5] = self.offsets[key]
 
         #self.outputVolume[:] = self.inputVolume[:]
 
-        ndimage.convolve(self.inputVolume,
-                         self.weights / float(sh[0] * sh[1] * sh[2]),
+        ndimage.convolve(self.inputVolume, weights / float(len(self.offsets)),
                          output=self.outputVolume)
         self.outputVolume[:] = tanh(self.outputVolume)[:]
 
@@ -40,7 +53,7 @@ class NeuralNetwork():
 
 
 
-class NeuralNetworkLearner:
+class StencilNeuralNetworkLearner:
 
     def __init__(self, inputVolume, outputVolume):
 
@@ -57,7 +70,7 @@ class NeuralNetworkLearner:
 
         for x in range(borderWidthForFeatures[0], v.shape[0]-borderWidthForFeatures[0]):
             #print x, "out of", v.shape[0]-borderWidthForFeatures-1
-            for y in range(borderWidthForFeatures[1], v.shape[1]-borderWidthForFeatures[1]):
+            for y in range(borderWidthForFeatures[1],v.shape[1]-borderWidthForFeatures[1]):
                 for z in range(borderWidthForFeatures[2],
                                v.shape[2]-borderWidthForFeatures[2]):
 
@@ -70,36 +83,28 @@ class NeuralNetworkLearner:
     def update(self):
 
         #step = 0.5
-        step = 5.0# * pow(0.9, self.updateCount)
+        step = 5.0 * pow(0.9, self.updateCount)
 
         error = self.error()
         print "NeuralNetwork error: %f" % error
 
-        weights = self.network.weights
-        sh = weights.shape
+        for key in self.network.offsets:
+            weight = self.network.offsets[key]
 
-        for x in range(sh[0]):
-            for y in range(sh[1]):
-                for z in range(sh[2]):
+            self.network.offsets[key] = weight + step
+            errorForIncrease = self.error()
 
-                    weight = weights[x, y, z]
-
-                    weights[x, y, z] = weight + step
-                    errorForIncrease = self.error()
-                    #print "errorForIncrease", errorForIncrease
-
-                    if errorForIncrease < error:
-                        #self.network.offsets[key] = weight + step
-                        pass
-                    else:
-                        weights[x, y, z] = weight - step
-                        errorForDecrease = self.error()
-                        #print "errorForDecrease", errorForDecrease
-                        if errorForDecrease < error:
-                            #weights[x, y, z] = weight - step
-                            pass
-                        else:
-                            weights[x, y, z] = weight
+            if errorForIncrease < error:
+                #self.network.offsets[key] = weight + step
+                pass
+            else:
+                self.network.offsets[key] = weight - step
+                errorForDecrease = self.error()
+                if errorForDecrease < error:
+                    #self.network.offsets[key] = weight - step
+                    pass
+                else:
+                    self.network.offsets[key] = weight
 
         self.updateCount += 1
 

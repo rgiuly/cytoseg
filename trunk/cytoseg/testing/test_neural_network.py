@@ -32,7 +32,7 @@ def updateNeuralNetwork():
 
     learner.update()
 
-    print learner.network.offsets
+    print learner.network.weights
 
     writeTiffStack(defaultOutputPath,
                    dataViewer.getVolume_new(('Volumes', 'OutputVolume')),

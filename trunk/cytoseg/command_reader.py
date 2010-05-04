@@ -1,6 +1,33 @@
 
 import sys
+import logging
 import default_path
+
+
+originalStdout = sys.stdout
+originalStderr = sys.stderr
+
+class LogFile(object):
+    """File-like object to log text using the `logging` module."""
+
+    def __init__(self, name=None):
+        self.logger = logging.getLogger(name)
+
+    def write(self, msg, level=logging.INFO):
+        originalStdout.write(msg)
+        self.logger.log(level, msg)
+
+    def flush(self):
+        originalStdout.flush()
+        for handler in self.logger.handlers:
+            handler.flush()
+
+logging.basicConfig(level=logging.DEBUG, filename='log.txt')
+
+# Redirect stdout and stderr
+sys.stdout = LogFile('stdout')
+sys.stderr = LogFile('stderr')
+
 
 class CommandReader:
 
