@@ -9,7 +9,7 @@ import default_path
 
 from command_reader import CommandReader
 
-enableMPI = 0
+enableMPI = 1
 
 if enableMPI:
     # MPI code
