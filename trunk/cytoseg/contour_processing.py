@@ -204,6 +204,7 @@ class ContourDetector:
         self.threshold = 0.5
         self.openCVImageSize = cv.cvSize(numpyImageArrayShape[0], numpyImageArrayShape[1])
         self.images = self.createTemporaryImages(self.openCVImageSize)
+        self.retrievalMode = cv.CV_RETR_LIST
 
         #testContours()
 
@@ -466,7 +467,7 @@ class ContourDetector:
                 nb_contours, contours = cv.cvFindContours(binaryImage,
                                                           storage,
                                                           cv.sizeof_CvContour,
-                                                          cv.CV_RETR_LIST,
+                                                          self.retrievalMode,
                                                           cv.CV_CHAIN_APPROX_SIMPLE,
                                                           cv.cvPoint(0,0))
 #                nb_contours, contours = cv.cvFindContours(image,

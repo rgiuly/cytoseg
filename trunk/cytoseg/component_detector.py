@@ -455,7 +455,7 @@ class ComponentDetector:
         self.displayParametersDict['mitochondria'].contourProbabilityThreshold = 0.08
         self.displayParametersDict['mitochondria_new'] = ContourAndBlobDisplayParameters()
         self.displayParametersDict['mitochondria_new'].numberOfContoursToDisplay = None #20
-        self.displayParametersDict['mitochondria_new'].contourProbabilityThreshold = 0.04
+        self.displayParametersDict['mitochondria_new'].contourProbabilityThreshold = 0.02
         self.displayParametersDict['blankInnerCell'] = ContourAndBlobDisplayParameters()
         self.displayParametersDict['blankInnerCell'].numberOfContoursToDisplay = 20
         self.displayParametersDict['blankInnerCell'].contourProbabilityThreshold = 0 #0.1
@@ -904,6 +904,8 @@ class ComponentDetector:
 
             elif self.target == 'mitochondria_new':
             
+                detector.retrievalMode = cv.CV_RETR_EXTERNAL
+
                 if numberOfLayersToProcess != None:
                     detector.originalVolume = self.dataViewer.getPersistentVolume_old(self.originalVolumeName)\
                     [:, :, 0:numberOfLayersToProcess]

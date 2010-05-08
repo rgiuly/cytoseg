@@ -4,11 +4,12 @@ import os
 import sys
 sys.path.append("..")
 import math
+import logging
 import default_path
 
 from command_reader import CommandReader
 
-enableMPI = 1
+enableMPI = 0
 
 if enableMPI:
     # MPI code
@@ -74,8 +75,10 @@ default_path.cytosegDataFolder = cytosegDataFolder
 default_path.contourOutputTemporaryFolder = cytosegDataFolder
 default_path.defaultOutputPath = cytosegDataFolder
 
+logFile = os.path.join(cytosegDataFolder, 'log.txt')
+print "logFile", logFile
 logging.basicConfig(level=logging.DEBUG,
-                    filename=os.path.join(cytosegDataFolder, 'log.txt'))
+                    filename=logFile)
 
 #for numTrees in (1, 10, 40, 160, 640):
 print "sbfsem_batch"
@@ -126,7 +129,8 @@ for numTrees in (25,):
        	           param['voxelTrainingImageFilePath'],
        	           param['voxelTrainingLabelFilePath'],
        	           #path, numTrees, 6+1, None, zStart - zStartOffset, zStop + zEndOffset + 1, iteration, taskToPerform)
-                   path, numTrees, 6+1, None, zStart, zStop, iteration, taskToPerform)
+                   path, numTrees, 6+1, None, zStart, zStop, iteration,
+                   taskToPerform, False, param['configFile'])
             #print "zStart - zStartOffset", zStart - zStartOffset
 	    #print "zStop + zEndOffset", zStop + zEndOffset
             #sbfsem(param['originalImageFilePath'],

@@ -1,3 +1,4 @@
 import os
 #os.system(r"python sbfsem_batch_mpi.py c:\temp\machine_learning_tutorial\b\40x40 c:\temp\machine_learning_tutorial\a\40x40 c:\temp\machine_learning_tutorial\a_membranes\40x40 c:\temp c:\temp")
-os.system(r"python sbfsem_batch_mpi.py c:\temp\machine_learning_tutorial\b c:\temp\machine_learning_tutorial\a c:\temp\machine_learning_tutorial\a_membranes c:\temp c:\temp")
+#os.system(r"python sbfsem_batch_mpi.py c:\temp\machine_learning_tutorial\b c:\temp\machine_learning_tutorial\a c:\temp\machine_learning_tutorial\a_membranes c:\temp c:\temp sbfsem_settings1.py")
+os.system(r"python sbfsem_batch_mpi.py O:\images\ncmirdata1\obayashi\for_TD\3viewdata\080309\wbc_segtrainer_forRG\amira\data_tifs\last55\350x350\crop\8bit\last\test O:\images\ncmirdata1\obayashi\for_TD\3viewdata\080309\wbc_segtrainer_forRG\amira\data_tifs\last55\350x350\crop\8bit\last\training O:\images\ncmirdata1\obayashi\for_TD\3viewdata\080309\wbc_segtrainer_forRG\amira\seg_tifs3\350x350\crop\last\training_seg c:\temp c:\temp sbfsem_settings1.py")

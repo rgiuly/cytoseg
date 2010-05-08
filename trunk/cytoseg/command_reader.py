@@ -22,7 +22,7 @@ class LogFile(object):
         for handler in self.logger.handlers:
             handler.flush()
 
-logging.basicConfig(level=logging.DEBUG, filename='log.txt')
+#logging.basicConfig(level=logging.DEBUG, filename='log.txt')
 
 # Redirect stdout and stderr
 sys.stdout = LogFile('stdout')
@@ -52,6 +52,8 @@ class CommandReader:
         self.param['blobImageStackOutputFolder'] = sys.argv[4]
 
         self.param['cytosegDataFolder'] = sys.argv[5]
+
+        self.param['configFile'] = sys.argv[6]
 
         print self.param
 
