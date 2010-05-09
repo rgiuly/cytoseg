@@ -18,8 +18,9 @@ def sbfsem(originalImageFilePath,
            numberOfTrees=50,
            numberOfTrainingLayersToProcess=7,
            numberOfLayersToProcess=8,
-           classifyStartZ=None,
-           classifyEndZ=None,
+           #classifyStartZ=None,
+           #classifyEndZ=None,
+           regionToClassify,
            voxelClassificationIteration=0,
            steps=False,
            guiVisible=False,
@@ -82,8 +83,9 @@ def sbfsem(originalImageFilePath,
     #detector.contourClassifier.numberOfLayersToProcess = 50
     #detector.contourClassifier.numberOfLayersToProcess = 14
     detector.contourClassifier.numberOfLayersToProcess = numberOfLayersToProcess
-    detector.contourClassifier.regionToClassify = Box([None, None, classifyStartZ],
-                                                      [None, None, classifyEndZ])
+    #detector.contourClassifier.regionToClassify = Box([None, None, classifyStartZ],
+    #                                                  [None, None, classifyEndZ])
+    detector.contourClassifier.regionToClassify = regionToClassify
     detector.contourClassifier.numberOfTrainingLayersToProcess =\
         numberOfTrainingLayersToProcess
 

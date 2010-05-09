@@ -1540,13 +1540,13 @@ def getPointFeaturesAt(inputVolumeDict, volume, derivativeVolumesIdentifier, gui
                     f['focus_%s_%d_%d' % (key, xOffset, yOffset)] =\
                         inputVolume[point[0] + xOffset, point[1] + yOffset, point[2]]
 
-            step = 2
+            #step = 2
 
-            for zOffset in (-1, 1):
-                for xOffset in range(-(windowSize+1), windowSize, step):
-                    for yOffset in range(-(windowSize+1), windowSize, step):
-                        f['focus_%s_%d_%d_%d' % (key, xOffset, yOffset, zOffset)] =\
-                            inputVolume[point[0] + xOffset, point[1] + yOffset, point[2] + zOffset]
+            #for zOffset in (-1, 1):
+            #    for xOffset in range(-(windowSize+1), windowSize, step):
+            #        for yOffset in range(-(windowSize+1), windowSize, step):
+            #            f['focus_%s_%d_%d_%d' % (key, xOffset, yOffset, zOffset)] =\
+            #                inputVolume[point[0] + xOffset, point[1] + yOffset, point[2] + zOffset]
 
         if 0:
             for xOffset in range(-(windowSize+1), windowSize, step):
