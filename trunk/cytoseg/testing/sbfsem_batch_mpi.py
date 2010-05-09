@@ -125,7 +125,7 @@ for numTrees in (25,):
 
             print "Process # ", mpiRank, " -> ", zStart, zStop
 
-            regionToClassify = Box((0, 0, 0), (80, 80, 20))
+            regionToClassify = Box((0, 0, zStart), (200, 200, zStop))
 
             sbfsem(param['originalImageFilePath'],
        	           param['voxelTrainingImageFilePath'],

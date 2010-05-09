@@ -1527,13 +1527,15 @@ def getPointFeaturesAt(inputVolumeDict, volume, derivativeVolumesIdentifier, gui
             #windowSize = 3
             #windowSize = 5
 
+            scale = 2
+
             if key == 'originalVolume':
-                windowSize = 6
+                windowSize = 6 * scale
             else:
-                windowSize = 2
+                windowSize = 2 * scale
 
 
-            step = 1
+            step = 1 * scale
 
             for xOffset in range(-(windowSize+1), windowSize, step):
                 for yOffset in range(-(windowSize+1), windowSize, step):

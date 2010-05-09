@@ -3002,7 +3002,7 @@ def loadImageStack(path, subvolumeBox, maxNumberOfImages=None):
     
     
     if subvolumeBox == None:
-        NOT_SET = -1
+        NOT_SET = None
         box = Box((NOT_SET, NOT_SET, 0), (NOT_SET, NOT_SET, numImages))
     else:
         box = subvolumeBox
@@ -3899,7 +3899,8 @@ def updateParticlePositions(volume, settingsTree, offsetOfLoadedVolumeInFullVolu
 #volumes = odict()
 
 #borderWidthForFeatures = [3, 3, 3]
-borderWidthForFeatures = [9, 9, 3]
+#borderWidthForFeatures = [9, 9, 3]
+borderWidthForFeatures = [18, 18, 3]
 
 
 def createSampleVolumes():
