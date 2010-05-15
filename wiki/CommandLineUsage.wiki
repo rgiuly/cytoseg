@@ -1,0 +1,6 @@
+
+From the cytoseg folder
+
+Example:
+
+python sbfsem_batch_mpi.py ~/machine_learning_tutorial/b ~/machine_learning_tutorial/a ~/machine_learning_tutorial/a_membranes /tmp /tmp testing/sbfsem_settings1.py
