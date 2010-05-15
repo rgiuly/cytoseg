@@ -225,7 +225,7 @@ class ClassificationControlsFrame(ControlsFrame):
                 #offsetVector[coordinate] = offset
                 offsetVector[coordinate] = offset + (i*2)
                 #print 'offset', offset
-                print "amount of blur ", sigma
+                print "amount of blur:", sigma
 
                 DoOG = differenceOfOffsetGaussians(volumeShape, offsetVector, sigma)
 
@@ -515,7 +515,8 @@ class ClassificationControlsFrame(ControlsFrame):
         #originalVolume = self.getPersistentObject(originalVolumeNodePath)
 
         print "learnLocalFeatures dimensions", sh
-        self.calculateDerivatives(filteredVolume, 'training')
+        if 0:
+            self.calculateDerivatives(filteredVolume, 'training')
 
         volume = numpy.zeros(sh)
         #selected x, y, and z
@@ -567,9 +568,12 @@ class ClassificationControlsFrame(ControlsFrame):
 
                     className = None
 
+                    value = membraneVoxelVolume[x,y,z]
                     for target in labelIdentifierDict:
-                        value = membraneVoxelVolume[x,y,z]
                         #print value
+                        #print labelIdentifierDict[target].min
+                        #print labelIdentifierDict[target].max
+                        #print labelIdentifierDict[target].values
                         if labelIdentifierDict[target].isMember(value):
                             className = target
 
@@ -830,7 +834,8 @@ class ClassificationControlsFrame(ControlsFrame):
             if sourceType == 'phantom':
                 #todo: enlarge the volume before thresholding rather than after
                 membraneLabelVolume = membranePhantom.createSignalLabelVolume()
-                membraneLabelVolume = makeEnlargedVolume(membraneLabelVolume, 2)
+                #membraneLabelVolume = makeEnlargedVolume(membraneLabelVolume, 2)
+                membraneLabelVolume = resizeVolume(membraneLabelVolume, (2, 2, 2))
             elif sourceType == 'imageFile':
                 # load membrane label volume from disk
                 membraneLabelVolume = loadImageStack(trainingLabelFilePath, None)
@@ -867,7 +872,8 @@ class ClassificationControlsFrame(ControlsFrame):
 
     def makeEnlargedPhantom(self, membranePhantom):
             v = membranePhantom.createVolume()
-            v = makeEnlargedVolume(v, 2)
+            #v = makeEnlargedVolume(v, 2)
+            v = resizeVolume(v, (2, 2, 2))
             return v
     
     def findAndClassifyFaces(self, inputFileIdentifier, sourceType, useOriginalForWatershed, volumeForWatershedName, doPart):
@@ -1175,6 +1181,9 @@ class ClassificationControlsFrame(ControlsFrame):
 
         data = orange.ExampleTable(voxelExamplesFilename)
         
+        if len(data) == 0:
+            raise Exception, "There are zero examples in the training data."
+
         #minimumExamples = len(data) / 5
         minimumExamples = len(data) / 40
         
@@ -1425,7 +1434,7 @@ def getPointFeaturesAt(inputVolumeDict, volume, derivativeVolumesIdentifier, gui
     
 
     if not(isInsideVolumeWithBorder(volume, point, borderWidthForFeatures)):
-        raise Exception, 'The point %s is not inside the volume enough. In needs to be away from the border by %d pixels for x, %d pixels for y, and %d pixels for z.' % (point, borderWidthForFeatures[0], borderWidthForFeatures[1], borderWidthForFeatures[2])
+        raise Exception, 'The point %s is not inside the volume enough. In needs to be away from the border by %d pixels for x, %d pixels for y, and %d pixels for z. Volume shape: %s' % (point, borderWidthForFeatures[0], borderWidthForFeatures[1], borderWidthForFeatures[2], str(volume.shape))
     
     f = odict()
 
@@ -1450,7 +1459,7 @@ def getPointFeaturesAt(inputVolumeDict, volume, derivativeVolumesIdentifier, gui
         
         #(CUBE_3X3, CUBE_5X5, CUBE_7X7) = (0, 1, 2)     
         
-        if 1:
+        if 0:
 
             #i = 0
             #todo: note that getVolume may be a slow operation

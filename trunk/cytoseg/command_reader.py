@@ -53,7 +53,8 @@ class CommandReader:
 
         self.param['cytosegDataFolder'] = sys.argv[5]
 
-        self.param['configFile'] = sys.argv[6]
+        if len(sys.argv) > 6:
+            self.param['configFile'] = sys.argv[6]
 
         print self.param
 

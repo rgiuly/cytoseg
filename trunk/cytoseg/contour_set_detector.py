@@ -100,14 +100,14 @@ class ContourSetDetector:
         self.contourClassifier.numberOfLayersToProcess = None
     
         # for mitochondria
-        self.contourClassifier.numberOfThresholds = 1 #1 #1 #4
-        self.contourClassifier.firstThreshold = 70 #160 #0.05 #0.4 #0.2
+        self.contourClassifier.numberOfThresholds = 4 #1 #1 #4
+        self.contourClassifier.firstThreshold = 40 #160 #0.05 #0.4 #0.2
     
         # not for mitochondria
         #self.contourClassifier.numberOfThresholds = 1 #4
         #self.contourClassifier.firstThreshold = 0.4 #0.2
     
-        self.contourClassifier.thresholdStep = 50 #0.05
+        self.contourClassifier.thresholdStep = 10 #0.05
 
         self.setTarget('mitochondria')
         #self.setTarget('vesicles')
@@ -152,6 +152,7 @@ class ContourSetDetector:
         elif steps == 'classifyVoxels':
 
             self.contourClassifier.runInitialize()
+            self.contourClassifier.runPersistentLoadTrainingData()
             self.contourClassifier.runPersistentLoadOriginalImage()
             self.contourClassifier.runClassifyVoxels()
             self.contourClassifier.runWriteVoxelClassificationResult()

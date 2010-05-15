@@ -6,6 +6,7 @@ class MachineLearningTutorial(ContourSetDetector):
     def run(self, runAllSteps=True):
 
         self.contourClassifier.runInitialize()
+        self.contourClassifier.runPersistentLoadTrainingData()
         self.contourClassifier.runPersistentLoadOriginalImage()
         self.contourClassifier.runClassifyVoxels()
         self.contourClassifier.runWriteVoxelClassificationResult()

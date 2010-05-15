@@ -21,6 +21,7 @@
 
 import warnings
 import numpy
+import logging
 from cytoseg_classify import *
 from contour_list_classification import *
 #from mitochondria import *
@@ -48,6 +49,9 @@ except ImportError:
 import os
 import colorsys
 import copy as copy_module
+
+#log = logging.getLogger('component_detector')
+#logging.basicConfig(level=logging.INFO)
 
 #enableMPI = 0
 #
@@ -93,10 +97,11 @@ def mitochondria_newProbability(features):
     amplitude = 1
     overlapValue = gaussian(1.0 - features['ellipseOverlap'], amplitude, 0.2)
     perimeterValue = gaussian(abs(131.0 - features['perimeter']), amplitude, 75)
-    grayValueMatch = gaussian(abs(1 - features['averageGrayValue']), amplitude, 0.25)
+    #grayValueMatch = gaussian(abs(1 - features['averageGrayValue']), amplitude, 0.25)
+    grayValueMatch = features['averageGrayValue']
     area = math.sqrt(features['contourArea']) / 635.0
     #return overlapValue * perimeterValue * grayValueMatch * area * area
-    return grayValueMatch * area * area
+    return grayValueMatch * area * area * area
 
 
 def blankInnerCellProbability(features):
@@ -441,6 +446,7 @@ class ComponentDetector:
         self.numberOfTrainingLayersToProcess = None
 
         self.numberOfLayersToProcess = None
+        self.trainingRegion = None
         self.regionToClassify = None
         self.numberOfThresholds = 1
         self.firstThreshold = 0.5
@@ -455,7 +461,7 @@ class ComponentDetector:
         self.displayParametersDict['mitochondria'].contourProbabilityThreshold = 0.08
         self.displayParametersDict['mitochondria_new'] = ContourAndBlobDisplayParameters()
         self.displayParametersDict['mitochondria_new'].numberOfContoursToDisplay = None #20
-        self.displayParametersDict['mitochondria_new'].contourProbabilityThreshold = 0.02
+        self.displayParametersDict['mitochondria_new'].contourProbabilityThreshold = 0.06
         self.displayParametersDict['blankInnerCell'] = ContourAndBlobDisplayParameters()
         self.displayParametersDict['blankInnerCell'].numberOfContoursToDisplay = 20
         self.displayParametersDict['blankInnerCell'].contourProbabilityThreshold = 0 #0.1
@@ -722,12 +728,12 @@ class ComponentDetector:
         voxelTrainingLabelNodePath = ('Volumes', 'voxelTrainingLabel')
         inputImageNodePath = ('Volumes', 'inputImage')
     
-        # load training images
-        dataViewer.addVolumeAndRefreshDataTree(
-            loadImageStack(self.voxelTrainingImageFilePath,
-                           None,
-                           maxNumberOfImages=self.numberOfTrainingLayersToProcess),
-            voxelTrainingImageNodePath[1])
+        ## load training images
+        #dataViewer.addVolumeAndRefreshDataTree(
+        #    loadImageStack(self.voxelTrainingImageFilePath,
+        #                   self.trainingRegion,
+        #                   maxNumberOfImages=self.numberOfTrainingLayersToProcess),
+        #    voxelTrainingImageNodePath[1])
     
         inputTrainingVolumeDict = odict()
         inputTrainingVolumeDict['originalVolume'] =\
@@ -744,10 +750,10 @@ class ComponentDetector:
                 inputTrainingVolumeDict['previousResult_' + childNode.name] =\
                     childNode.object
 
-        # load training labels
-        labelVolume = loadImageStack(self.voxelTrainingLabelFilePath,
-                            None,
-                            maxNumberOfImages=self.numberOfTrainingLayersToProcess)
+        ## load training labels
+        #labelVolume = loadImageStack(self.voxelTrainingLabelFilePath,
+        #                    self.trainingRegion,
+        #                    maxNumberOfImages=self.numberOfTrainingLayersToProcess)
 
         # open input image data to be classified
         #inputImage = self.dataViewer.getPersistentVolume_old(self.blurredVolumeName)
@@ -764,7 +770,7 @@ class ComponentDetector:
         #        logical_and(minLabelValue <= rawLabelVolume,
         #                    rawLabelVolume <= maxLabelValue)
 
-        dataViewer.addVolumeAndRefreshDataTree(labelVolume, voxelTrainingLabelNodePath[1])
+        #dataViewer.addVolumeAndRefreshDataTree(labelVolume, voxelTrainingLabelNodePath[1])
         
         #inputImage = loadImageStack(inputImageFilePath, None)
         
@@ -1411,6 +1417,27 @@ class ComponentDetector:
                                                          self.originalVolumeName)
 
 
+    def runPersistentLoadTrainingData(self):
+
+        voxelTrainingImageNodePath = ('Volumes', 'voxelTrainingImage')
+        voxelTrainingLabelNodePath = ('Volumes', 'voxelTrainingLabel')
+
+        # load training images
+        self.dataViewer.addVolumeAndRefreshDataTree_new(
+            loadImageStack(self.voxelTrainingImageFilePath,
+                           self.trainingRegion,
+                           maxNumberOfImages=self.numberOfTrainingLayersToProcess),
+                           voxelTrainingImageNodePath)
+
+        # load training labels
+        labelVolume = loadImageStack(self.voxelTrainingLabelFilePath,
+                            self.trainingRegion,
+                            maxNumberOfImages=self.numberOfTrainingLayersToProcess)
+
+        self.dataViewer.addVolumeAndRefreshDataTree_new(labelVolume,
+                                                voxelTrainingLabelNodePath)
+
+
     def runPreclassificationFilter(self):
 
             self.preclassificationFilter(self.dataViewer,
@@ -1425,6 +1452,9 @@ class ComponentDetector:
 
 
     def runWriteVoxelClassificationResult(self):
+
+            #log.info("runWriteVoxelClassificationResult")
+            print "runWriteVoxelClassificationResult"
 
             # write classification result to a stack of tiffs
     
@@ -1446,6 +1476,23 @@ class ComponentDetector:
                     writeTiffStack(path,
                                 volume[b[0]:-b[0], b[1]:-b[1], b[2]:-b[2]] * 255.0,
                                 startIndex=self.regionToClassify.cornerA[2]+b[2])
+
+                inputVolume = self.dataViewer.getPersistentVolume_old(
+                    self.voxelClassificationInputVolumeName)
+                compositeImagePath = os.path.join(path, "composite")
+                if not(os.path.exists(compositeImagePath)):
+                    os.mkdir(compositeImagePath)
+                if self.regionToClassify == None:
+                    writeTiffStackRGB(compositeImagePath,
+                                   volume * 255.0,
+                                   volume * 255.0,
+                                   inputVolume)
+                else:
+                    writeTiffStackRGB(compositeImagePath,
+                            volume[b[0]:-b[0], b[1]:-b[1], b[2]:-b[2]] * 255.0,
+                            volume[b[0]:-b[0], b[1]:-b[1], b[2]:-b[2]] * 255.0,
+                            inputVolume[b[0]:-b[0], b[1]:-b[1], b[2]:-b[2]])
+
 
 
     def runFindContours(self):

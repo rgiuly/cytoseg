@@ -3097,6 +3097,13 @@ def loadImageStack(path, subvolumeBox, maxNumberOfImages=None):
             #print "i shape cornerA cornerB" 
             #print (i, array2d.shape, box.cornerA, box.cornerB)
             
+            print "volume.shape", volume.shape
+            print "box.cornerA", box.cornerA
+            print "box.cornerB", box.cornerB
+            print "box.shape()", box.shape()
+
+            print volume[:,:,i-box.cornerA[2]].shape
+            print array2d[box.cornerA[0]:box.cornerB[0], box.cornerA[1]:box.cornerB[1]].shape
             volume[:,:,i-box.cornerA[2]] = array2d[box.cornerA[0]:box.cornerB[0], box.cornerA[1]:box.cornerB[1]] 
             ##todo: make the lines below work
             ##old_gui.xIndex.config(from_=0,to=volume.shape[0]-1)
@@ -4031,33 +4038,33 @@ def isInsideVolumeWithBorder(volume, point, border):
         return False
 
 
-def makeEnlargedVolume(volume, factor):
-    
-    inputShape = volume.shape
-    
-    if type(factor) != type(1):
-        raise Exception, "Non-integer %s used. Please use an integer." % factor
-    
-    Nx = ((inputShape[0]-1)*factor + 1) # new number of samples in x direction
-    Ny = ((inputShape[1]-1)*factor + 1) # new number of samples in y direction
-    Nz = ((inputShape[2]-1)*factor + 1) # new number of samples in z direction
-
-    #todo: use this
-    #    coords = mgrid[0:inputShape[0]-1:Nx*1j,
-    #                   0:inputShape[1]-1:Ny*1j,
-    #                   0:inputShape[2]-1:Nz*1j]
-    
-    ivals, jvals, kvals = mgrid[0:inputShape[0]-1:Nx*1j,
-                                0:inputShape[1]-1:Ny*1j,
-                                0:inputShape[2]-1:Nz*1j]
-    
-    
-    coords = array([ivals, jvals, kvals])
-    
-    newVolume = ndimage.map_coordinates(volume, coords, order=1)
-    #newVolume = ndimage.map_coordinates(volume, coords)
-    
-    return newVolume
+#def makeEnlargedVolume(volume, factor):
+#    
+#    inputShape = volume.shape
+#    
+#    #if type(factor) != type(1):
+#    #    raise Exception, "Non-integer %s used. Please use an integer." % factor
+#    
+#    Nx = ((inputShape[0]-1)*factor + 1) # new number of samples in x direction
+#    Ny = ((inputShape[1]-1)*factor + 1) # new number of samples in y direction
+#    Nz = ((inputShape[2]-1)*factor + 1) # new number of samples in z direction
+#
+#    #todo: use this
+#    #    coords = mgrid[0:inputShape[0]-1:Nx*1j,
+#    #                   0:inputShape[1]-1:Ny*1j,
+#    #                   0:inputShape[2]-1:Nz*1j]
+#    
+#    ivals, jvals, kvals = mgrid[0:inputShape[0]-1:Nx*1j,
+#                                0:inputShape[1]-1:Ny*1j,
+#                                0:inputShape[2]-1:Nz*1j]
+#    
+#    
+#    coords = array([ivals, jvals, kvals])
+#    
+#    newVolume = ndimage.map_coordinates(volume, coords, order=1)
+#    #newVolume = ndimage.map_coordinates(volume, coords)
+#    
+#    return newVolume
     
      
     

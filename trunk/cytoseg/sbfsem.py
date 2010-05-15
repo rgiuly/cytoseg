@@ -17,6 +17,7 @@ def sbfsem(originalImageFilePath,
            blobImageStackOutputFolder,
            numberOfTrees=50,
            numberOfTrainingLayersToProcess=7,
+           trainingRegion=None,
            numberOfLayersToProcess=8,
            #classifyStartZ=None,
            #classifyEndZ=None,
@@ -83,13 +84,14 @@ def sbfsem(originalImageFilePath,
     #detector.contourClassifier.numberOfLayersToProcess = 50
     #detector.contourClassifier.numberOfLayersToProcess = 14
     detector.contourClassifier.numberOfLayersToProcess = numberOfLayersToProcess
+    detector.contourClassifier.regionToClassify = regionToClassify
     #detector.contourClassifier.regionToClassify = Box([None, None, classifyStartZ],
     #                                                  [None, None, classifyEndZ])
-    detector.contourClassifier.regionToClassify = regionToClassify
     detector.contourClassifier.numberOfTrainingLayersToProcess =\
         numberOfTrainingLayersToProcess
 
     config_file_module.mapNumbersToComponents(detector)
+    detector.contourClassifier.trainingRegion = trainingRegion
 
     #detector.setTarget('membranes_test')
 

@@ -63,6 +63,35 @@ def rescale(volume, min, max):
     return ((volume - volume.min()) * factor) + min
 
 
+def resizeVolume(volume, factors):
+    
+    inputShape = volume.shape
+    
+    #if type(factor) != type(1):
+    #    raise Exception, "Non-integer %s used. Please use an integer." % factor
+    
+    Nx = ((inputShape[0]-1)*factors[0] + 1) # new number of samples in x direction
+    Ny = ((inputShape[1]-1)*factors[1] + 1) # new number of samples in y direction
+    Nz = ((inputShape[2]-1)*factors[2] + 1) # new number of samples in z direction
+
+    #todo: use this
+    #    coords = mgrid[0:inputShape[0]-1:Nx*1j,
+    #                   0:inputShape[1]-1:Ny*1j,
+    #                   0:inputShape[2]-1:Nz*1j]
+    
+    ivals, jvals, kvals = mgrid[0:inputShape[0]-1:Nx*1j,
+                                0:inputShape[1]-1:Ny*1j,
+                                0:inputShape[2]-1:Nz*1j]
+    
+    
+    coords = array([ivals, jvals, kvals])
+    
+    newVolume = ndimage.map_coordinates(volume, coords, order=1)
+    #newVolume = ndimage.map_coordinates(volume, coords)
+    
+    return newVolume
+
+
 # todo: path and filename combining should be done with a function for certain operating system i think
 def writeTiffStack_version1(path, redVolume, greenVolume, blueVolume):
     maxValue = 255
@@ -91,7 +120,7 @@ def writeTiffStack(path, volume, baseFileName="output", startIndex=0):
 
     maxValue = 255
     
-    a = zeros((volume.shape[0], volume.shape[1]), int8)
+    a = zeros((volume.shape[0], volume.shape[1]), dtype=int8)
     
     #path = 'c:/temp/'
     for i in range(0,volume.shape[2]):
@@ -108,7 +137,8 @@ def writeTiffStack(path, volume, baseFileName="output", startIndex=0):
         image.save(fullName)
 
 
-def writeTiffStackRGB(path, redVolume, greenVolume, blueVolume, baseFileName="output"):
+def writeTiffStackRGB(path, redVolume, greenVolume, blueVolume,
+                      baseFileName="output"):
     
     if redVolume != None:
         volumeShape = redVolume.shape
@@ -119,6 +149,7 @@ def writeTiffStackRGB(path, redVolume, greenVolume, blueVolume, baseFileName="ou
     else:
         raise Exception, "At least one of the volumes should be a 3D array (all of them are None)."
     
+    # array for the image
     a = zeros((volumeShape[1], volumeShape[0], 3), dtype=int8)
     
     # todo: check to make sure the three volumes have the same dimensions

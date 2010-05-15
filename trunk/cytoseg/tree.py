@@ -174,6 +174,8 @@ class PersistentDataTree:
         node = getNode(self.rootNode, pathToSubtree)
         #print node
         filename = makeFilenameFromNodePath(pathToSubtree)
+        #print "filename", filename
+        #print "self.rootFolderPath", self.rootFolderPath
         f = open(os.path.join(self.rootFolderPath, filename), "wb")
         #cPickle.dump(node, f)
         pickler = cPickle.Pickler(f)
