@@ -4,4 +4,4 @@ Example:
 
 python sbfsem_batch_mpi.py ~/machine_learning_tutorial/b ~/machine_learning_tutorial/a ~/machine_learning_tutorial/a_membranes /tmp /tmp testing/sbfsem_settings1.py
 
-python sbfsem_batch_mpi.py input training training_labels /tmp /tmp settings
+python sbfsem_batch_mpi.py input training_data training_labels output temporary
