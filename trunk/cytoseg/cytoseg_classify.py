@@ -1536,7 +1536,7 @@ def getPointFeaturesAt(inputVolumeDict, volume, derivativeVolumesIdentifier, gui
             #windowSize = 3
             #windowSize = 5
 
-            scale = 2
+            scale = 1
 
             if key == 'originalVolume':
                 windowSize = 6 * scale
