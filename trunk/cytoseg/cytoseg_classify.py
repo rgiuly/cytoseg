@@ -584,7 +584,8 @@ class ClassificationControlsFrame(ControlsFrame):
 
                     #if className != None:
                     if className != None and\
-                        (random.random() < 0.01 or\
+                        (random.random() < 0.1 or\
+                        #(random.random() < 0.01 or\
                             (className == 'vesicles' and random.random() < 0.04) or\
                             (className == 'membranes' and random.random() < 0.02)):
 

@@ -24,7 +24,7 @@ if not(os.path.exists(path)):
 
 
 trainingRegion = Box((200, 200, 200), (400, 400, 207))
-regionToProcess = Box([100, 600, 203], [220, 700, 210])
+regionToProcess = Box([100, 400, 203], [620, 700, 210])
 #regionToProcess = Box([100, 200, 203], [220, 700, 210])
 #regionToProcess = Box([200, 200, 203], [250, 250, 210])
 

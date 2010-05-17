@@ -579,7 +579,8 @@ class ComponentDetector:
     def preclassificationFilter(self, dataViewer, numberOfLayersToProcess=None):
 
         # todo: use runLoadOriginalImage to do this
-        originalImageNodePath = ('Volumes', 'originalImage')
+        #originalImageNodePath = ('Volumes', 'originalImage')
+        originalImageNodePath = ('Volumes', self.originalVolumeName)
 
         originalImage = loadImageStack(self.originalImageFilePath, None)
 
@@ -704,7 +705,8 @@ class ComponentDetector:
     def classifyVoxels(self, dataViewer, numberOfLayersToProcess=None):
 
         inputVolumeDict = odict()
-        originalImageNodePath = ('Volumes', 'originalImage')
+        #originalImageNodePath = ('Volumes', 'originalImage')
+        originalImageNodePath = ('Volumes', self.originalVolumeName)
         inputVolumeDict['originalVolume'] =\
             self.dataViewer.getPersistentObject(originalImageNodePath)
         if self._voxelClassificationIteration > 0:
@@ -1405,16 +1407,18 @@ class ComponentDetector:
 
     def runPersistentLoadOriginalImage(self):
 
-        originalImageNodePath = ('Volumes', 'originalImage')
+        #originalImageNodePath = ('Volumes', 'originalImage')
+        originalImageNodePath = ('Volumes', self.originalVolumeName)
 
         originalImage = loadImageStack(self.originalImageFilePath, self.regionToClassify)
 
         originalImage = originalImage[:, :, 0:self.numberOfLayersToProcess]
 
-        self.dataViewer.addVolumeAndRefreshDataTree(originalImage, originalImageNodePath[1])
+        #self.dataViewer.addVolumeAndRefreshDataTree(originalImage, originalImageNodePath[1])
 
-        self.dataViewer.addPersistentVolumeAndRefreshDataTree(originalImage,
-                                                         self.originalVolumeName)
+        self.dataViewer.addPersistentVolumeAndRefreshDataTree(
+                                    resizeVolume(originalImage, (0.5, 0.5, 1)),
+                                    self.originalVolumeName)
 
 
     def runPersistentLoadTrainingData(self):
@@ -1423,19 +1427,22 @@ class ComponentDetector:
         voxelTrainingLabelNodePath = ('Volumes', 'voxelTrainingLabel')
 
         # load training images
+        trainingDataVolume = loadImageStack(
+                        self.voxelTrainingImageFilePath,
+                        self.trainingRegion,
+                        maxNumberOfImages=self.numberOfTrainingLayersToProcess)
         self.dataViewer.addVolumeAndRefreshDataTree_new(
-            loadImageStack(self.voxelTrainingImageFilePath,
-                           self.trainingRegion,
-                           maxNumberOfImages=self.numberOfTrainingLayersToProcess),
-                           voxelTrainingImageNodePath)
+                    resizeVolume(trainingDataVolume, (0.5, 0.5, 1)),
+                    voxelTrainingImageNodePath)
 
         # load training labels
         labelVolume = loadImageStack(self.voxelTrainingLabelFilePath,
                             self.trainingRegion,
                             maxNumberOfImages=self.numberOfTrainingLayersToProcess)
 
-        self.dataViewer.addVolumeAndRefreshDataTree_new(labelVolume,
-                                                voxelTrainingLabelNodePath)
+        self.dataViewer.addVolumeAndRefreshDataTree_new(
+                    resizeVolume(labelVolume, (0.5, 0.5, 1)),
+                    voxelTrainingLabelNodePath)
 
 
     def runPreclassificationFilter(self):
@@ -1491,7 +1498,8 @@ class ComponentDetector:
                     writeTiffStackRGB(compositeImagePath,
                             volume[b[0]:-b[0], b[1]:-b[1], b[2]:-b[2]] * 255.0,
                             volume[b[0]:-b[0], b[1]:-b[1], b[2]:-b[2]] * 255.0,
-                            inputVolume[b[0]:-b[0], b[1]:-b[1], b[2]:-b[2]])
+                            inputVolume[b[0]:-b[0], b[1]:-b[1], b[2]:-b[2]],
+                            startIndex=self.regionToClassify.cornerA[2]+b[2])
 
 
 

@@ -2,6 +2,7 @@
 from numpy import *
 import Image
 import os
+from scipy import ndimage
 
 
 class Box:
@@ -138,7 +139,7 @@ def writeTiffStack(path, volume, baseFileName="output", startIndex=0):
 
 
 def writeTiffStackRGB(path, redVolume, greenVolume, blueVolume,
-                      baseFileName="output"):
+                      baseFileName="output", startIndex=0):
     
     if redVolume != None:
         volumeShape = redVolume.shape
@@ -160,7 +161,9 @@ def writeTiffStackRGB(path, redVolume, greenVolume, blueVolume,
         if blueVolume != None: a[:,:,2] = blueVolume[:,:,imageIndex].T
         image = Image.fromarray(a, 'RGB')
         
-        fullName = os.path.join(path, ('%s%0.3d%s' % (baseFileName, imageIndex, '.bmp')))
+        fullName = os.path.join(path, ('%s%0.3d%s' % (baseFileName,
+                                                      startIndex + imageIndex,
+                                                      '.bmp')))
         print fullName
         image.save(fullName)
 

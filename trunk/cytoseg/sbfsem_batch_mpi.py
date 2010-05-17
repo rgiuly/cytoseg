@@ -9,16 +9,15 @@ import default_path
 
 from command_reader import CommandReader
 
-enableMPI = 0
-
-if enableMPI:
+try:
     # MPI code
     from mpi4py import MPI
     
     comm = MPI.COMM_WORLD
     mpiRank = comm.Get_rank()
     mpiCommSize = comm.Get_size()
-else:
+except ImportError:
+    warnings.warn("mpi4py module is not installed")
     mpiRank = 0
     mpiCommSize = 10
 
@@ -125,8 +124,11 @@ for numTrees in (25,):
 
             print "Process # ", mpiRank, " -> ", zStart, zStop
 
-            trainingRegion = Box((0, 0, 0), (170, 170, 7))
-            regionToClassify = Box((0, 0, zStart), (170, 170, zStop))
+            #trainingRegion = Box((0, 0, 0), (170, 170, 7))
+            #regionToClassify = Box((0, 0, zStart), (170, 170, zStop))
+            trainingRegion = Box((200, 200, 200), (400, 400, 207))
+            regionToClassify = Box([100, 400, 203 + mpiRank],
+                                   [620, 700, 210 + mpiRank])
 
             sbfsem(param['originalImageFilePath'],
        	           param['voxelTrainingImageFilePath'],

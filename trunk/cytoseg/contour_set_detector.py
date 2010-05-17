@@ -159,7 +159,8 @@ class ContourSetDetector:
             #self.contourClassifier.calculateVoxelClassificationAccuracy_new()
             #self.contourClassifier.runFindContours()
             #self.contourClassifier.runGroupContoursByConnectedComponents()
-            #self.app.MainLoop()
+            if self.dataViewer.guiVisible:
+                self.app.MainLoop()
 
         else:
 

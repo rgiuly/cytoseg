@@ -66,7 +66,7 @@ import geometry
 
 import obj_tools
 
-from scipy import ndimage
+#from scipy import ndimage
 
 from tree import *
 
@@ -3514,7 +3514,11 @@ def stringsWithImageFileExtensions(listOfStrings):
     #todo: string comparison should ignore case
     result = []
     for s in listOfStrings:
-        if (s.find('.tif') != -1) or (s.find('.bmp') != -1) or (s.find('.pgm') != -1) or (s.find('.gif') != -1):
+        if (s.find('.tif') != -1) or\
+            (s.find('.bmp') != -1) or\
+            (s.find('.pgm') != -1) or\
+            (s.find('.gif') != -1) or\
+            (s.find('.png') != -1):
             result.append(s)
     return result
 
