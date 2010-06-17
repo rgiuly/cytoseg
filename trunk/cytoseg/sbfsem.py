@@ -11,10 +11,11 @@ import default_path
 import imp
 
 
-def sbfsem(originalImageFilePath,
-           voxelTrainingImageFilePath,
-           voxelTrainingLabelFilePath,
-           blobImageStackOutputFolder,
+def sbfsem(originalImageFilePath=None,
+           voxelTrainingImageFilePath=None,
+           voxelTrainingLabelFilePath=None,
+           precomputedProbabilityMapFilePath=None,
+           blobImageStackOutputFolder=None,
            numberOfTrees=50,
            numberOfTrainingLayersToProcess=7,
            trainingRegion=None,
@@ -85,13 +86,25 @@ def sbfsem(originalImageFilePath,
     #detector.contourClassifier.numberOfLayersToProcess = 14
     detector.contourClassifier.numberOfLayersToProcess = numberOfLayersToProcess
     detector.contourClassifier.regionToClassify = regionToClassify
+    detector.contourTrainer.numberOfLayersToProcess = numberOfLayersToProcess
+    detector.contourTrainer.regionToClassify = regionToClassify
     #detector.contourClassifier.regionToClassify = Box([None, None, classifyStartZ],
     #                                                  [None, None, classifyEndZ])
     detector.contourClassifier.numberOfTrainingLayersToProcess =\
         numberOfTrainingLayersToProcess
+    detector.contourTrainer.numberOfTrainingLayersToProcess =\
+        numberOfTrainingLayersToProcess
 
     config_file_module.mapNumbersToComponents(detector)
     detector.contourClassifier.trainingRegion = trainingRegion
+    detector.contourTrainer.trainingRegion = trainingRegion
+
+    detector.contourTrainer.contourTrainingRegion = trainingRegion
+
+    detector.contourClassifier.precomputedProbabilityMapFilePath =\
+        precomputedProbabilityMapFilePath
+    detector.contourTrainer.precomputedProbabilityMapFilePath =\
+        precomputedProbabilityMapFilePath
 
     #detector.setTarget('membranes_test')
 

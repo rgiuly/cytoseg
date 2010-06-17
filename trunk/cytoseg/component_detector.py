@@ -72,6 +72,15 @@ enablePathProbabilityFilter = True # use True for mitochondria
 
 
 
+#class ObjectIdentifier:
+#
+#
+#    def __init__(self, volumeName, labelValue):
+#
+#        self.volumeName = volumeName
+#        self.labelValue = labelValue
+
+
 def mitochondriaProbability_old(features):
 
     amplitude = 1
@@ -417,6 +426,8 @@ class ComponentDetector:
         self.fullManualSegNodePath =\
             ('Volumes', dataIdentifier + 'FullManualSeg')
 
+        self.probabilityMapNodePath = ('Volumes', dataIdentifier + 'ProbabilityMap')
+
         #self.voxelTrainingImageFilePath =\
         #    "O:\\images\\HPFcere_vol\\HPF_rotated_tif\\three_compartment\\"
         #self.voxelTrainingLabelFilePath =\
@@ -452,6 +463,8 @@ class ComponentDetector:
         self.firstThreshold = 0.5
         self.thresholdStep = 0.1
 
+        self.contourTrainingRegion = None
+
         #self.minVoxelLabelValue = 1
         #self.maxVoxelLabelValue = None
 
@@ -481,6 +494,7 @@ class ComponentDetector:
         self.probabilityFunctionDict['membranes_test'] = blankInnerCellProbability
         self.pathLength = {}
         self.pathLength['mitochondria'] = 3
+        self.pathLength['mitochondria_new'] = 2
         self.pathLength['vesicles'] = 1
         self.pathLength['blankInnerCell'] = 1
         self.enable3DPlot = False
@@ -490,7 +504,7 @@ class ComponentDetector:
         #self.minVoxelLabelValue = {}
         #self.maxVoxelLabelValue = {}
 
-        self.labelIdentifierDict = {}
+        self.labelIdentifierDict = LabelIdentifierDict()
 
         ## setting defaults so that 1 or greater represents the label
         #for key in targetKeys:
@@ -788,13 +802,14 @@ class ComponentDetector:
                                            voxelTrainingLabelNodePath,
                                            exampleListFileName)
         
-            # uses training data, generates voxel probabilities
-            print "classifying training set voxels"
-            dataViewer.classifyVoxels('intermediateTrainingDataLabel1',
-                               self.currentVoxelTrainingClassificationResultPath(),
-                               exampleListFileName,
-                               inputTrainingVolumeDict,
-                               voxelTrainingImageNodePath)
+            if 0:
+                # uses training data, generates voxel probabilities
+                print "classifying training set voxels"
+                dataViewer.classifyVoxels('intermediateTrainingDataLabel1',
+                                   self.currentVoxelTrainingClassificationResultPath(),
+                                   exampleListFileName,
+                                   inputTrainingVolumeDict,
+                                   voxelTrainingImageNodePath)
 
             # uses test data, generates voxel probabilities
             print "classifying voxels"
@@ -917,11 +932,11 @@ class ComponentDetector:
                 if numberOfLayersToProcess != None:
                     detector.originalVolume = self.dataViewer.getPersistentVolume_old(self.originalVolumeName)\
                     [:, :, 0:numberOfLayersToProcess]
-                    detector.filteredVolume = self.dataViewer.getPersistentVolume_old(self.originalVolumeName)\
+                    detector.filteredVolume = self.dataViewer.getPersistentObject(self.probabilityMapNodePath)\
                     [:, :, 0:numberOfLayersToProcess]
                 else:
                     detector.originalVolume = self.dataViewer.getPersistentVolume_old(self.originalVolumeName)
-                    detector.filteredVolume = self.dataViewer.getPersistentVolume_old(self.originalVolumeName)
+                    detector.filteredVolume = self.dataViewer.getPersistentObject(self.probabilityMapNodePath)
 
             else:
 
@@ -1031,15 +1046,17 @@ class ComponentDetector:
         return pygraph.algorithms.accessibility.connected_components(g), g
 
 
-    def computeContourRegions(self):
+    def runComputeContourRegions(self):
 
         for labelName in self.labelFilePaths.keys():
             self.dataViewer.addPersistentVolumeAndRefreshDataTree(
-                                    loadImageStack(self.labelFilePaths[labelName], None),
-                                    labelName)
+                        resizeVolume(loadImageStack(self.labelFilePaths[labelName],
+                                       self.contourTrainingRegion),
+                                       (0.5, 0.5, 1)),
+                        labelName)
 
         contoursRootNode = self.dataViewer.mainDoc.dataTree.getSubtree(
-                                                                self.contoursNodePath)
+                                                        self.contoursNodePath)
         self.dataViewer.refreshTreeControls()
 
         # flatten tree of contours into a list
@@ -1048,21 +1065,77 @@ class ComponentDetector:
         # visit each contour and look at the label that goes with each point
         for contour in contourList:
             count = {}
-            for labelName in self.labelFilePaths.keys():
-                count[labelName] = 0
-                labelVolume = self.dataViewer.getVolume(labelName)
-                for location in contour.locations():
-                    if at(labelVolume, location) != 0:
-                        count[labelName] += 1
+            contour.labelSet.clear()
+            totalPixelCount = 0
+            for labelVolumeName in self.labelFilePaths.keys():
+                #count[labelVolumeName] = 0
+                labelVolume = self.dataViewer.getVolume(labelVolumeName)
+
+                boundingBox = contour.get2DBoundingBox()
+                xOffset = boundingBox[0][0]
+                yOffset = boundingBox[0][1]
+
+                z = contour.points()[0].loc[2]
+
+                #for location in contour.locations():
+                for i in range(contour.binaryImage.shape[0]):
+                    for j in range(contour.binaryImage.shape[1]):
+                        #xOffset = boundingBox[0][0]
+                        #yOffset = boundingBox[0][1]
+                        location = (i+xOffset, j+yOffset, z)
+                        if contour.binaryImage[i, j] != 0:
+                            #volume[x, y, z] = 255
+
+                            totalPixelCount += 1
+
+                            try:
+                                labelValue = at(labelVolume, location)
+                            except IndexError:
+                                raise IndexError, "Contour point %s outside of label volume with shape %s" \
+                                    % (str(location), labelVolume.shape)
+                            #componentLabelName = (labelVolumeName, str(labelValue))
+                            componentLabel = (labelVolumeName, labelValue)
+
+                            if componentLabel in count:
+                                count[componentLabel] += 1
+                            else:
+                                count[componentLabel] = 1
 
                 # if more than half of the points have a certain label,
                 # assign that label to the contour
-                if count[labelName] > (contour.numPoints() / 2):
-                    contour.labelSet.add(labelName)
-                    #print contour.labelSet
-            contour.labelCountDict = count
+                #todo: put this in a loop that visits each label
+                #print "before", contour.labelSet
+                #if count[componentLabel] > (contour.numPoints() / 2):
+                #    contour.labelSet.add(componentLabel)
+                #    #print contour.labelSet
+            contour.numericLabelCountDict = count
+            contour.labelCountDict = self.makeLabelCountDict(
+                                            count,
+                                            totalPixelCount)
 
         self.dataViewer.mainDoc.dataTree.writeSubtree(self.contoursNodePath)
+
+
+    def makeLabelCountDict(self, numericLabelCountDict, contourArea):
+
+        labelCountDict = {}
+
+        for numericLabel in numericLabelCountDict:
+
+            numPixels = numericLabelCountDict[numericLabel]
+
+            if numPixels > (contourArea / 4.0):
+            #if numPixels > 0:
+
+                value = numericLabel[1]
+                className = self.labelIdentifierDict.getClassName(value)
+
+                if className in labelCountDict:
+                    labelCountDict[className] += 1
+                else:
+                    labelCountDict[className] = 1
+
+        return labelCountDict
 
 
     def makeContourLists(self, probabilityThreshold, pathLength):
@@ -1421,6 +1494,21 @@ class ComponentDetector:
                                     self.originalVolumeName)
 
 
+    def runPersistentLoadProbabilityMap(self):
+
+        probabilityMap =\
+            loadImageStack(self.precomputedProbabilityMapFilePath,
+                           self.regionToClassify)
+
+        probabilityMap = probabilityMap[:, :, 0:self.numberOfLayersToProcess]
+
+        #self.dataViewer.addVolumeAndRefreshDataTree(originalImage, originalImageNodePath[1])
+
+        self.dataViewer.addPersistentObjectAndRefreshDataTree(
+                                    resizeVolume(probabilityMap, (0.5, 0.5, 1)),
+                                    self.probabilityMapNodePath)
+
+
     def runPersistentLoadTrainingData(self):
 
         voxelTrainingImageNodePath = ('Volumes', 'voxelTrainingImage')
@@ -1472,7 +1560,7 @@ class ComponentDetector:
             self.dataViewer.refreshTreeControls()
 
             for childNode in resultsNode.children:
-                volume = childNode.object
+                volume = resizeVolume(childNode.object, (2, 2, 1))
                 path = os.path.join(self.blobImageStackOutputFolder, childNode.name)
                 if not(os.path.exists(path)):
                     os.mkdir(path)
@@ -1481,11 +1569,12 @@ class ComponentDetector:
                     writeTiffStack(path, volume * 255.0)
                 else:
                     writeTiffStack(path,
+                                #todo: resize will make offsets wrong
                                 volume[b[0]:-b[0], b[1]:-b[1], b[2]:-b[2]] * 255.0,
                                 startIndex=self.regionToClassify.cornerA[2]+b[2])
 
-                inputVolume = self.dataViewer.getPersistentVolume_old(
-                    self.voxelClassificationInputVolumeName)
+                inputVolume = resizeVolume(self.dataViewer.getPersistentVolume_old(
+                    self.voxelClassificationInputVolumeName), (2, 2, 1))
                 compositeImagePath = os.path.join(path, "composite")
                 if not(os.path.exists(compositeImagePath)):
                     os.mkdir(compositeImagePath)
@@ -1710,6 +1799,22 @@ class ComponentDetector:
                               contourRenderingVolume[:, :, :, 2] + originalVolumeDark)
 
 
+    def runCalculateContourListFeatures(self):
+
+            self.calculateContourListFeatures()
+            recordFeaturesOfContourLists(self.dataViewer,
+                            inputTrainingContourListsNodePath=self.contourPathsNodePath,
+                            outputExamplesIdentifier=self.contourListExamplesIdentifier)
+            self.dataViewer.getPersistentVolume_old(self.originalVolumeName)
+
+            # display label volumes
+            if self.labelFilePaths != None:
+                for labelName in self.labelFilePaths.keys():
+                    self.dataViewer.getPersistentVolume_old(labelName)
+
+            self.dataViewer.refreshTreeControls()
+
+
     def runStep(self, stepNumber):
         
 
@@ -1742,7 +1847,7 @@ class ComponentDetector:
         elif stepNumber == 4:
 
             self.dataViewer.getPersistentVolume_old(self.originalVolumeName)
-            self.computeContourRegions()
+            self.runComputeContourRegions()
 
 
         elif stepNumber == 5:
@@ -1784,6 +1889,7 @@ class ComponentDetector:
                             outputExamplesIdentifier=self.contourListExamplesIdentifier)
             self.dataViewer.getPersistentVolume_old(self.originalVolumeName)
 
+            # display label volumes
             if self.labelFilePaths != None:
                 for labelName in self.labelFilePaths.keys():
                     self.dataViewer.getPersistentVolume_old(labelName)

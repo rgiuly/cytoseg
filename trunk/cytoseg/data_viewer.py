@@ -2078,7 +2078,7 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         return (double(self.getValue(('particleMotionTool','facesProbabilityThreshold'))) - 150) / 10.0
 
 
-    def drawBlobsRecursive(self, dataNode, dc, z):
+    def drawBlobsRecursive(self, dataNode, dc, z, parentColor=None):
         
         if isinstance(dataNode.object, ProbabilityObject):
             blob = dataNode.object
@@ -2088,11 +2088,16 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
                 numpy.log(blob.probability()) >= self.facesProbabilityThreshold():
                 #print "log of probability threshold", self.facesProbabilityThreshold(), "log of probability", numpy.log(blob.probability()), "probability", blob.probability()
                 if isinstance(dataNode.object, PointSet):
-                    self.drawBlob(blob, dc, z)
+                    self.drawBlob(blob, dc, z, parentColor)
         
                 if dataNode.enableRecursiveRendering:
                     for child in dataNode.children:
-                        self.drawBlobsRecursive(child, dc, z)
+                        if parentColor == None:
+                            childColor = blob.color()
+                        else:
+                            childColor = parentColor
+
+                        self.drawBlobsRecursive(child, dc, z, childColor)
         else:
             if dataNode.enableRecursiveRendering:
                 for child in dataNode.children:
@@ -2114,7 +2119,7 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
 
 
     # draws blob on an XY plane
-    def drawBlob(self, blob, dc, z):
+    def drawBlob(self, blob, dc, z, overrideColor=None):
 
         f = self.zoomFactor()
         
@@ -2124,8 +2129,13 @@ class ControlsFrame(wx.Frame, wx.EvtHandler):
         #    averageValue = blob.averageValueFromTrainingLabelVolume
         
         
-        pen = wx.Pen(blob.color(), 1)
-        brush = wx.Brush(blob.color())
+        if overrideColor == None:
+            color = blob.color()
+        else:
+            color = overrideColor
+
+        pen = wx.Pen(color, 1)
+        brush = wx.Brush(color)
 
         #for key in self.mainDoc.blobDictionary:
         
@@ -2191,15 +2201,17 @@ def renderPointSetInVolume(volume, pointSet, valueMode, fill=True):
     if fill:
 
         boundingBox = pointSet.get2DBoundingBox()
+        xOffset = boundingBox[0][0]
+        yOffset = boundingBox[0][1]
 
         z = points[0].loc[2]
 
         for i in range(pointSet.binaryImage.shape[0]):
             for j in range(pointSet.binaryImage.shape[1]):
-                xOffset = boundingBox[0][0]
-                yOffset = boundingBox[0][1]
+                #xOffset = boundingBox[0][0]
+                #yOffset = boundingBox[0][1]
                 x, y = (i+xOffset, j+yOffset)
-                if pointSet.binaryImage[i,j] != 0:
+                if pointSet.binaryImage[i, j] != 0:
                     volume[x, y, z] = 255
 
     else:

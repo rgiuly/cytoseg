@@ -100,9 +100,35 @@ def recordFeaturesOfContourLists(dataViewer,
     for contourListNode in contourListsNode.children:
                 
                 contourListProperties = contourListNode.object
+
+                # used for membranes
+                #dataViewer.writeExample(file,
+                #                        contourListProperties.featureDict,
+                #                        contourListProperties.isConnected)
+
+                firstLabelCountDict =\
+                    contourListNode.children[0].object.labelCountDict
+
+                minimum = 10000000
+                for child in contourListNode.children:
+                    countDict = child.object.labelCountDict
+                    if 'mitochondria' in countDict:
+                        value = countDict['mitochondria']
+                        if value < minimum:
+                            minimum = value
+                    else:
+                        minimum = 0
+
+                #if 'mitochondria' in firstLabelCountDict:
+                #    count = firstLabelCountDict['mitochondria']
+                #else:
+                #    count = 0
+
+                count = minimum
+
                 dataViewer.writeExample(file,
                                         contourListProperties.featureDict,
-                                        contourListProperties.isConnected)
+                                        str(count))
                 #dataViewer.writeExample(file,
                 #                        dictionary,
                 #                        contourListProperties.isConnected)
@@ -121,7 +147,9 @@ def classifyContourLists(dataViewer,
     data = orange.ExampleTable(os.path.join(cytosegDataFolder,
                                             inputTrainingExamplesIdentifier + ".tab"))
     
-    minimumExamples = len(data) / 5
+    depth = 25
+
+    minimumExamples = len(data) / depth
     
     tree = orngTree.TreeLearner(storeNodeClassifier = 0,
                                 storeContingencies=0,
@@ -130,7 +158,7 @@ def classifyContourLists(dataViewer,
     gini = orange.MeasureAttribute_gini()
     tree.split.discreteSplitConstructor.measure = \
      tree.split.continuousSplitConstructor.measure = gini
-    tree.maxDepth = 5
+    tree.maxDepth = depth
     tree.split = orngEnsemble.SplitConstructor_AttributeSubset(tree.split, 3)
 
     forest = orngEnsemble.RandomForestLearner(data, trees=50,
@@ -160,7 +188,8 @@ def classifyContourLists(dataViewer,
         for item in dictionary.items():
             value = item[1]
             list.append(value)
-        list.append('False') # todo: what would happen if you used True here
+        #list.append('False') # todo: what would happen if you used True here
+        list.append('0')
 
         example = orange.Example(data.domain, list)
         p = forest(example, orange.GetProbabilities)    
@@ -173,10 +202,13 @@ def classifyContourLists(dataViewer,
 
         colorScaleFactor = 5.0
 
-        for contourNode in contourListNode.children:
-            contourNode.object.setColor([200 - ((colorScaleFactor * p[1]) * 200),
-                                         (colorScaleFactor * p[1]) * 200, 0]) 
-            #contourNode.object.setProbability(p[1])
+        contourListNode.object.setColor([200 - ((colorScaleFactor * p[1]) * 200),
+                                        (colorScaleFactor * p[1]) * 200, 70]) 
+
+        #for contourNode in contourListNode.children:
+        #    contourNode.object.setColor([200 - ((colorScaleFactor * p[1]) * 200),
+        #                                 (colorScaleFactor * p[1]) * 200, 70]) 
+        #    #contourNode.object.setProbability(p[1])
 
 
 def classifyContourListsBayes(probabilityFunction,

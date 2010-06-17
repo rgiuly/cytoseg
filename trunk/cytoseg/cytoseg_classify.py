@@ -569,6 +569,7 @@ class ClassificationControlsFrame(ControlsFrame):
                     className = None
 
                     value = membraneVoxelVolume[x,y,z]
+                    #todo: use LabelIdentifierDict class
                     for target in labelIdentifierDict:
                         #print value
                         #print labelIdentifierDict[target].min
@@ -583,11 +584,14 @@ class ClassificationControlsFrame(ControlsFrame):
                     #print className
 
                     #if className != None:
+                    #if className != None and\
+                    #    (random.random() < 0.1 or\
+                    #    #(random.random() < 0.01 or\
+                    #        (className == 'vesicles' and random.random() < 0.04) or\
+                    #        (className == 'membranes' and random.random() < 0.02)):
                     if className != None and\
-                        (random.random() < 0.1 or\
-                        #(random.random() < 0.01 or\
-                            (className == 'vesicles' and random.random() < 0.04) or\
-                            (className == 'membranes' and random.random() < 0.02)):
+                        random.random() < 0.007:
+                        #random.random() < 0.025:
 
                         # This records an example.
                         # It skips over some examples to balance the number.

@@ -9,7 +9,8 @@ class ContourSetDetector:
                  guiVisible=True):
 
         #testContours()  # crash
-        target_depricated = 'mitochondria'
+        #target_depricated = 'vesicles'
+        target_depricated = 'not_set'
 
         #dataIdentifier = 'hpf'
         dataIdentifier = 'default'
@@ -20,8 +21,11 @@ class ContourSetDetector:
         #defaultStepNumber = 3
         defaultStepNumber = 7
         #defaultStepNumber = 106
-        contourListClassificationMethod='bayes' # use for mitochondria
-        #contourListClassificationMethod='randomForest'
+
+        # use for old mitochondria detection
+        #contourListClassificationMethod='bayes'
+
+        contourListClassificationMethod='randomForest'
         
         if guiVisible:
             self.app = wx.PySimpleApp()
@@ -42,22 +46,40 @@ class ContourSetDetector:
         # process the contours in a small dataset to learn about them
         #if mode == 'hpf_training':
         
-        labelFilePaths = odict()
-        labelFilePaths['mitochondria'] = odict()
-        labelFilePaths['vesicles'] = odict()
+#        labelFilePaths = odict()
+#        labelFilePaths['mitochondria'] = odict()
+#        labelFilePaths['vesicles'] = odict()
+#    
+#        labelFilePaths['mitochondria']['process_a1'] = "O:/images/Eric_07-10-09/process_traces/Working crop x116 y105 w362 h315/set/a1"
+#        labelFilePaths['mitochondria']['process_a2'] = "O:/images/Eric_07-10-09/process_traces/Working crop x116 y105 w362 h315/set/a2"
+#        labelFilePaths['mitochondria']['process_0'] = "O:/images/Eric_07-10-09/process_traces/Working crop x116 y105 w362 h315/set/0"
+#        labelFilePaths['mitochondria']['process_1'] = "O:/images/Eric_07-10-09/process_traces/Working crop x116 y105 w362 h315/set/1"
+#        labelFilePaths['mitochondria']['process_2'] = "O:/images/Eric_07-10-09/process_traces/Working crop x116 y105 w362 h315/set/2"
+#        labelFilePaths['vesicles']['all'] = "O:/images/HPFcere_vol/HPF_rotated_tif/vesicles/label/one_label/0_to_25"
+#    
+#        self.contourTrainer = ComponentDetector(
+#            dataViewer=self.dataViewer,
+#            dataIdentifier=mode,
+#            target='not_set',
+#            originalImageFilePath="O:/images/HPFcere_vol/HPF_rotated_tif/vesicles/input",
+#            contourListClassificationMethod=contourListClassificationMethod,
+#            #contourListExamplesIdentifier="contourPathFeatures" + "_" + target,
+#            #contourListTrainingExamplesIdentifier="contourPathFeatures" + "_" + target,
+#            contourListExamplesIdentifier="contourPathFeatures" + "_" + dataIdentifier,
+#            contourListTrainingExamplesIdentifier="contourPathFeatures" + "_" + dataIdentifier,
+#            voxelTrainingImageFilePath="data/sbfsem_training/images",
+#            voxelTrainingLabelFilePath="data/sbfsem_training/label",
+#            labelFilePaths=labelFilePaths[target_depricated])
     
-        labelFilePaths['mitochondria']['process_a1'] = "O:/images/Eric_07-10-09/process_traces/Working crop x116 y105 w362 h315/set/a1"
-        labelFilePaths['mitochondria']['process_a2'] = "O:/images/Eric_07-10-09/process_traces/Working crop x116 y105 w362 h315/set/a2"
-        labelFilePaths['mitochondria']['process_0'] = "O:/images/Eric_07-10-09/process_traces/Working crop x116 y105 w362 h315/set/0"
-        labelFilePaths['mitochondria']['process_1'] = "O:/images/Eric_07-10-09/process_traces/Working crop x116 y105 w362 h315/set/1"
-        labelFilePaths['mitochondria']['process_2'] = "O:/images/Eric_07-10-09/process_traces/Working crop x116 y105 w362 h315/set/2"
-        labelFilePaths['vesicles']['all'] = "O:/images/HPFcere_vol/HPF_rotated_tif/vesicles/label/one_label/0_to_25"
+        labelFilePaths = odict()
+        labelFilePaths['not_set'] = odict()
+        labelFilePaths['not_set']['all'] = parameterDict['voxelTrainingLabelFilePath']
     
         self.contourTrainer = ComponentDetector(
             dataViewer=self.dataViewer,
             dataIdentifier=mode,
             target='not_set',
-            originalImageFilePath="O:/images/HPFcere_vol/HPF_rotated_tif/vesicles/input",
+            originalImageFilePath=parameterDict['originalImageFilePath'],
             contourListClassificationMethod=contourListClassificationMethod,
             #contourListExamplesIdentifier="contourPathFeatures" + "_" + target,
             #contourListTrainingExamplesIdentifier="contourPathFeatures" + "_" + target,
@@ -66,7 +88,7 @@ class ContourSetDetector:
             voxelTrainingImageFilePath="data/sbfsem_training/images",
             voxelTrainingLabelFilePath="data/sbfsem_training/label",
             labelFilePaths=labelFilePaths[target_depricated])
-    
+
         self.contourTrainer.numberOfLayersToProcess = None
         self.contourTrainer.numberOfThresholds = 1
         self.contourTrainer.firstThreshold = 0.4
@@ -122,34 +144,7 @@ class ContourSetDetector:
 
     def run(self, steps=True):
 
-        if steps == 'accuracy':
-
-            self.contourClassifier.runInitialize()
-            self.contourClassifier.runPersistentLoadOriginalImage()
-            self.contourClassifier.calculateVoxelClassificationAccuracy_new()
-
-        if steps == 'contours':
-
-            self.contourClassifier.runInitialize()
-            self.contourClassifier.runPersistentLoadOriginalImage()
-            #self.contourClassifier.runClassifyVoxels()
-            self.contourClassifier.runFindContours()
-            self.contourClassifier.runWriteContoursToImageStack()
-            self.contourClassifier.runContourProbabilityFilter()
-            #self.contourClassifier.runGroupContoursByConnectedComponents()
-            if self.dataViewer.guiVisible:
-                self.app.MainLoop()
-
-        elif steps == True:
-
-            self.contourClassifier.runInitialize()
-            self.contourClassifier.runPersistentLoadOriginalImage()
-            self.contourClassifier.runClassifyVoxels()
-            self.contourClassifier.runFindContours()
-            self.contourClassifier.runGroupContoursByConnectedComponents()
-            self.app.MainLoop()
-
-        elif steps == 'classifyVoxels':
+        if steps == 'classifyVoxels':
 
             self.contourClassifier.runInitialize()
             self.contourClassifier.runPersistentLoadTrainingData()
@@ -159,10 +154,46 @@ class ContourSetDetector:
             #self.contourClassifier.calculateVoxelClassificationAccuracy_new()
             #self.contourClassifier.runFindContours()
             #self.contourClassifier.runGroupContoursByConnectedComponents()
-            if self.dataViewer.guiVisible:
-                self.app.MainLoop()
+
+        elif steps == 'accuracy':
+
+            self.contourClassifier.runInitialize()
+            self.contourClassifier.runPersistentLoadOriginalImage()
+            self.contourClassifier.calculateVoxelClassificationAccuracy_new()
+
+        elif steps == 'contours':
+
+            self.contourClassifier.runInitialize()
+            self.contourClassifier.runPersistentLoadOriginalImage()
+            self.contourClassifier.runPersistentLoadProbabilityMap()
+            #self.contourClassifier.runClassifyVoxels()
+            self.contourClassifier.runFindContours()
+            self.contourClassifier.runWriteContoursToImageStack()
+            self.contourClassifier.runContourProbabilityFilter()
+            #self.contourClassifier.runGroupContoursByConnectedComponents()
+
+        elif steps == 'classifyContours':
+
+            self.contourTrainer.runInitialize()
+            self.contourTrainer.runPersistentLoadOriginalImage()
+            self.contourTrainer.runComputeContourRegions()
+            self.contourTrainer.runMakeContourLists()
+            self.contourTrainer.runCalculateContourListFeatures()
+            self.contourTrainer.loadItemsForViewing()
+
+        #elif steps == True:
+        elif steps == 'groupContours':
+
+            self.contourClassifier.runInitialize()
+            self.contourClassifier.runPersistentLoadOriginalImage()
+            self.contourClassifier.runClassifyVoxels()
+            self.contourClassifier.runFindContours()
+            self.contourClassifier.runGroupContoursByConnectedComponents()
 
         else:
 
             raise Exception, "Invalid steps parameter: %s" % str(steps)
+
+        if self.dataViewer.guiVisible:
+            self.app.MainLoop()
 

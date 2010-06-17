@@ -3,9 +3,12 @@ from label_identifier import *
 
 def mapNumbersToComponents(detector):
 
-    detector.contourClassifier.labelIdentifierDict['mitochondria'] =\
-        LabelIdentifier(min=141, max=141)
-    detector.contourClassifier.labelIdentifierDict['other'] =\
-        LabelIdentifier(values=range(3,100+1)+[142]+[2]+[138])
+    for object in (detector.contourClassifier, detector.contourTrainer):
 
+        object.labelIdentifierDict['mitochondria'] =\
+            LabelIdentifier(min=141, max=141)
+        object.labelIdentifierDict['other'] =\
+            LabelIdentifier(values=range(3,100+1)+[142]+[2]+[138])
+
+    #todo: this shouldn't be here
     detector.setTarget('mitochondria_new')

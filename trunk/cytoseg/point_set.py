@@ -27,6 +27,7 @@ class PointSet(ProbabilityObject):
 
         self.features = {}
         self.labelSet = set()
+        self.numericLabelCountDict = None
         self.labelCountDict = None
         self.XMLTag = 'pointSet'
         self.pointListXMLTag = 'points'
@@ -63,9 +64,12 @@ class PointSet(ProbabilityObject):
     def __repr__(self):
         #return "Blob_with_%d_points" % len(self.points())
         return "PointSet " +\
-                "labelCountDict: " + str(self.labelCountDict) + " " +\
-                "labelSet: " + str(self.labelSet) + " " +\
-                "probability(): " + str(self.probability())
+                "numPoints:" + str(self.numPoints()) + " " +\
+                "numericLabelCountDict:" + str(self.numericLabelCountDict) + " " +\
+                "labelCountDict:" + str(self.labelCountDict) + " " +\
+                "labelSet:" + str(self.labelSet) + " " +\
+                "probability():" + str(self.probability()) + " " +\
+                "features:" + str(self.features)
     
     def setCenter(self, centerPoint):
         self._center = centerPoint

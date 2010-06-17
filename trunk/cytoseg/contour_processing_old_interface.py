@@ -4,16 +4,16 @@ from numpy import *
 import numpy, Image
 
 try:
-    #from opencv import highgui
-    #from opencv import cv as old_cv
+    from opencv import highgui
+    from opencv import cv as old_cv
 
     import cv
 
     # definition of some colors
-    _red = cv.Scalar (0, 0, 255, 0);
-    _green = cv.Scalar (0, 255, 0, 0);
-    _white = cv.RealScalar (255)
-    _black = cv.RealScalar (0)
+    _red = old_cv.cvScalar (0, 0, 255, 0);
+    _green = old_cv.cvScalar (0, 255, 0, 0);
+    _white = old_cv.cvRealScalar (255)
+    _black = old_cv.cvRealScalar (0)
 
 except ImportError:
     warnings.warn("highgui and cv modules not installed")
@@ -44,101 +44,95 @@ _SIZE = 500
 _DEFAULT_LEVEL = 3
 
 
-def contour_iterator(contour):
-    while contour:
-        yield contour
-        contour = contour.h_next()
-
-
 def testContours():
 
     # create the image where we want to display results
-    image = cv.CreateImage (cv.Size (_SIZE, _SIZE), 8, 1)
+    image = old_cv.cvCreateImage (old_cv.cvSize (_SIZE, _SIZE), 8, 1)
 
     # start with an empty image
-    cv.SetZero (image)
+    old_cv.cvSetZero (image)
 
     # draw the original picture
     for i in range (6):
         dx = (i % 2) * 250 - 30
         dy = (i / 2) * 150
         
-        cv.Ellipse (image,
-                      cv.Point (dx + 150, dy + 100),
-                      cv.Size (100, 70),
+        old_cv.cvEllipse (image,
+                      old_cv.cvPoint (dx + 150, dy + 100),
+                      old_cv.cvSize (100, 70),
                       0, 0, 360, _white, -1, 8, 0)
-        cv.Ellipse (image,
-                      cv.Point (dx + 115, dy + 70),
-                      cv.Size (30, 20),
+        old_cv.cvEllipse (image,
+                      old_cv.cvPoint (dx + 115, dy + 70),
+                      old_cv.cvSize (30, 20),
                       0, 0, 360, _black, -1, 8, 0)
-        cv.Ellipse (image,
-                      cv.Point (dx + 185, dy + 70),
-                      cv.Size (30, 20),
+        old_cv.cvEllipse (image,
+                      old_cv.cvPoint (dx + 185, dy + 70),
+                      old_cv.cvSize (30, 20),
                       0, 0, 360, _black, -1, 8, 0)
-        cv.Ellipse (image,
-                      cv.Point (dx + 115, dy + 70),
-                      cv.Size (15, 15),
+        old_cv.cvEllipse (image,
+                      old_cv.cvPoint (dx + 115, dy + 70),
+                      old_cv.cvSize (15, 15),
                       0, 0, 360, _white, -1, 8, 0)
-        cv.Ellipse (image,
-                      cv.Point (dx + 185, dy + 70),
-                      cv.Size (15, 15),
+        old_cv.cvEllipse (image,
+                      old_cv.cvPoint (dx + 185, dy + 70),
+                      old_cv.cvSize (15, 15),
                       0, 0, 360, _white, -1, 8, 0)
-        cv.Ellipse (image,
-                      cv.Point (dx + 115, dy + 70),
-                      cv.Size (5, 5),
+        old_cv.cvEllipse (image,
+                      old_cv.cvPoint (dx + 115, dy + 70),
+                      old_cv.cvSize (5, 5),
                       0, 0, 360, _black, -1, 8, 0)
-        cv.Ellipse (image,
-                      cv.Point (dx + 185, dy + 70),
-                      cv.Size (5, 5),
+        old_cv.cvEllipse (image,
+                      old_cv.cvPoint (dx + 185, dy + 70),
+                      old_cv.cvSize (5, 5),
                       0, 0, 360, _black, -1, 8, 0)
-        cv.Ellipse (image,
-                      cv.Point (dx + 150, dy + 100),
-                      cv.Size (10, 5),
+        old_cv.cvEllipse (image,
+                      old_cv.cvPoint (dx + 150, dy + 100),
+                      old_cv.cvSize (10, 5),
                       0, 0, 360, _black, -1, 8, 0)
-        cv.Ellipse (image,
-                      cv.Point (dx + 150, dy + 150),
-                      cv.Size (40, 10),
+        old_cv.cvEllipse (image,
+                      old_cv.cvPoint (dx + 150, dy + 150),
+                      old_cv.cvSize (40, 10),
                       0, 0, 360, _black, -1, 8, 0)
-        cv.Ellipse (image,
-                      cv.Point (dx + 27, dy + 100),
-                      cv.Size (20, 35),
+        old_cv.cvEllipse (image,
+                      old_cv.cvPoint (dx + 27, dy + 100),
+                      old_cv.cvSize (20, 35),
                       0, 0, 360, _white, -1, 8, 0)
-        cv.Ellipse (image,
-                      cv.Point (dx + 273, dy + 100),
-                      cv.Size (20, 35),
+        old_cv.cvEllipse (image,
+                      old_cv.cvPoint (dx + 273, dy + 100),
+                      old_cv.cvSize (20, 35),
                       0, 0, 360, _white, -1, 8, 0)
 
     # create window and display the original picture in it
-    cv.NamedWindow ("image", 1)
-    cv.ShowImage ("image", image)
+    highgui.cvNamedWindow ("image", 1)
+    highgui.cvShowImage ("image", image)
 
     # create the storage area
-    storage = cv.CreateMemStorage (0)
+    storage = old_cv.cvCreateMemStorage (0)
     
     # find the contours
-    nb_contours, contours = cv.FindContours (image,
+    nb_contours, contours = old_cv.cvFindContours (image,
                                                storage,
                                                old_cv.sizeof_CvContour,
-                                               cv.CV_RETR_TREE,
-                                               cv.CV_CHAIN_APPROX_SIMPLE,
-                                               cv.Point (0,0))
+                                               old_cv.CV_RETR_TREE,
+                                               old_cv.CV_CHAIN_APPROX_SIMPLE,
+                                               old_cv.cvPoint (0,0))
 
     # comment this out if you do not want approximation
-    contours = cv.ApproxPoly (contours, old_cv.sizeof_CvContour,
+    contours = old_cv.cvApproxPoly (contours, old_cv.sizeof_CvContour,
                                 storage,
-                                cv.CV_POLY_APPROX_DP, 3, 1)
+                                old_cv.CV_POLY_APPROX_DP, 3, 1)
     
     # create the window for the contours
-    cv.NamedWindow ("contours", 1)
+    highgui.cvNamedWindow ("contours", 1)
 
     # create the trackbar, to enable the change of the displayed level
-    #cv.CreateTrackbar ("levels+3", "contours", 3, 7, on_trackbar)
+    #highgui.cvCreateTrackbar ("levels+3", "contours", 3, 7, on_trackbar)
 
     # call one time the callback, so we will have the 1st display done
     #on_trackbar (_DEFAULT_LEVEL)
 
     # create the image for putting in it the founded contours
-    contours_image = cv.CreateImage (cv.Size (_SIZE, _SIZE), 8, 3)
+    contours_image = old_cv.cvCreateImage (old_cv.cvSize (_SIZE, _SIZE), 8, 3)
 
 
     position = 3
@@ -155,19 +149,19 @@ def testContours():
         _contours = contours.h_next.h_next.h_next
         
     # first, clear the image where we will draw contours
-    cv.SetZero (contours_image)
+    old_cv.cvSetZero (contours_image)
     
     # draw contours in red and green
-    cv.DrawContours (contours_image, _contours,
+    old_cv.cvDrawContours (contours_image, _contours,
                        _red, _green,
-                       levels, 3, cv.CV_AA,
-                       cv.Point (0, 0))
+                       levels, 3, old_cv.CV_AA,
+                       old_cv.cvPoint (0, 0))
 
     # finally, show the image
-    cv.ShowImage ("contours", contours_image)
+    highgui.cvShowImage ("contours", contours_image)
 
     # wait a key pressed to end
-    cv.WaitKey (0)
+    highgui.cvWaitKey (0)
 
 
 #testContours()
@@ -210,9 +204,9 @@ class ContourDetector:
         self.minPerimeter = 0
         self.maxPerimeter = None
         self.threshold = 0.5
-        self.openCVImageSize = (numpyImageArrayShape[0], numpyImageArrayShape[1])
+        self.openCVImageSize = old_cv.cvSize(numpyImageArrayShape[0], numpyImageArrayShape[1])
         self.images = self.createTemporaryImages(self.openCVImageSize)
-        self.retrievalMode = cv.CV_RETR_LIST
+        self.retrievalMode = old_cv.CV_RETR_LIST
 
         #testContours()
 
@@ -225,41 +219,41 @@ class ContourDetector:
         images = {}
         
         progressLog("contourImage")
-        images['contourImage'] = cv.CreateImage(s, 8, 1)
+        images['contourImage'] = old_cv.cvCreateImage(s, 8, 1)
         #cvSetZero(images['contourImage'])
         
         progressLog("ellipseImage")
-        images['ellipseImage'] = cv.CreateImage(s, 8, 1)
+        images['ellipseImage'] = old_cv.cvCreateImage(s, 8, 1)
         #cvSetZero(images['ellipseImage'])
         
         progressLog("andImage")
-        images['andImage'] = cv.CreateImage(s, 8, 1)
+        images['andImage'] = old_cv.cvCreateImage(s, 8, 1)
         #cvSetZero(images['andImage'])
         
         progressLog("orImage")
-        images['orImage'] = cv.CreateImage(s, 8, 1)
+        images['orImage'] = old_cv.cvCreateImage(s, 8, 1)
         #cvSetZero(images['orImage'])
         
         progressLog("maskedImage")
-        images['maskedImage'] = cv.CreateImage(s, 8, 1)
+        images['maskedImage'] = old_cv.cvCreateImage(s, 8, 1)
         #cvSetZero(images['maskedImage'])
     
     
         
-        images['binaryImage'] = cv.CreateImage(s,8,1)
+        images['binaryImage'] = old_cv.cvCreateImage(s,8,1)
         #binaryImage = cvCreateMat(numpyArrayFilteredImage.shape[1], numpyArrayFilteredImage.shape[0], CV_8UC1)
         #cvSetZero(images['binaryImage'])
     
         progressLog("creating images")
     
-        images['originalImage'] = cv.CreateImage(s, 8, 1)
-        images['contours_image'] = cv.CreateImage(s, 8, 3)
-        images['resultContoursImage'] = cv.CreateImage(s, 8, 3)
+        images['originalImage'] = old_cv.cvCreateImage(s, 8, 1)
+        images['contours_image'] = old_cv.cvCreateImage(s, 8, 3)
+        images['resultContoursImage'] = old_cv.cvCreateImage(s, 8, 3)
         #cvSetZero(images['contours_image'])
 
 
 
-        images['resultDisplayImage'] = cv.CreateImage(s, 8, 3)
+        images['resultDisplayImage'] = old_cv.cvCreateImage(s, 8, 3)
         
         return images
 
@@ -300,9 +294,9 @@ class ContourDetector:
 
         contourResultTree = GroupNode('contourResultTree')
     
-        storage = cv.CreateMemStorage(128000)
-        #storage = cv.CreateMemStorage(0)
-        #storage1 = cv.CreateMemStorage(128000)
+        storage = old_cv.cvCreateMemStorage(128000)
+        #storage = old_cv.cvCreateMemStorage(0)
+        storage1 = cv.CreateMemStorage(128000)
 
 
         if 0:
@@ -329,7 +323,7 @@ class ContourDetector:
     
             originalImage = originalVolume[:,:,imageIndex]
     
-            print "imageIndex", imageIndex
+            print imageIndex
     
             #print "free space", storage.free_space
     
@@ -355,7 +349,7 @@ class ContourDetector:
             resultDisplayImage = self.images['resultDisplayImage']
             
             for key in self.images:
-                cv.SetZero(self.images[key])
+                old_cv.cvSetZero(self.images[key])
             
     
             progressLog("copying to image")
@@ -381,7 +375,7 @@ class ContourDetector:
     
             elif contourFilterFunction2D != None:
                 print "contour processing using original image"
-                temp = cv.CreateImage(self.openCVImageSize, 8, 1)
+                temp = old_cv.cvCreateImage(self.openCVImageSize, 8, 1)
                 copyNumpyToOpenCV(numpy_original, temp)
                 binaryImage = contourFilterFunction2D(temp)
     
@@ -397,7 +391,7 @@ class ContourDetector:
                 #                              "thresholded%04d.bmp" % imageIndex)
                 #outputFilename = os.path.join(contourOutputTemporaryFolder,
                 #                              "temp%04d.bmp" % imageIndex)
-                #cv.SaveImage(outputFilename, temp)
+                #highgui.cvSaveImage(outputFilename, temp)
 
 
                 #import time
@@ -407,103 +401,95 @@ class ContourDetector:
                 progressLog("find contours")
 
                 #print "position 1"
-#                image = cv.CreateImage (cv.Size (300, 300), 8, 1)
+#                image = old_cv.cvCreateImage (old_cv.cvSize (300, 300), 8, 1)
 #            # start with an empty image
-#            cv.SetZero (image)
+#            old_cv.cvSetZero (image)
 #        
-#            _red = cv.Scalar (0, 0, 255, 0);
-#            _green = cv.Scalar (0, 255, 0, 0);
-#            _white = cv.RealScalar (255)
-#            _black = cv.RealScalar (0)
+#            _red = old_cv.cvScalar (0, 0, 255, 0);
+#            _green = old_cv.cvScalar (0, 255, 0, 0);
+#            _white = old_cv.cvRealScalar (255)
+#            _black = old_cv.cvRealScalar (0)
 #
 #            # draw the original picture
 #            for i in range (6):
 #                dx = (i % 2) * 250 - 30
 #                dy = (i / 2) * 150
 #                
-#                cv.Ellipse (image,
-#                              cv.Point (dx + 150, dy + 100),
-#                              cv.Size (100, 70),
+#                old_cv.cvEllipse (image,
+#                              old_cv.cvPoint (dx + 150, dy + 100),
+#                              old_cv.cvSize (100, 70),
 #                              0, 0, 360, _white, -1, 8, 0)
-#                cv.Ellipse (image,
-#                              cv.Point (dx + 115, dy + 70),
-#                              cv.Size (30, 20),
+#                old_cv.cvEllipse (image,
+#                              old_cv.cvPoint (dx + 115, dy + 70),
+#                              old_cv.cvSize (30, 20),
 #                              0, 0, 360, _black, -1, 8, 0)
-#                cv.Ellipse (image,
-#                              cv.Point (dx + 185, dy + 70),
-#                              cv.Size (30, 20),
+#                old_cv.cvEllipse (image,
+#                              old_cv.cvPoint (dx + 185, dy + 70),
+#                              old_cv.cvSize (30, 20),
 #                              0, 0, 360, _black, -1, 8, 0)
-#                cv.Ellipse (image,
-#                              cv.Point (dx + 115, dy + 70),
-#                              cv.Size (15, 15),
+#                old_cv.cvEllipse (image,
+#                              old_cv.cvPoint (dx + 115, dy + 70),
+#                              old_cv.cvSize (15, 15),
 #                              0, 0, 360, _white, -1, 8, 0)
-#                cv.Ellipse (image,
-#                              cv.Point (dx + 185, dy + 70),
-#                              cv.Size (15, 15),
+#                old_cv.cvEllipse (image,
+#                              old_cv.cvPoint (dx + 185, dy + 70),
+#                              old_cv.cvSize (15, 15),
 #                              0, 0, 360, _white, -1, 8, 0)
-#                cv.Ellipse (image,
-#                              cv.Point (dx + 115, dy + 70),
-#                              cv.Size (5, 5),
+#                old_cv.cvEllipse (image,
+#                              old_cv.cvPoint (dx + 115, dy + 70),
+#                              old_cv.cvSize (5, 5),
 #                              0, 0, 360, _black, -1, 8, 0)
-#                cv.Ellipse (image,
-#                              cv.Point (dx + 185, dy + 70),
-#                              cv.Size (5, 5),
+#                old_cv.cvEllipse (image,
+#                              old_cv.cvPoint (dx + 185, dy + 70),
+#                              old_cv.cvSize (5, 5),
 #                              0, 0, 360, _black, -1, 8, 0)
-#                cv.Ellipse (image,
-#                              cv.Point (dx + 150, dy + 100),
-#                              cv.Size (10, 5),
+#                old_cv.cvEllipse (image,
+#                              old_cv.cvPoint (dx + 150, dy + 100),
+#                              old_cv.cvSize (10, 5),
 #                              0, 0, 360, _black, -1, 8, 0)
-#                cv.Ellipse (image,
-#                              cv.Point (dx + 150, dy + 150),
-#                              cv.Size (40, 10),
+#                old_cv.cvEllipse (image,
+#                              old_cv.cvPoint (dx + 150, dy + 150),
+#                              old_cv.cvSize (40, 10),
 #                              0, 0, 360, _black, -1, 8, 0)
-#                cv.Ellipse (image,
-#                              cv.Point (dx + 27, dy + 100),
-#                              cv.Size (20, 35),
+#                old_cv.cvEllipse (image,
+#                              old_cv.cvPoint (dx + 27, dy + 100),
+#                              old_cv.cvSize (20, 35),
 #                              0, 0, 360, _white, -1, 8, 0)
-#                cv.Ellipse (image,
-#                              cv.Point (dx + 273, dy + 100),
-#                              cv.Size (20, 35),
+#                old_cv.cvEllipse (image,
+#                              old_cv.cvPoint (dx + 273, dy + 100),
+#                              old_cv.cvSize (20, 35),
 #                              0, 0, 360, _white, -1, 8, 0)
 #
 #                progressLog("show image")
 #
-#                cv.ShowImage("image", image)
-#                #cv.ShowImage("image", temp)
-#                cv.WaitKey(0)
+#                highgui.cvShowImage("image", image)
+#                #highgui.cvShowImage("image", temp)
+#                highgui.cvWaitKey(0)
 
 
-#                nb_contours, contours = cv.FindContours(binaryImage,
-#                                                          storage,
-##                                                          old_cv.sizeof_CvContour,
-#                                                          self.retrievalMode,
-#                                                          cv.CV_CHAIN_APPROX_SIMPLE,
-#                                                          (0, 0))
-                contours = cv.FindContours(binaryImage,
-                                               storage,
-                                               self.retrievalMode,
-                                               cv.CV_CHAIN_APPROX_SIMPLE,
-                                               (0,0))
-                #print "contours", list(contours)
-                #print "contours", list(contours.h_next())
-                #print "contours", list(contours.h_next().h_next())
-#                nb_contours, contours = cv.FindContours(image,
+                nb_contours, contours = old_cv.cvFindContours(binaryImage,
+                                                          storage,
+                                                          old_cv.sizeof_CvContour,
+                                                          self.retrievalMode,
+                                                          old_cv.CV_CHAIN_APPROX_SIMPLE,
+                                                          old_cv.cvPoint(0,0))
+#                nb_contours, contours = old_cv.cvFindContours(image,
 #                                                          storage,
 #                                                          old_cv.sizeof_CvContour,
-#                                                          cv.CV_RETR_LIST,
-#                                                          cv.CV_CHAIN_APPROX_SIMPLE,
-#                                                          cv.Point(0,0))
-#                storage = cv.CreateMemStorage(0)
-#                nb_contours, contours = cv.FindContours (image,
+#                                                          old_cv.CV_RETR_LIST,
+#                                                          old_cv.CV_CHAIN_APPROX_SIMPLE,
+#                                                          old_cv.cvPoint(0,0))
+#                storage = old_cv.cvCreateMemStorage(0)
+#                nb_contours, contours = old_cv.cvFindContours (image,
 #                                                           storage,
 #                                                           old_cv.sizeof_CvContour,
-#                                                           cv.CV_RETR_TREE,
-#                                                           cv.CV_CHAIN_APPROX_SIMPLE,
-#                                                           cv.Point (0,0))
+#                                                           old_cv.CV_RETR_TREE,
+#                                                           old_cv.CV_CHAIN_APPROX_SIMPLE,
+#                                                           old_cv.cvPoint (0,0))
 
                 #contours = None
 
-                progressLog("finished find contours, count %d" % len(contours))
+                progressLog("finished find contours")
 
 
                 #print "contours", contours
@@ -517,8 +503,8 @@ class ContourDetector:
                 #                           CV_POLY_APPROX_DP, 1, 1)
         
                 #print "position 3"
-                _red = cv.Scalar(0,0,255,0)
-                _green = cv.Scalar(0,255,0,0)
+                _red = old_cv.cvScalar(0,0,255,0)
+                _green = old_cv.cvScalar(0,255,0,0)
                 
                 levels = 3
                 
@@ -535,37 +521,27 @@ class ContourDetector:
 
                 for i in range(numpy_original.shape[1]):
                     for j in range(numpy_original.shape[0]):
-                        originalValue = int(numpy_original[j,i])
-                        rgbValue = (originalValue, originalValue, originalValue)
-                        contours_image[i,j] = rgbValue
-                        originalImage[i,j] = originalValue
-                        resultContoursImage[i,j] = rgbValue
+                        contours_image[i,j] = int(numpy_original[j,i])
+                        originalImage[i,j] = int(numpy_original[j,i])
+                        resultContoursImage[i,j] = int(numpy_original[j,i])
         
                 progressLog("drawing contours")
-                cv.DrawContours(contours_image, _contours,
+                old_cv.cvDrawContours(contours_image, _contours,
                                   _red, _green,
-                                  levels, 1, cv.CV_AA,
-                                  (0, 0))
+                                  levels, 1, old_cv.CV_AA,
+                                  old_cv.cvPoint(0, 0))
         
                 # process each contour
                 contourIndex = 0
-                #for c in _contours.hrange():
-                #for c in _contours:
-                c = _contours
-                #for dummy in range(len(_contours)):
-                for c in contour_iterator(_contours):
+                for c in _contours.hrange():
     
-                    #print "processing contour %s, number of points %d" %\
-                    #    (str(c), len(c))
-
-                    #count = c.total; # This is number point in contour
-                    count = len(c)
+                    count = c.total; # This is number point in contour
     
                     # Number point must be more than or equal to 6 (for cvFitEllipse_32f).        
                     if( count < 6 ):
                         continue
     
-                    perimeter = cv.ArcLength(c)
+                    perimeter = old_cv.cvArcLength(c)
                     #print perimeter
     
                     if perimeter < minPerimeter:
@@ -575,12 +551,11 @@ class ContourDetector:
                         if perimeter > maxPerimeter:
                             continue
     
-                    #progressLog(("processing contour", contourIndex, "number of contours", _contours.total))
+                    progressLog(("processing contour", contourIndex, "number of contours", _contours.total))
                     
                     pointList = []
                     for point in c:
-                        #print "point", point
-                        pointList.append(LabeledPoint(array((point[0], point[1], imageIndex))))
+                        pointList.append(LabeledPoint(array((point.x, point.y, imageIndex))))
                     #for point in c:
                     #    print point
                     #print pointList
@@ -594,14 +569,13 @@ class ContourDetector:
                     contoursInImage.addChild(contourNode)
                     
                     #print c
-                    #if c.v_next != None: print "c.v_next", c.v_next
-                    #if c.v_prev != None: print "c.v_prev", c.v_prev
+                    if c.v_next != None: print "c.v_next", c.v_next
+                    if c.v_prev != None: print "c.v_prev", c.v_prev
     
                     progressLog("setting flags")
                     
                     #print c.flags
-                    if 0:
-                        c.flags = 1117327884 #value for outer (not inner) contour
+                    c.flags = 1117327884 #value for outer (not inner) contour
                     #print "c.h_next", c.h_next
                     #print "c.h_prev", c.h_prev
     
@@ -610,22 +584,22 @@ class ContourDetector:
                     #size = cvSize(numpyArrayFilteredImage.shape[0], numpyArrayFilteredImage.shape[1])
                     progressLog("set contourImage")
                     #contourImage = cvCreateImage(size, 8, 1)
-                    cv.SetZero(contourImage)
+                    old_cv.cvSetZero(contourImage)
                     progressLog("set ellipseImage")
                     #ellipseImage = cvCreateImage(size, 8, 1)
-                    cv.SetZero(ellipseImage)
+                    old_cv.cvSetZero(ellipseImage)
                     progressLog("set andImage")
                     #andImage = cvCreateImage(size, 8, 1)
-                    cv.SetZero(andImage)
+                    old_cv.cvSetZero(andImage)
                     progressLog("set orImage")
                     #orImage = cvCreateImage(size, 8, 1)
-                    cv.SetZero(orImage)
+                    old_cv.cvSetZero(orImage)
                     progressLog("set maskedImage")
                     #maskedImage = cvCreateImage(size, 8, 1)
-                    cv.SetZero(maskedImage)
+                    old_cv.cvSetZero(maskedImage)
         
                     #resultDisplayImage = cvCreateImage(size, 8, 3)
-                    cv.SetZero(resultDisplayImage)
+                    old_cv.cvSetZero(resultDisplayImage)
     
                     progressLog("finished creating images")
             
@@ -633,30 +607,25 @@ class ContourDetector:
                     #print cvMatchShapes(c, c, CV_CONTOURS_MATCH_I1)
                     
                     # Alloc memory for contour point set.
-                    PointArray = cv.CreateMat(1, count, cv.CV_32SC2)
-                    PointArray2D32f = cv.CreateMat(1, count, cv.CV_32FC2)
+                    PointArray = old_cv.cvCreateMat(1, count, old_cv.CV_32SC2)
+                    PointArray2D32f = old_cv.cvCreateMat(1, count, old_cv.CV_32FC2)
                     
                     # Get contour point set.
-                    #cv.CvtSeqToArray(c, PointArray, cv.Slice(0, cv.CV_WHOLE_SEQ_END_INDEX));
-                    for (i, (x, y)) in enumerate(c):
-                        PointArray2D32f[0, i] = (x, y)
+                    old_cv.cvCvtSeqToArray(c, PointArray, old_cv.cvSlice(0, old_cv.CV_WHOLE_SEQ_END_INDEX));
                     
                     # Convert CvPoint set to CvBox2D32f set.
-                    cv.Convert( PointArray, PointArray2D32f )
+                    old_cv.cvConvert( PointArray, PointArray2D32f )
                     
                     # this seems unnecessary
-                    #box = cv.Box2D()
-
+                    box = old_cv.CvBox2D()
+            
                     # Fits ellipse to current contour.
-                    #box = cv.FitEllipse2(PointArray2D32f);
-                    (center, size, angle) = cv.FitEllipse2(PointArray2D32f);
-
+                    box = old_cv.cvFitEllipse2(PointArray2D32f);
+    
                     progressLog("drawing contours")
                     # Draw current contour.
-                    #cv.DrawContours(contours_image, c, cv.CV_RGB(255,255,255), cv.CV_RGB(255,255,255),0,1,8,cv.Point(0,0));
-                    #cv.DrawContours(contourImage, c, cv.CV_RGB(255,255,255), cv.CV_RGB(255,255,255),0,cv.CV_FILLED,8,cv.Point(0,0));
-                    cv.DrawContours(contours_image, c, cv.CV_RGB(255,255,255), cv.CV_RGB(255,255,255),0,1,8,(0,0));
-                    cv.DrawContours(contourImage, c, cv.CV_RGB(255,255,255), cv.CV_RGB(255,255,255),0,cv.CV_FILLED,8,(0,0));
+                    old_cv.cvDrawContours(contours_image, c, old_cv.CV_RGB(255,255,255), old_cv.CV_RGB(255,255,255),0,1,8,old_cv.cvPoint(0,0));
+                    old_cv.cvDrawContours(contourImage, c, old_cv.CV_RGB(255,255,255), old_cv.CV_RGB(255,255,255),0,old_cv.CV_FILLED,8,old_cv.cvPoint(0,0));
     
                     boundingBox = contourObject.get2DBoundingBox()
                     width = boundingBox[1][0] - boundingBox[0][0] + 1
@@ -674,29 +643,19 @@ class ContourDetector:
                     progressLog("finished drawing contours")
                     
                     # Convert ellipse data from float to integer representation.
-                    #progressLog("center")
-                    #center = [None, None]
-                    #progressLog("size")
-                    #size = [None, None]
-                    #progressLog("center[0]")
-                    #center[0] = cv.Round(box.center[0]);
-                    #progressLog("center[1]")
-                    #center[1] = cv.Round(box.center[1]);
-                    #size[0] = cv.Round(box.size.width*0.5);
-                    #size[1] = cv.Round(box.size.height*0.5);
-                    #box.angle = -box.angle;
+                    center = old_cv.CvPoint()
+                    size = old_cv.CvSize()
+                    center.x = old_cv.cvRound(box.center.x);
+                    center.y = old_cv.cvRound(box.center.y);
+                    size.width = old_cv.cvRound(box.size.width*0.5);
+                    size.height = old_cv.cvRound(box.size.height*0.5);
+                    box.angle = -box.angle;
     
-                    center = (cv.Round(center[0]), cv.Round(center[1]))
-                    size = (cv.Round(size[0] * 0.5), cv.Round(size[1] * 0.5))
-                    #print "ellipse size:", size
-                    angle = -angle
-
                     ellipse = XYPlaneEllipse()
-                    ellipse.width = size[0]
-                    ellipse.height = size[1]
-                    ellipse.center = array((center[0], center[1], imageIndex))
-                    #ellipse.angle = box.angle
-                    ellipse.angle = angle
+                    ellipse.width = size.width
+                    ellipse.height = size.height
+                    ellipse.center = array((center.x, center.y, imageIndex))
+                    ellipse.angle = box.angle
                     contourObject.bestFitEllipse = ellipse
     
                     #ellipseWidth = min(size.width, size.height)
@@ -706,35 +665,32 @@ class ContourDetector:
                     #cvEllipse2Poly
                     # Alloc memory for contour point set.
                     numPolygonPoints = 30
-                    ellipsePointArray = cv.CreateMat(1, numPolygonPoints, cv.CV_32SC2)
-                    ellipsePointArray2D32f= cv.CreateMat( 1, numPolygonPoints, cv.CV_32FC2)
-                    #buffer = [cv.Point(1,1), cv.Point(1,1)]
+                    ellipsePointArray = old_cv.cvCreateMat(1, numPolygonPoints, old_cv.CV_32SC2)
+                    ellipsePointArray2D32f= old_cv.cvCreateMat( 1, numPolygonPoints, old_cv.CV_32FC2)
+                    buffer = [old_cv.cvPoint(1,1), old_cv.cvPoint(1,1)]
                     #print box.angle
                     #cvEllipse2Poly(center, size, int(box.angle), 0, 360, ellipsePointArray2D32f, 1)
                     #cvEllipse2Poly(center, size, int(box.angle), 0, 360, buffer, 1)
     
                     progressLog("cv ellipse")
                     
-                    try:
-                        # Draw ellipse.
-                        cv.Ellipse(contours_image, center, size,
-                                  angle, 0, 360,
-                                  cv.CV_RGB(0,0,255), 1, cv.CV_AA, 0);
-                        cv.Ellipse(ellipseImage, center, size,
-                                  angle, 0, 360,
-                                  cv.CV_RGB(255,255,255), -1, cv.CV_AA, 0);
-                    except:
-                        print "warning: skipped drawing invalid ellipse"
+                    # Draw ellipse.
+                    old_cv.cvEllipse(contours_image, center, size,
+                              box.angle, 0, 360,
+                              old_cv.CV_RGB(0,0,255), 1, old_cv.CV_AA, 0);
+                    old_cv.cvEllipse(ellipseImage, center, size,
+                              box.angle, 0, 360,
+                              old_cv.CV_RGB(255,255,255), -1, old_cv.CV_AA, 0);
         
-                    cv.And(contourImage, ellipseImage, andImage);
-                    cv.Or(contourImage, ellipseImage, orImage);
+                    old_cv.cvAnd(contourImage, ellipseImage, andImage);
+                    old_cv.cvOr(contourImage, ellipseImage, orImage);
         
-                    andArea = cv.Sum(andImage)
-                    orArea = cv.Sum(orImage)
-                    contourArea = float(cv.Sum(contourImage)[0])
+                    andArea = old_cv.cvSum(andImage)
+                    orArea = old_cv.cvSum(orImage)
+                    contourArea = float(old_cv.cvSum(contourImage)[0])
                     #print contourArea
         
-                    cv.Copy(originalImage, maskedImage, contourImage)
+                    old_cv.cvCopy(originalImage, maskedImage, contourImage)
                     
                     #print orArea
         
@@ -746,7 +702,7 @@ class ContourDetector:
                     #amplitude = 1
                     #perimeterValue = gaussian(abs(74.0 - perimeter), amplitude, 10)
     
-                    averageGrayValue = (float(cv.Sum(maskedImage)[0]) / float(cv.Sum(contourImage)[0]))
+                    averageGrayValue = (float(old_cv.cvSum(maskedImage)[0]) / float(old_cv.cvSum(contourImage)[0]))
     
     
                     contourObject.features['ellipseOverlap'] = fractionOfOverlap
@@ -768,14 +724,14 @@ class ContourDetector:
                     #color = CV_RGB(int(255.0*overlapValue),int(255.0*perimeterValue),50)
                     #color = CV_RGB(50,int(255.0*(overlapValue**1)*(perimeterValue**1)),50)
                     #color = CV_RGB(255 - (contourObject.probability() * 6),int(255.0*contourObject.probability()) * 6.0,50)
-                    color = cv.CV_RGB(255, 255, 0)
+                    color = old_cv.CV_RGB(255, 255, 0)
                     if 0:
                         rgbList = colorFromProbability(contourObject.probability)
-                        color = cv.CV_RGB(rgbList[0], rgbList[1], rgbList[2])
-                    cv.DrawContours(resultDisplayImage, c, color, cv.CV_RGB(255,255,255),0,cv.CV_FILLED,8,(0,0));
+                        color = old_cv.CV_RGB(rgbList[0], rgbList[1], rgbList[2])
+                    old_cv.cvDrawContours(resultDisplayImage, c, color, old_cv.CV_RGB(255,255,255),0,old_cv.CV_FILLED,8,old_cv.cvPoint(0,0));
         
                     thickness = 1
-                    cv.DrawContours(resultContoursImage, c, color, cv.CV_RGB(255,255,255),0,thickness,8,(0,0));
+                    old_cv.cvDrawContours(resultContoursImage, c, color, old_cv.CV_RGB(255,255,255),0,thickness,8,old_cv.cvPoint(0,0));
         
                     #cvDrawContours(contours_image, ellipsePointArray, CV_RGB(255,255,255), CV_RGB(128,255,128),0,1,8,cvPoint(0,0))
     
@@ -790,45 +746,42 @@ class ContourDetector:
                     if 0:
                     
                         outputFilename = os.path.join(contourOutputTemporaryFolder, "out%04d_%04d.bmp" % (imageIndex, contourIndex))
-                        cv.SaveImage(outputFilename, contourImage)
+                        highgui.old_cv.cvSaveImage(outputFilename, contourImage)
             
                         outputFilename = os.path.join(contourOutputTemporaryFolder, "out%04d_%04d_and.bmp" % (imageIndex, contourIndex))
-                        cv.SaveImage(outputFilename, andImage)
+                        highgui.old_cv.cvSaveImage(outputFilename, andImage)
             
                         outputFilename = os.path.join(contourOutputTemporaryFolder, "out%04d_%04d_or.bmp" % (imageIndex, contourIndex))
-                        cv.SaveImage(outputFilename, orImage)
+                        highgui.old_cv.cvSaveImage(outputFilename, orImage)
             
                         outputFilename = os.path.join(contourOutputTemporaryFolder, "out%04d_%04d_masked.bmp" % (imageIndex, contourIndex))
-                        cv.SaveImage(outputFilename, maskedImage)
+                        highgui.old_cv.cvSaveImage(outputFilename, maskedImage)
             
                         outputFilename = os.path.join(contourOutputTemporaryFolder, "out%04d_%04d_display.bmp" % (imageIndex, contourIndex))
-                        cv.SaveImage(outputFilename, resultDisplayImage)
+                        highgui.old_cv.cvSaveImage(outputFilename, resultDisplayImage)
         
         
-                    # this variable exists for debugging messages
                     contourIndex = contourIndex + 1
-                    #c = c.h_next()
                     
                 # Show image. HighGUI use.
-                #cv.ShowImage( "Result", contours_image );
+                #highgui.cvShowImage( "Result", contours_image );
         
             
             if 0:
-                cv.NamedWindow("original", 1)
-                cv.ShowImage("original", binaryImage)
+                highgui.cvNamedWindow("original", 1)
+                highgui.cvShowImage("original", binaryImage)
                 
-                cv.NamedWindow("contours", 1)
-                cv.ShowImage("contours", contours_image)
+                highgui.cvNamedWindow("contours", 1)
+                highgui.cvShowImage("contours", contours_image)
     
             progressLog("writing output files")
     
     
             outputFilename = os.path.join(contourOutputTemporaryFolder, "out%04d.bmp" % imageIndex)
-            print "writing", outputFilename
-            cv.SaveImage(outputFilename, contours_image)
+            highgui.cvSaveImage(outputFilename, contours_image)
         
             outputFilename = os.path.join(contourOutputTemporaryFolder, "result%04d.bmp" % imageIndex)
-            cv.SaveImage(outputFilename, resultContoursImage)
+            highgui.cvSaveImage(outputFilename, resultContoursImage)
 
             #contourResultTree.addChild(contoursInImage)
         
@@ -836,7 +789,7 @@ class ContourDetector:
         #print "output written to file stack"
         print "end of contour detection"
         
-        #cv.WaitKey(0)
+        #highgui.cvWaitKey(0)
     
         return contourResultTree
         
@@ -847,29 +800,29 @@ def greaterThanSurroundingPixelsFilter(openCVImage):
 
         originalImage = openCVImage
 
-        size = cv.GetSize(openCVImage)
+        size = old_cv.cvGetSize(openCVImage)
 
         progressLog("filteredImage")
-        filteredImage = cv.CreateImage(size, 8, 1)
-        cv.SetZero(filteredImage)
+        filteredImage = old_cv.cvCreateImage(size, 8, 1)
+        old_cv.cvSetZero(filteredImage)
 
         progressLog("filteredImage2")
-        filteredImage2 = cv.CreateImage(size, 8, 1)
-        cv.SetZero(filteredImage2)
+        filteredImage2 = old_cv.cvCreateImage(size, 8, 1)
+        old_cv.cvSetZero(filteredImage2)
     
         progressLog("filteredImage3")
-        filteredImage3 = cv.CreateImage(size, 8, 1)
-        cv.SetZero(filteredImage3)
+        filteredImage3 = old_cv.cvCreateImage(size, 8, 1)
+        old_cv.cvSetZero(filteredImage3)
 
 
-        cv.Smooth(originalImage, filteredImage, cv.CV_GAUSSIAN, 7, 7, 40)
+        old_cv.cvSmooth(originalImage, filteredImage, old_cv.CV_GAUSSIAN, 7, 7, 40)
 
-        cv.Sub(originalImage, filteredImage, filteredImage2)
+        old_cv.cvSub(originalImage, filteredImage, filteredImage2)
         #cvExp(filteredImage2, filteredImage3)
         #cvCmp(originalImage, filteredImage, filteredImage2, CV_CMP_GT)
 
         #cvCmpS(filteredImage2, 5, filteredImage3, CV_CMP_GT)
-        cv.CmpS(filteredImage2, 0, filteredImage3, cv.CV_CMP_GT)
+        old_cv.cvCmpS(filteredImage2, 0, filteredImage3, old_cv.CV_CMP_GT)
 
         return filteredImage3
 

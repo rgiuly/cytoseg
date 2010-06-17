@@ -6,6 +6,7 @@ import sys
 import math
 import logging
 import default_path
+import warnings
 
 from command_reader import CommandReader
 
@@ -19,7 +20,7 @@ try:
 except ImportError:
     warnings.warn("mpi4py module is not installed")
     mpiRank = 0
-    mpiCommSize = 10
+    mpiCommSize = 1
 
 print "DISPLAY", os.getenv("DISPLAY")
 
@@ -126,17 +127,35 @@ for numTrees in (25,):
 
             #trainingRegion = Box((0, 0, 0), (170, 170, 7))
             #regionToClassify = Box((0, 0, zStart), (170, 170, zStop))
-            trainingRegion = Box((200, 200, 200), (400, 400, 207))
-            regionToClassify = Box([100, 400, 203 + mpiRank],
-                                   [620, 700, 210 + mpiRank])
+            #trainingRegion = Box((200, 200, 200), (400, 400, 207))
+            trainingRegion = Box((None, None, 200), (None, None, 270))
+            #trainingRegion = Box((None, None, 200), (None, None, 207))
+            #regionToClassify = Box([100, 400, 203 + mpiRank],
+            #                       [620, 700, 210 + mpiRank])
 
-            sbfsem(param['originalImageFilePath'],
-       	           param['voxelTrainingImageFilePath'],
-       	           param['voxelTrainingLabelFilePath'],
-       	           #path, numTrees, 6+1, None, zStart - zStartOffset, zStop + zEndOffset + 1, iteration, taskToPerform)
-                   path, numTrees, 6+5, trainingRegion,
-                   None, regionToClassify, iteration,
-                   taskToPerform, False, param['configFile'])
+        #for sliceNum in range (0, 1):
+        for sliceNum in range (0, 250):
+	
+            print "(sliceNum + 1)", (sliceNum + 1)
+            print "(mpiRank + 1)", (mpiRank + 1)
+
+            if( (sliceNum + 1) % (mpiRank + 1) != 0):
+             continue	
+
+            if 1:
+
+                #regionToClassify = Box([100, 400, sliceNum],
+                #                       [620, 700, sliceNum + 7])
+                regionToClassify = Box([None, None, sliceNum],
+                                       [None, None, sliceNum + 7])
+
+                sbfsem(param['originalImageFilePath'],
+                	param['voxelTrainingImageFilePath'],
+                   	param['voxelTrainingLabelFilePath'],
+                   #path, numTrees, 6+1, None, zStart - zStartOffset, zStop + zEndOffset + 1, iteration, taskToPerform)
+                   	path, numTrees, 6+5, trainingRegion,
+                   	None, regionToClassify, iteration,
+                   	taskToPerform, False, param['configFile'])
             #print "zStart - zStartOffset", zStart - zStartOffset
 	    #print "zStop + zEndOffset", zStop + zEndOffset
             #sbfsem(param['originalImageFilePath'],

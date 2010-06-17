@@ -62,3 +62,19 @@ class LabelIdentifier:
 
         return returnVolume
 
+
+class LabelIdentifierDict(dict):
+
+    def getClassName(self, value):
+
+        className = None
+
+        for target in self:
+            #print "target", target
+            #print "value", value
+            #print "self[target].isMember(value)", self[target].isMember(value)
+            if self[target].isMember(value):
+                className = target
+
+        return className
+
