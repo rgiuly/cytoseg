@@ -149,13 +149,20 @@ for numTrees in (25,):
                 regionToClassify = Box([None, None, sliceNum],
                                        [None, None, sliceNum + 7])
 
-                sbfsem(param['originalImageFilePath'],
-                	param['voxelTrainingImageFilePath'],
-                   	param['voxelTrainingLabelFilePath'],
-                   #path, numTrees, 6+1, None, zStart - zStartOffset, zStop + zEndOffset + 1, iteration, taskToPerform)
-                   	path, numTrees, 6+5, trainingRegion,
-                   	None, regionToClassify, iteration,
-                   	taskToPerform, False, param['configFile'])
+                sbfsem(originalImageFilePath=param['originalImageFilePath'],
+                        voxelTrainingImageFilePath=param['voxelTrainingImageFilePath'],
+                        voxelTrainingLabelFilePath=param['voxelTrainingLabelFilePath'],
+                        #path, numTrees, 6+1, None, zStart - zStartOffset, zStop + zEndOffset + 1, iteration, taskToPerform)
+                   	    blobImageStackOutputFolder=path,
+                        numberOfTrees=numTrees,
+                        numberOfTrainingLayersToProcess=6+5,
+                        trainingRegion=trainingRegion,
+                   	    numberOfLayersToProcess=None,
+                        regionToClassify=regionToClassify,
+                        voxelClassificationIteration=iteration,
+                   	    steps=taskToPerform,
+                        guiVisible=False,
+                        configFile=param['configFile'])
             #print "zStart - zStartOffset", zStart - zStartOffset
 	    #print "zStop + zEndOffset", zStop + zEndOffset
             #sbfsem(param['originalImageFilePath'],

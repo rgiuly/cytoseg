@@ -26,7 +26,7 @@ def sbfsem(originalImageFilePath=None,
            voxelClassificationIteration=0,
            contourProcessingTrainingRegion=None,
            contourProcessingRegionToClassify=None,
-           steps=False,
+           steps=None,
            guiVisible=False,
            configFile=os.path.join(os.getcwd(), 'sbfsem_settings0.py')):
 

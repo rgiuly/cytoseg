@@ -143,7 +143,7 @@ class ContourSetDetector:
         self.contourClassifier.target = target
 
 
-    def run(self, steps=True):
+    def run(self, steps):
 
         if steps == 'classifyVoxels':
 
