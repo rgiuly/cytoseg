@@ -633,8 +633,9 @@ class ContourDetector:
                     #print cvMatchShapes(c, c, CV_CONTOURS_MATCH_I1)
                     
                     # Alloc memory for contour point set.
-                    PointArray = cv.CreateMat(1, count, cv.CV_32SC2)
-                    PointArray2D32f = cv.CreateMat(1, count, cv.CV_32FC2)
+                    #PointArray = cv.CreateMat(1, count, cv.CV_32SC2)
+                    #PointArray2D32f = cv.CreateMat(1, count, cv.CV_32FC2)
+                    PointArray2D32f = cv.CreateMat(1, len(c), cv.CV_32FC2)
                     
                     # Get contour point set.
                     #cv.CvtSeqToArray(c, PointArray, cv.Slice(0, cv.CV_WHOLE_SEQ_END_INDEX));
@@ -642,7 +643,7 @@ class ContourDetector:
                         PointArray2D32f[0, i] = (x, y)
                     
                     # Convert CvPoint set to CvBox2D32f set.
-                    cv.Convert( PointArray, PointArray2D32f )
+                    #cv.Convert( PointArray, PointArray2D32f )
                     
                     # this seems unnecessary
                     #box = cv.Box2D()
@@ -724,7 +725,7 @@ class ContourDetector:
                                   angle, 0, 360,
                                   cv.CV_RGB(255,255,255), -1, cv.CV_AA, 0);
                     except:
-                        print "warning: skipped drawing invalid ellipse"
+                        warnings.warn("skipped drawing invalid ellipse")
         
                     cv.And(contourImage, ellipseImage, andImage);
                     cv.Or(contourImage, ellipseImage, orImage);

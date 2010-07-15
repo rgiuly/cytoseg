@@ -24,6 +24,8 @@ def sbfsem(originalImageFilePath=None,
            #classifyEndZ=None,
            regionToClassify=None,
            voxelClassificationIteration=0,
+           contourProcessingTrainingRegion=None,
+           contourProcessingRegionToClassify=None,
            steps=False,
            guiVisible=False,
            configFile=os.path.join(os.getcwd(), 'sbfsem_settings0.py')):
@@ -86,25 +88,31 @@ def sbfsem(originalImageFilePath=None,
     #detector.contourClassifier.numberOfLayersToProcess = 14
     detector.contourClassifier.numberOfLayersToProcess = numberOfLayersToProcess
     detector.contourClassifier.regionToClassify = regionToClassify
-    detector.contourTrainer.numberOfLayersToProcess = numberOfLayersToProcess
-    detector.contourTrainer.regionToClassify = regionToClassify
+    #detector.contourTrainer.numberOfLayersToProcess = numberOfLayersToProcess
+    #detector.contourTrainer.regionToClassify = regionToClassify
     #detector.contourClassifier.regionToClassify = Box([None, None, classifyStartZ],
     #                                                  [None, None, classifyEndZ])
     detector.contourClassifier.numberOfTrainingLayersToProcess =\
         numberOfTrainingLayersToProcess
-    detector.contourTrainer.numberOfTrainingLayersToProcess =\
-        numberOfTrainingLayersToProcess
+    #detector.contourTrainer.numberOfTrainingLayersToProcess =\
+    #    numberOfTrainingLayersToProcess
 
     config_file_module.mapNumbersToComponents(detector)
     detector.contourClassifier.trainingRegion = trainingRegion
-    detector.contourTrainer.trainingRegion = trainingRegion
+    #detector.contourTrainer.trainingRegion = trainingRegion
 
-    detector.contourTrainer.contourTrainingRegion = trainingRegion
+    #detector.contourTrainer.contourTrainingRegion = trainingRegion
+    detector.contourClassifier.contourTrainingRegion = trainingRegion
+
+    detector.contourClassifier.contourProcessingTrainingRegion =\
+        contourProcessingTrainingRegion
+    detector.contourClassifier.contourProcessingRegionToClassify =\
+        contourProcessingRegionToClassify
 
     detector.contourClassifier.precomputedProbabilityMapFilePath =\
         precomputedProbabilityMapFilePath
-    detector.contourTrainer.precomputedProbabilityMapFilePath =\
-        precomputedProbabilityMapFilePath
+    #detector.contourTrainer.precomputedProbabilityMapFilePath =\
+    #    precomputedProbabilityMapFilePath
 
     #detector.setTarget('membranes_test')
 

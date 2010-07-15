@@ -75,24 +75,24 @@ class ContourSetDetector:
         labelFilePaths['not_set'] = odict()
         labelFilePaths['not_set']['all'] = parameterDict['voxelTrainingLabelFilePath']
     
-        self.contourTrainer = ComponentDetector(
-            dataViewer=self.dataViewer,
-            dataIdentifier=mode,
-            target='not_set',
-            originalImageFilePath=parameterDict['originalImageFilePath'],
-            contourListClassificationMethod=contourListClassificationMethod,
-            #contourListExamplesIdentifier="contourPathFeatures" + "_" + target,
-            #contourListTrainingExamplesIdentifier="contourPathFeatures" + "_" + target,
-            contourListExamplesIdentifier="contourPathFeatures" + "_" + dataIdentifier,
-            contourListTrainingExamplesIdentifier="contourPathFeatures" + "_" + dataIdentifier,
-            voxelTrainingImageFilePath="data/sbfsem_training/images",
-            voxelTrainingLabelFilePath="data/sbfsem_training/label",
-            labelFilePaths=labelFilePaths[target_depricated])
-
-        self.contourTrainer.numberOfLayersToProcess = None
-        self.contourTrainer.numberOfThresholds = 1
-        self.contourTrainer.firstThreshold = 0.4
-        self.contourTrainer.thresholdStep = 0.2
+#        self.contourTrainer = ComponentDetector(
+#            dataViewer=self.dataViewer,
+#            dataIdentifier=mode,
+#            target='not_set',
+#            originalImageFilePath=parameterDict['originalImageFilePath'],
+#            contourListClassificationMethod=contourListClassificationMethod,
+#            #contourListExamplesIdentifier="contourPathFeatures" + "_" + target,
+#            #contourListTrainingExamplesIdentifier="contourPathFeatures" + "_" + target,
+#            contourListExamplesIdentifier="contourPathFeatures" + "_" + dataIdentifier,
+#            contourListTrainingExamplesIdentifier="contourPathFeatures" + "_" + dataIdentifier,
+#            voxelTrainingImageFilePath="data/sbfsem_training/images",
+#            voxelTrainingLabelFilePath="data/sbfsem_training/label",
+#            labelFilePaths=labelFilePaths[target_depricated])
+#
+#        self.contourTrainer.numberOfLayersToProcess = None
+#        self.contourTrainer.numberOfThresholds = 1
+#        self.contourTrainer.firstThreshold = 0.4
+#        self.contourTrainer.thresholdStep = 0.2
         
         # process the contours in a full dataset
         #elif mode == 'hpf_test':
@@ -109,7 +109,8 @@ class ContourSetDetector:
             contourListTrainingExamplesIdentifier="contourPathFeatures" + "_" + dataIdentifier,
             voxelTrainingImageFilePath=parameterDict['voxelTrainingImageFilePath'],
             voxelTrainingLabelFilePath=parameterDict['voxelTrainingLabelFilePath'],
-            voxelClassificationIteration=voxelClassificationIteration)
+            voxelClassificationIteration=voxelClassificationIteration,
+            labelFilePaths=labelFilePaths[target_depricated])
     
         #self.contourClassifier.voxelClassificationInputVolumeName =\
         #    self.contourClassifier.blurredVolumeName
@@ -122,14 +123,14 @@ class ContourSetDetector:
         self.contourClassifier.numberOfLayersToProcess = None
     
         # for mitochondria
-        self.contourClassifier.numberOfThresholds = 4 #1 #1 #4
-        self.contourClassifier.firstThreshold = 40 #160 #0.05 #0.4 #0.2
+        self.contourClassifier.numberOfThresholds = 2 #5 #1 #1 #4
+        self.contourClassifier.firstThreshold = 20 #160 #0.05 #0.4 #0.2
     
         # not for mitochondria
         #self.contourClassifier.numberOfThresholds = 1 #4
         #self.contourClassifier.firstThreshold = 0.4 #0.2
     
-        self.contourClassifier.thresholdStep = 10 #0.05
+        self.contourClassifier.thresholdStep = 80 #40 #0.05
 
         self.setTarget('mitochondria')
         #self.setTarget('vesicles')
@@ -138,7 +139,7 @@ class ContourSetDetector:
 
     def setTarget(self, target):
 
-        self.contourTrainer.target = target
+        #self.contourTrainer.target = target
         self.contourClassifier.target = target
 
 
@@ -147,8 +148,8 @@ class ContourSetDetector:
         if steps == 'classifyVoxels':
 
             self.contourClassifier.runInitialize()
-            self.contourClassifier.runPersistentLoadTrainingData()
-            self.contourClassifier.runPersistentLoadOriginalImage()
+            self.contourClassifier.runLoadTrainingData()
+            self.contourClassifier.runLoadInputImage()
             self.contourClassifier.runClassifyVoxels()
             self.contourClassifier.runWriteVoxelClassificationResult()
             #self.contourClassifier.calculateVoxelClassificationAccuracy_new()
@@ -158,34 +159,73 @@ class ContourSetDetector:
         elif steps == 'accuracy':
 
             self.contourClassifier.runInitialize()
-            self.contourClassifier.runPersistentLoadOriginalImage()
+            self.contourClassifier.runLoadInputImage()
             self.contourClassifier.calculateVoxelClassificationAccuracy_new()
 
-        elif steps == 'contours':
+        elif steps == 'findTrainingContours':
 
             self.contourClassifier.runInitialize()
-            self.contourClassifier.runPersistentLoadOriginalImage()
-            self.contourClassifier.runPersistentLoadProbabilityMap()
+            self.contourClassifier.runLoadInputImage()
+            self.contourClassifier.runLoadProbabilityMap()
             #self.contourClassifier.runClassifyVoxels()
-            self.contourClassifier.runFindContours()
+            self.contourClassifier.runFindTrainingContours()
             self.contourClassifier.runWriteContoursToImageStack()
-            self.contourClassifier.runContourProbabilityFilter()
+            #self.contourClassifier.runContourProbabilityFilter()
             #self.contourClassifier.runGroupContoursByConnectedComponents()
 
-        elif steps == 'classifyContours':
+        elif steps == 'findInputContours':
 
-            self.contourTrainer.runInitialize()
-            self.contourTrainer.runPersistentLoadOriginalImage()
-            self.contourTrainer.runComputeContourRegions()
-            self.contourTrainer.runMakeContourLists()
-            self.contourTrainer.runCalculateContourListFeatures()
-            self.contourTrainer.loadItemsForViewing()
+            self.contourClassifier.runInitialize()
+            self.contourClassifier.runLoadContourProcessingInputImage()
+            self.contourClassifier.runLoadInputProbabilityMap()
+            self.contourClassifier.runFindInputContours()
+            #self.contourClassifier.runWriteContoursToImageStack()
+            #self.contourClassifier.runContourProbabilityFilter()
+
+
+        elif steps == 'findInputContoursTest':
+
+            self.contourClassifier.runInitialize()
+            self.contourClassifier.runLoadContourProcessingTrainingImage()
+            self.contourClassifier.runLoadTrainingProbabilityMap()
+            self.contourClassifier.runFindTrainingContours()
+            #self.contourClassifier.runWriteContoursToImageStack()
+            #self.contourClassifier.runContourProbabilityFilter()
+
+            self.contourClassifier.runLoadContourProcessingInputImage()
+            self.contourClassifier.runLoadInputProbabilityMap()
+            self.contourClassifier.runFindInputContours()
+
+
+        elif steps == 'classifyTrainingContours':
+
+            self.contourClassifier.runInitialize()
+            #self.contourClassifier.runLoadInputImage()
+            self.contourClassifier.runLoadContourProcessingTrainingImage()
+            self.contourClassifier.runLoadTrainingProbabilityMap()
+            self.contourClassifier.runLoadContourProcessingInputImage()
+            self.contourClassifier.runComputeContourRegions()
+            self.contourClassifier.runMakeTrainingContourLists()
+            self.contourClassifier.runCalculateTrainingContourListFeaturesTask()
+            self.contourClassifier.runTrainingContourListClassifier()
+
+
+        elif steps == 'classifyInputContours':
+
+            self.contourClassifier.runInitialize()
+            self.contourClassifier.runLoadContourProcessingTrainingImage()
+            self.contourClassifier.runLoadInputProbabilityMap()
+            self.contourClassifier.runLoadContourProcessingInputImage()
+            self.contourClassifier.runMakeInputContourLists()
+            self.contourClassifier.runCalculateInputContourListFeaturesTask()
+            self.contourClassifier.runInputContourListClassifier()
+
 
         #elif steps == True:
         elif steps == 'groupContours':
 
             self.contourClassifier.runInitialize()
-            self.contourClassifier.runPersistentLoadOriginalImage()
+            self.contourClassifier.runLoadInputImage()
             self.contourClassifier.runClassifyVoxels()
             self.contourClassifier.runFindContours()
             self.contourClassifier.runGroupContoursByConnectedComponents()

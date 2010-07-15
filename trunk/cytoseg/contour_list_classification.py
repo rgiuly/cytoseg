@@ -78,7 +78,11 @@ def getContourListProperties(contourListNode):
 
 def recordFeaturesOfContourLists(dataViewer,
                                  inputTrainingContourListsNodePath,
-                                 outputExamplesIdentifier):
+                                 outputExamplesIdentifier,
+                                 recordKnownClassificationWithExamples):
+    """
+    outputExamplesIdentifier: specifies the base name of the tab file for orange data mining
+    """
 
 
     file = open(os.path.join(cytosegDataFolder, outputExamplesIdentifier + ".tab"), "w")
@@ -87,7 +91,10 @@ def recordFeaturesOfContourLists(dataViewer,
 
     contourListsNode =\
         dataViewer.mainDoc.dataTree.getSubtree(inputTrainingContourListsNodePath)
-    
+
+    if len(contourListsNode.children) == 0:
+        raise Exception, "Not contour lists were found, so there are no features to record."
+
     # use the feature dictionary of the first node to get a list of feature names
     dictionary = contourListsNode.children[0].object.featureDict
     featureList = []
@@ -109,22 +116,28 @@ def recordFeaturesOfContourLists(dataViewer,
                 firstLabelCountDict =\
                     contourListNode.children[0].object.labelCountDict
 
-                minimum = 10000000
-                for child in contourListNode.children:
-                    countDict = child.object.labelCountDict
-                    if 'mitochondria' in countDict:
-                        value = countDict['mitochondria']
-                        if value < minimum:
-                            minimum = value
-                    else:
-                        minimum = 0
+                if recordKnownClassificationWithExamples:
 
-                #if 'mitochondria' in firstLabelCountDict:
-                #    count = firstLabelCountDict['mitochondria']
-                #else:
-                #    count = 0
+                    minimum = 10000000
+                    for child in contourListNode.children:
+                        countDict = child.object.labelCountDict
+                        if 'mitochondria' in countDict:
+                            value = countDict['mitochondria']
+                            if value < minimum:
+                                minimum = value
+                        else:
+                            minimum = 0
 
-                count = minimum
+                    #if 'mitochondria' in firstLabelCountDict:
+                    #    count = firstLabelCountDict['mitochondria']
+                    #else:
+                    #    count = 0
+
+                    count = minimum
+                
+                else:
+
+                    count = None
 
                 dataViewer.writeExample(file,
                                         contourListProperties.featureDict,

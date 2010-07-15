@@ -3,7 +3,8 @@ from label_identifier import *
 
 def mapNumbersToComponents(detector):
 
-    for object in (detector.contourClassifier, detector.contourTrainer):
+    #for object in (detector.contourClassifier, detector.contourTrainer):
+    for object in (detector.contourClassifier,):
 
         object.labelIdentifierDict['mitochondria'] =\
             LabelIdentifier(min=141, max=141)

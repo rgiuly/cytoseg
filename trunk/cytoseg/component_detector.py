@@ -393,6 +393,10 @@ class ComponentDetector:
         self.originalImageFilePath = originalImageFilePath
 
         self.originalVolumeName = dataIdentifier + 'OriginalVolume'
+        self.contourProcessingInputVolumeNodePath = ('Volumes',
+                        dataIdentifier + 'ContourProcessingInputVolume')
+        self.contourProcessingTrainingVolumeNodePath = ('Volumes',
+                        dataIdentifier + 'ContourProcessingTrainingVolume')
         self.voxelClassificationInputVolumeName = self.originalVolumeName
         self.blurredVolumeName = dataIdentifier + 'BlurredVolume'
         self._voxelClassificationIteration = voxelClassificationIteration
@@ -426,7 +430,11 @@ class ComponentDetector:
         self.fullManualSegNodePath =\
             ('Volumes', dataIdentifier + 'FullManualSeg')
 
-        self.probabilityMapNodePath = ('Volumes', dataIdentifier + 'ProbabilityMap')
+        self.trainingProbabilityMapNodePath =\
+            ('Volumes', dataIdentifier + 'TrainingProbabilityMap')
+
+        self.inputProbabilityMapNodePath =\
+            ('Volumes', dataIdentifier + 'InputProbabilityMap')
 
         #self.voxelTrainingImageFilePath =\
         #    "O:\\images\\HPFcere_vol\\HPF_rotated_tif\\three_compartment\\"
@@ -441,15 +449,24 @@ class ComponentDetector:
 
         self.contourListClassificationMethod = contourListClassificationMethod
 
-        self.contoursNodeName = dataIdentifier + '_' + self.target + 'Contours'
-        self.contoursNodePath = (self.contoursNodeName,)
-        self.contourPathsNodePath = (dataIdentifier + '_' + self.target + 'ContourPaths',)
+        trainingContoursNodeName = dataIdentifier + '_' + self.target + 'TrainingContours'
+        inputContoursNodeName = dataIdentifier + '_' + self.target + 'InputContours'
+
+        # currently, these nodes havee to be at the top level of the tree
+        self.trainingContoursNodePath = (trainingContoursNodeName,)
+        self.inputContoursNodePath = (inputContoursNodeName,)
+
+        self.trainingContourPathsNodePath = (dataIdentifier + '_' + self.target + 'TrainingContourPaths',)
+        self.inputContourPathsNodePath = (dataIdentifier + '_' + self.target + 'InputContourPaths',)
+
         if contourListExamplesIdentifier != None:
             self.contourListExamplesIdentifier = contourListExamplesIdentifier +\
                                                 '_' + self.target
         self.contourListTrainingExamplesIdentifier =\
             contourListTrainingExamplesIdentifier +\
             '_' + self.target
+        self.contourListInputDataExamplesIdentifier = 'InputDataExamples' +\
+                                                '_' + self.target
         self.labelFilePaths = labelFilePaths
 
         self.fullManualSegFilePath = None
@@ -463,7 +480,10 @@ class ComponentDetector:
         self.firstThreshold = 0.5
         self.thresholdStep = 0.1
 
-        self.contourTrainingRegion = None
+        #self.contourProcessingTrainingRegion = None
+
+        self.contourProcessingTrainingRegion = None
+        self.contourProcessingRegionToClassify = None
 
         #self.minVoxelLabelValue = 1
         #self.maxVoxelLabelValue = None
@@ -474,7 +494,7 @@ class ComponentDetector:
         self.displayParametersDict['mitochondria'].contourProbabilityThreshold = 0.08
         self.displayParametersDict['mitochondria_new'] = ContourAndBlobDisplayParameters()
         self.displayParametersDict['mitochondria_new'].numberOfContoursToDisplay = None #20
-        self.displayParametersDict['mitochondria_new'].contourProbabilityThreshold = 0.06
+        self.displayParametersDict['mitochondria_new'].contourProbabilityThreshold = 0.0
         self.displayParametersDict['blankInnerCell'] = ContourAndBlobDisplayParameters()
         self.displayParametersDict['blankInnerCell'].numberOfContoursToDisplay = 20
         self.displayParametersDict['blankInnerCell'].contourProbabilityThreshold = 0 #0.1
@@ -483,7 +503,7 @@ class ComponentDetector:
         self.displayParametersDict['vesicles'].contourSegmentTubeRadius = 0.1
         self.displayParametersDict['vesicles'].contourCenterMarkerSize = 0.5
         self.displayParametersDict['vesicles'].contourProbabilityThreshold = 0.15
-        
+
         self.probabilityFunctionDict = {}
         self.probabilityFunctionDict['mitochondria'] = mitochondriaProbability
         self.probabilityFunctionDict['mitochondria_new'] =\
@@ -835,7 +855,11 @@ class ComponentDetector:
                                inputImageNodePath)
 
 
-    def findContours(self, groupNodeName, threshold, numberOfLayersToProcess):
+    def findContours(self, contoursNodePath,
+                        originalVolumeNodePath,
+                        probabilityMapNodePath,
+                        groupNodeName, threshold,
+                        numberOfLayersToProcess):
 
             #originalVolume = loadImageStack(driveName + "/images/HPFcere_vol/HPF_rotated_tif/median_then_gaussian_8bit", None)
             #originalVolume = loadImageStack(driveName + "/images/HPFcere_vol/HPF_rotated_tif/8bit", None)
@@ -930,13 +954,13 @@ class ComponentDetector:
                 detector.retrievalMode = cv.CV_RETR_EXTERNAL
 
                 if numberOfLayersToProcess != None:
-                    detector.originalVolume = self.dataViewer.getPersistentVolume_old(self.originalVolumeName)\
+                    detector.originalVolume = self.dataViewer.getPersistentObject(originalVolumeNodePath)\
                     [:, :, 0:numberOfLayersToProcess]
-                    detector.filteredVolume = self.dataViewer.getPersistentObject(self.probabilityMapNodePath)\
+                    detector.filteredVolume = self.dataViewer.getPersistentObject(probabilityMapNodePath)\
                     [:, :, 0:numberOfLayersToProcess]
                 else:
-                    detector.originalVolume = self.dataViewer.getPersistentVolume_old(self.originalVolumeName)
-                    detector.filteredVolume = self.dataViewer.getPersistentObject(self.probabilityMapNodePath)
+                    detector.originalVolume = self.dataViewer.getPersistentObject(originalVolumeNodePath)
+                    detector.filteredVolume = self.dataViewer.getPersistentObject(probabilityMapNodePath)
 
             else:
 
@@ -956,7 +980,7 @@ class ComponentDetector:
             #self.dataViewer.addSubtreeAndRefreshDataTree(self.contoursNodePath,
             #                                             contoursGroupedByImage)
             contoursNode = getNode(self.dataViewer.mainDoc.dataRootNode,
-                                   self.contoursNodePath)
+                                   contoursNodePath)
             contoursNode.addChild(contoursGroupedByImage)
             #saveBlobsToJinxFile(contoursNode)
 
@@ -1048,15 +1072,22 @@ class ComponentDetector:
 
     def runComputeContourRegions(self):
 
+        self.computeContourRegions(self.contourProcessingTrainingRegion,
+                                    self.trainingContoursNodePath)
+
+
+    def computeContourRegions(self, contourProcessingTrainingRegion,
+                                trainingContoursNodePath):
+
         for labelName in self.labelFilePaths.keys():
             self.dataViewer.addPersistentVolumeAndRefreshDataTree(
                         resizeVolume(loadImageStack(self.labelFilePaths[labelName],
-                                       self.contourTrainingRegion),
+                                       contourProcessingTrainingRegion),
                                        (0.5, 0.5, 1)),
                         labelName)
 
         contoursRootNode = self.dataViewer.mainDoc.dataTree.getSubtree(
-                                                        self.contoursNodePath)
+                                                        trainingContoursNodePath)
         self.dataViewer.refreshTreeControls()
 
         # flatten tree of contours into a list
@@ -1113,7 +1144,7 @@ class ComponentDetector:
                                             count,
                                             totalPixelCount)
 
-        self.dataViewer.mainDoc.dataTree.writeSubtree(self.contoursNodePath)
+        self.dataViewer.mainDoc.dataTree.writeSubtree(trainingContoursNodePath)
 
 
     def makeLabelCountDict(self, numericLabelCountDict, contourArea):
@@ -1138,21 +1169,27 @@ class ComponentDetector:
         return labelCountDict
 
 
-    def makeContourLists(self, probabilityThreshold, pathLength):
+    def makeContourLists(self,
+                         contoursNodePath,
+                         contourStackName,
+                         allListsName,
+                         probabilityThreshold, pathLength):
 
         #startIndex = 3
         #pathLength = 3
 
-        self.dataViewer.getPersistentVolume_old(self.originalVolumeName)
-        self.dataViewer.mainDoc.dataTree.getSubtree(self.contoursNodePath)
+        #self.dataViewer.getPersistentVolume_old(self.originalVolumeName)
+        #self.dataViewer.mainDoc.dataTree.getSubtree(self.trainingContoursNodePath)
+        self.dataViewer.mainDoc.dataTree.getSubtree(contoursNodePath)
         self.dataViewer.refreshTreeControls()
 
         #allContoursAtPlane = getNode(self.dataViewer.mainDoc.dataRootNode,
         #                             self.contoursNodePath + ('thresholdIndex_0',))
         contoursNode = getNode(self.dataViewer.mainDoc.dataRootNode,
-                                     self.contoursNodePath)
+                                contoursNodePath)
 
-        newContourStack = GroupNode('ContourStack')
+        #newContourStack = GroupNode('ContourStack')
+        newContourStack = GroupNode(contourStackName)
 
         firstThresholdNode = contoursNode.children[0]
         numPlanes = len(firstThresholdNode.children)
@@ -1169,9 +1206,15 @@ class ComponentDetector:
 
         self.dataViewer.addPersistentSubtreeAndRefreshDataTree((), newContourStack)
 
-        allPathsNode = GroupNode(self.contourPathsNodePath[0])
+        #allPathsNode = GroupNode(self.contourPathsNodePath[0])
+        #todo: change "Paths" to "Lists"
+        allPathsNode = GroupNode(allListsName)
+
+        #print "numPlanes - pathLength =", str(numPlanes - pathLength)
 
         for startIndex in range(numPlanes - pathLength):
+
+            #print "startIndex", startIndex
 
             pathList = GroupNode()
             #pathList.addChild(GroupNode())
@@ -1204,7 +1247,10 @@ class ComponentDetector:
                         contour1 = endOfPathContourNode.object
                         center1 = contour1.getAveragePointLocation()
     
-                        if linalg.norm(center1 - newCenter) < 40:
+                        #if linalg.norm(center1 - newCenter) < 40:
+                        #if linalg.norm(center1 - newCenter) < 2000:
+                        if linalg.norm(center1 - newCenter) < 80:
+                        #if 1:
     
                             newPathNode = copy_module.deepcopy(pathNode)
                             newPathNode.addObject(newContour)
@@ -1225,7 +1271,7 @@ class ComponentDetector:
             # filter out low probability paths
             for contourListNode in pathList.children:
                 #print contourListNode.object.probability()
-                if contourListNode.object.probability() >\
+                if contourListNode.object.probability() >=\
                    pow(probabilityThreshold, pathLength) / 200.0\
                    or not(enablePathProbabilityFilter):
                     filteredPathList.addChild(contourListNode)
@@ -1235,14 +1281,14 @@ class ComponentDetector:
         self.dataViewer.addPersistentSubtreeAndRefreshDataTree((), allPathsNode)
 
 
-    def calculateContourListFeatures(self):
+    def calculateContourListFeatures(self, contourListsNodePath):
 
-        contourListsNode = self.dataViewer.mainDoc.dataTree.getSubtree(self.contourPathsNodePath)
+        contourListsNode = self.dataViewer.mainDoc.dataTree.getSubtree(contourListsNodePath)
 
         for contourListNode in contourListsNode.children:
             contourListNode.object = getContourListProperties(contourListNode)
 
-        self.dataViewer.mainDoc.dataTree.writeSubtree(self.contourPathsNodePath)
+        self.dataViewer.mainDoc.dataTree.writeSubtree(contourListsNodePath)
     
     
     def calculateVoxelClassificationAccuracy(self):
@@ -1478,12 +1524,30 @@ class ComponentDetector:
         else: print "find_3d_blobs target error"
 
 
-    def runPersistentLoadOriginalImage(self):
+    def runLoadInputImage(self):
+
+        self.loadInputImage(('Volumes', self.originalVolumeName),
+                            self.regionToClassify)
+
+
+    def runLoadContourProcessingTrainingImage(self):
+
+        self.loadInputImage(self.contourProcessingTrainingVolumeNodePath,
+                            self.contourProcessingTrainingRegion)
+
+
+    def runLoadContourProcessingInputImage(self):
+
+        self.loadInputImage(self.contourProcessingInputVolumeNodePath,
+                            self.contourProcessingRegionToClassify)
+
+
+    def loadInputImage(self, nodePath, region):
 
         #originalImageNodePath = ('Volumes', 'originalImage')
-        originalImageNodePath = ('Volumes', self.originalVolumeName)
+        #originalImageNodePath = ('Volumes', self.originalVolumeName)
 
-        originalImage = loadImageStack(self.originalImageFilePath, self.regionToClassify)
+        originalImage = loadImageStack(self.originalImageFilePath, region)
 
         originalImage = originalImage[:, :, 0:self.numberOfLayersToProcess]
 
@@ -1491,14 +1555,27 @@ class ComponentDetector:
 
         self.dataViewer.addPersistentVolumeAndRefreshDataTree(
                                     resizeVolume(originalImage, (0.5, 0.5, 1)),
-                                    self.originalVolumeName)
+                                    #todo: this is a hack
+                                    #it will only work for path with 'Volumes'
+                                    nodePath[-1])
 
 
-    def runPersistentLoadProbabilityMap(self):
+    def runLoadInputProbabilityMap(self):
+
+        self.loadProbabilityMap(self.inputProbabilityMapNodePath,
+                                self.contourProcessingRegionToClassify)
+
+
+    def runLoadTrainingProbabilityMap(self):
+
+        self.loadProbabilityMap(self.trainingProbabilityMapNodePath,
+                                self.contourProcessingTrainingRegion)
+
+
+    def loadProbabilityMap(self, probabilityMapNodePath, region):
 
         probabilityMap =\
-            loadImageStack(self.precomputedProbabilityMapFilePath,
-                           self.regionToClassify)
+            loadImageStack(self.precomputedProbabilityMapFilePath, region)
 
         probabilityMap = probabilityMap[:, :, 0:self.numberOfLayersToProcess]
 
@@ -1506,10 +1583,10 @@ class ComponentDetector:
 
         self.dataViewer.addPersistentObjectAndRefreshDataTree(
                                     resizeVolume(probabilityMap, (0.5, 0.5, 1)),
-                                    self.probabilityMapNodePath)
+                                    probabilityMapNodePath)
 
 
-    def runPersistentLoadTrainingData(self):
+    def runLoadTrainingData(self):
 
         voxelTrainingImageNodePath = ('Volumes', 'voxelTrainingImage')
         voxelTrainingLabelNodePath = ('Volumes', 'voxelTrainingLabel')
@@ -1592,27 +1669,72 @@ class ComponentDetector:
 
 
 
-    def runFindContours(self):
+    def multithresholdFindContours(self,
+                                   contoursNodePath,
+                                   originalVolumeNodePath,
+                                   probabilityMapNodePath):
 
             #testContours()
 
-            self.dataViewer.mainDoc.dataRootNode.addChild(GroupNode(self.contoursNodeName))
+            self.dataViewer.mainDoc.dataRootNode.addChild(
+                GroupNode(contoursNodePath[-1]))
 
             for thresholdIndex in range(self.numberOfThresholds):
 
-                self.findContours("thresholdIndex_%d" % thresholdIndex,
+                self.findContours(contoursNodePath,
+                    originalVolumeNodePath,
+                    probabilityMapNodePath,
+                    "thresholdIndex_%d" % thresholdIndex,
                     self.firstThreshold + (self.thresholdStep * thresholdIndex),
                     self.numberOfLayersToProcess)
 
-            self.dataViewer.mainDoc.dataTree.writeSubtree(self.contoursNodePath)
-            #self.dataViewer.mainDoc.dataTree.writeSubtree(('Contours', 'thresholdIndex_3'))
+            self.dataViewer.mainDoc.dataTree.writeSubtree(contoursNodePath)
+            #self.dataViewer.mainDoc.dataTree.writeSubtree((self.contoursNodeName,))
 
 
-    def runMakeContourLists(self):
+    def runFindTrainingContours(self):
 
-            self.makeContourLists(
-                self.displayParametersDict[self.target].contourProbabilityThreshold,
-                self.pathLength[self.target])
+        print "runFindTrainingContours", self.trainingContoursNodePath
+
+        self.multithresholdFindContours(self.trainingContoursNodePath,
+                                        self.contourProcessingTrainingVolumeNodePath,
+                                        self.trainingProbabilityMapNodePath)
+
+
+    def runFindInputContours(self):
+
+        print "runFindInputContours", self.inputContoursNodePath
+
+        self.multithresholdFindContours(self.inputContoursNodePath,
+                                        self.contourProcessingInputVolumeNodePath,
+                                        self.inputProbabilityMapNodePath)
+
+
+    def runMakeTrainingContourLists(self):
+
+        #print "runMakeContourLists target:", self.target
+
+        self.makeContourLists(
+            self.trainingContoursNodePath,
+            'TrainingContourStack',
+            self.trainingContourPathsNodePath[0],
+            self.displayParametersDict[self.target].contourProbabilityThreshold,
+            self.pathLength[self.target])
+        #self.makeContourLists(
+        #    0,
+        #    1)
+
+
+    def runMakeInputContourLists(self):
+
+        #print "runMakeContourLists target:", self.target
+
+        self.makeContourLists(
+            self.inputContoursNodePath,
+            'InputContourStack',
+            self.inputContourPathsNodePath[0],
+            self.displayParametersDict[self.target].contourProbabilityThreshold,
+            self.pathLength[self.target])
 
 
 #    def runMainLoop(self):
@@ -1624,7 +1746,7 @@ class ComponentDetector:
 
     def runWriteContoursToImageStack(self):
 
-        self.writeContoursToImageStack(self.contoursNodePath)
+        self.writeContoursToImageStack(self.trainingContoursNodePath)
 
 
     def loadOriginalVolume(self):
@@ -1638,30 +1760,44 @@ class ComponentDetector:
                                 self.currentVoxelClassificationResultPath()[1])
 
 
-    def loadItemsForViewing(self):
+    def runTrainingContourListClassifier(self):
+
+        self.executeContourListClassifier(self.trainingContoursNodePath,
+                                                self.trainingContourPathsNodePath,
+                                                self.contourListTrainingExamplesIdentifier)
+
+
+    def runInputContourListClassifier(self):
+
+        self.executeContourListClassifier(self.inputContoursNodePath,
+                                                self.inputContourPathsNodePath,
+                                                self.contourListTrainingExamplesIdentifier)
+
+
+    def executeContourListClassifier(self, contoursNodePath, contourListsNodePath,
+                                            inputTrainingExamplesIdentifier):
 
         # load items for viewing and diagnostics
         self.dataViewer.getPersistentVolume_old(self.originalVolumeName)
-        self.dataViewer.getPersistentVolume_old(
-                                self.currentVoxelClassificationResultPath()[1])
+        #self.dataViewer.getPersistentVolume_old(
+        #                        self.currentVoxelClassificationResultPath()[1])
         contoursGroupedByImage = self.dataViewer.mainDoc.dataTree.getSubtree(
-                                  (self.contoursNodeName,))
+                                    contoursNodePath)
         updateContourProbabilities(contoursGroupedByImage,
-                                   self.probabilityFunctionDict[self.target])
+                                    self.probabilityFunctionDict[self.target])
         #self.dataViewer.mainDoc.dataTree.getSubtree(self.contoursNodePath)
 
         # load contour paths for processing
-        self.dataViewer.mainDoc.dataTree.getSubtree(self.contourPathsNodePath)
+        self.dataViewer.mainDoc.dataTree.getSubtree(contourListsNodePath)
 
         if self.contourListClassificationMethod == 'randomForest':
             classifyContourLists(self.dataViewer,
-                    inputTrainingExamplesIdentifier=\
-                        self.contourListTrainingExamplesIdentifier,
-                    contourListsNodePath=self.contourPathsNodePath)
+                    inputTrainingExamplesIdentifier=inputTrainingExamplesIdentifier,
+                    contourListsNodePath=contourListsNodePath)
         elif self.contourListClassificationMethod == 'bayes':
             classifyContourListsNodePathBayes(self.dataViewer,
                     self.probabilityFunctionDict[self.target],
-                    contourListsNodePath=self.contourPathsNodePath)
+                    contourListsNodePath=contourListsNodePath)
         else:
             raise Exception, "invalid classification method"
 
@@ -1710,7 +1846,7 @@ class ComponentDetector:
             # - add a node for the high probability contours
 
             allContoursNode =\
-                self.dataViewer.mainDoc.dataTree.getSubtree((self.contoursNodeName,))
+                self.dataViewer.mainDoc.dataTree.getSubtree(self.trainingContoursNodePath)
             #allContours = allContoursNode.makeChildrenObjectList()
             #highProbabilityContoursNode = DataNode(highProbabilityContoursNodeName, 'contours node type', {}, None)
             #highProbabilityContoursNode.addObjectList(highProbabilityContours(allContours, displayParametersDict[target].contourProbabilityThreshold))
@@ -1736,7 +1872,7 @@ class ComponentDetector:
                                                 self.highProbabilityContoursBaseFilename)
 
             # write contours to an image stack for viewing
-            self.writeContoursToImageStack((self.highProbabilityContoursNodeName,))
+            #temporarily commenting this out#self.writeContoursToImageStack((self.highProbabilityContoursNodeName,))
 
 
     def runWrite3DBlobsVolume(self):
@@ -1799,12 +1935,30 @@ class ComponentDetector:
                               contourRenderingVolume[:, :, :, 2] + originalVolumeDark)
 
 
-    def runCalculateContourListFeatures(self):
+    def runCalculateTrainingContourListFeaturesTask(self):
 
-            self.calculateContourListFeatures()
+        self.calculateContourListFeaturesTask(self.trainingContourPathsNodePath,
+                                    self.contourListExamplesIdentifier,
+                                    recordKnownClassificationWithExamples=True)
+
+
+    def runCalculateInputContourListFeaturesTask(self):
+
+        self.calculateContourListFeaturesTask(self.inputContourPathsNodePath,
+                                    self.contourListInputDataExamplesIdentifier,
+                                    recordKnownClassificationWithExamples=False)
+
+
+    def calculateContourListFeaturesTask(self, contourListsNodePath,
+                                            outputExamplesIdentifier,
+                                            recordKnownClassificationWithExamples):
+
+            self.calculateContourListFeatures(contourListsNodePath)
             recordFeaturesOfContourLists(self.dataViewer,
-                            inputTrainingContourListsNodePath=self.contourPathsNodePath,
-                            outputExamplesIdentifier=self.contourListExamplesIdentifier)
+                            inputTrainingContourListsNodePath=contourListsNodePath,
+                            outputExamplesIdentifier=outputExamplesIdentifier,
+                            recordKnownClassificationWithExamples=\
+                                recordKnownClassificationWithExamples)
             self.dataViewer.getPersistentVolume_old(self.originalVolumeName)
 
             # display label volumes
@@ -1852,7 +2006,7 @@ class ComponentDetector:
 
         elif stepNumber == 5:
 
-            self.writeContoursToImageStack(self.contoursNodePath)
+            self.writeContoursToImageStack(self.trainingContoursNodePath)
 
 
         elif stepNumber == 6:
@@ -1860,7 +2014,7 @@ class ComponentDetector:
             self.dataViewer.getPersistentVolume_old(self.originalVolumeName)
 
             saveBlobsToJinxFile(
-                self.dataViewer.mainDoc.dataTree.getSubtree(self.contoursNodePath))
+                self.dataViewer.mainDoc.dataTree.getSubtree(self.trainingContoursNodePath))
 
             self.dataViewer.refreshTreeControls()
 
