@@ -127,13 +127,24 @@ for numTrees in (25,):
 
             #trainingRegion = Box((0, 0, 0), (170, 170, 7))
             #regionToClassify = Box((0, 0, zStart), (170, 170, zStop))
-            #trainingRegion = Box((200, 200, 200), (400, 400, 207))
-            trainingRegion = Box((None, None, 200), (None, None, 270))
+            
+            
+            ####
+            # You may want to edit this.
+            # This sets the training region of the volume used for classification.
+            # (x1, y1, z1), (x2, y2, z2)
+            trainingRegion = Box((200, 200, 200), (400, 400, 207))
+
+
+            #trainingRegion = Box((None, None, 200), (None, None, 270))
             #trainingRegion = Box((None, None, 200), (None, None, 207))
             #regionToClassify = Box([100, 400, 203 + mpiRank],
             #                       [620, 700, 210 + mpiRank])
 
         #for sliceNum in range (0, 1):
+        ####
+        # You may want to edit this.
+        # (0, N) where N is the number of slices you want to process
         for sliceNum in range (0, 250):
 	
             print "(sliceNum + 1)", (sliceNum + 1)
