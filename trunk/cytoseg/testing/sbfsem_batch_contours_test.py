@@ -6,7 +6,10 @@ sys.path.append("..")
 import default_path
 from volume3d_util import Box
 
-cytosegDataFolder = r"O:\cytoseg_data"
+#baseFolder = "O:/"
+baseFolder = "/home/rgiuly/"
+
+cytosegDataFolder = baseFolder + "cytoseg_data"
 default_path.defaultTemporaryFolder = cytosegDataFolder
 default_path.cytosegDataFolder = cytosegDataFolder
 default_path.contourOutputTemporaryFolder = cytosegDataFolder
@@ -38,10 +41,10 @@ contourProcessingTrainingRegion = Box([None, None, 240], [None, None, 244])
 contourProcessingRegionToClassify = Box([None, None, 100], [None, None, 104])
 
 from sbfsem import *
-sbfsem(originalImageFilePath=r"O:\images\neuropil\data",
+sbfsem(originalImageFilePath=baseFolder+"images/neuropil/data",
        voxelTrainingImageFilePath="",
-       voxelTrainingLabelFilePath=r"O:\images\neuropil\seg",
-       precomputedProbabilityMapFilePath=r"O:\images\neuropil\mitochondria",
+       voxelTrainingLabelFilePath=baseFolder+"images/neuropil/seg",
+       precomputedProbabilityMapFilePath=baseFolder+"images/neuropil/mitochondria",
        #path, numTrees, 6+1, None, zStart - zStartOffset, zStop + zEndOffset + 1, iteration, taskToPerform)
        blobImageStackOutputFolder=path,
        numberOfTrees=25,
