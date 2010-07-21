@@ -6,8 +6,8 @@ sys.path.append("..")
 import default_path
 from volume3d_util import Box
 
-#baseFolder = "O:/"
-baseFolder = "/home/rgiuly/"
+baseFolder = "O:/"
+#baseFolder = "/home/rgiuly/"
 
 cytosegDataFolder = baseFolder + "cytoseg_data"
 default_path.defaultTemporaryFolder = cytosegDataFolder
