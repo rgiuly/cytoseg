@@ -18,10 +18,10 @@ default_path.defaultOutputPath = cytosegDataFolder
 #for numTrees in (1, 10, 40, 160, 640):
 print "sbfsem_batch_contours"
 
-#stepSet = 'findTrainingContours'
+stepSet = 'findTrainingContours'
 #stepSet = 'classifyTrainingContours'
 #stepSet = 'findInputContours'
-stepSet = 'classifyInputContours'
+#stepSet = 'classifyInputContours'
 #stepSet = 'findInputContoursTest'
 
 #path = "Z:/blobOutput/"

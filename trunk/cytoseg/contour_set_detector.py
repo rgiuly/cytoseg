@@ -166,10 +166,10 @@ class ContourSetDetector:
 
             self.contourClassifier.runInitialize()
             self.contourClassifier.runLoadInputImage()
-            self.contourClassifier.runLoadProbabilityMap()
+            self.contourClassifier.runLoadTrainingProbabilityMap()
             #self.contourClassifier.runClassifyVoxels()
             self.contourClassifier.runFindTrainingContours()
-            self.contourClassifier.runWriteContoursToImageStack()
+            #self.contourClassifier.runWriteContoursToImageStack()
             #self.contourClassifier.runContourProbabilityFilter()
             #self.contourClassifier.runGroupContoursByConnectedComponents()
 
