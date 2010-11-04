@@ -3,20 +3,3 @@
 = Introduction =
 
 Cytoseg should serve to reduce the overhead in experimenting with algorithms for neuropil segmentation. It should provide the user ability to try various multiscale segmentation approaches quickly and observes the results in 3D. Modular components should be built to handle various stages of multiscale processing.
-
-= Flow Chart =
-
-http://cytoseg.googlecode.com/svn/trunk/cytoseg/docs/flow_chart.png
-
-= Pixel Level Filtering Modules =
-
-A preprocessing step is often performed before shape detection and classification.  Cytoseg should provide pixel level filtering pixel filtering that, for example, enhances membranes.
-
-= Shape Detection Modules =
-
-Detection of contours and surfaces (using 2D and 3D processing). Depending on the way the images are collected, it may be appropriate to use 2D operations on single images or 3D operations on image stacks to detect features.
-
-
-= GUI =
-
-The current GUI provides a stack viewer, ability to load stacks, and manipulate stacks with commands. Creation of a more organized GUI is on the to-do list.
