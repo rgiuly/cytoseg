@@ -1,3 +1,0 @@
-http://cytoseg.googlecode.com/svn/trunk/cytoseg/docs/object_and_seed_detection_framework.png
-
-http://cytoseg.googlecode.com/svn/trunk/cytoseg/docs/automatically_seeded_object_segmentation.png
