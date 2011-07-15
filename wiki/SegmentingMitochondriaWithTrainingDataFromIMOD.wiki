@@ -15,7 +15,7 @@ Convert to tif's with mrc2tif
 Here's an example
 <code>
 mkdir folderForTiffs
-tif2mrc guttman.mrc folderForTiffs
+mrc2tif guttman.mrc folderForTiffs
 </code>
 
 Use convert command (a command from Image Magick) to convert the stack to 8 bit
