@@ -21,7 +21,7 @@ For example from inside the folder with the tif's, you can run this to do the co
 
 mkdir folderFor8bitFiles
 
-ls *.tif | xargs -r -I FILE convert FILE -type Grayscale -depth 8 folderFor8bitFiles/FILE.8bit.tif
+<code>ls *.tif | xargs -r -I FILE convert FILE -type Grayscale -depth 8 folderFor8bitFiles/FILE.8bit.tif</code>
 
 Make sure you have python installed according to instruction for installation
 
