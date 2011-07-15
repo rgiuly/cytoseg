@@ -19,7 +19,7 @@ Convert the output mrc file from the last step to tif's with the command mrc2tif
 Here's an example, first we are creating the "folderForTiffs" folder as a folder to place our files.
 <code>
 mkdir folderForTiffs
-mrc2tif guttman.mrc folderForTiffs
+mrc2tif guttman.mrc folderForTiffs/file
 </code>
 
 Use convert command (a command from Image Magick) to convert the stack to 8 bit
