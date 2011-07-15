@@ -10,6 +10,16 @@ output: output file (mrc format)
 Here's an example:
 imodmop -color /ncmirdata1/rgiuly/Gutmann_mito.mod /ncmirdata4/mterada/3View/Guttman_3month_wt/Guttman_3month_wt.preali.mrc guttman.mrc
 
+Convert to tif's with mrc2tif
+
+Here's an example
+tif2mrc guttman.mrc folderForTiffs
+
+Use convert command (a command from ImageMagick) to convert the stack to 8 bit
+
+For example from inside the folder with the tif's, you can run this to do the conversion:
+mkdir folderFor8bitFiles
+ls *.tif | xargs -r -I FILE convert FILE -type Grayscale -depth 8 folderFor8bitFiles/FILE.8bit.tif
 
 Make sure you have python installed according to instruction for installation
 
