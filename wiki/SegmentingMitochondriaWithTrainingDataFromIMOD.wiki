@@ -14,7 +14,7 @@ Here's an example:
 For the example, you can look at the output with:
 <code> 3dmod guttman.mrc </code>
 
-Convert to tif's with mrc2tif
+Convert the output mrc file from the last step to tif's with the command mrc2tif
 
 Here's an example
 <code>
