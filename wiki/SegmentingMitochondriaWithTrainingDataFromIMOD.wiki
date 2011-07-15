@@ -13,11 +13,14 @@ imodmop -color /ncmirdata1/rgiuly/Gutmann_mito.mod /ncmirdata4/mterada/3View/Gut
 Convert to tif's with mrc2tif
 
 Here's an example
+<code>
+mkdir folderForTiffs
 tif2mrc guttman.mrc folderForTiffs
+</code>
 
 Use convert command (a command from Image Magick) to convert the stack to 8 bit
 
-For example from inside the folder with the tif's, you can run this to do the conversion:
+For example from inside the folder with the tif's (folderForTiffs in this example), you can run this to do the conversion:
 
 <code>
 mkdir folderFor8bitFiles
