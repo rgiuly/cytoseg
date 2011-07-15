@@ -1,0 +1,17 @@
+
+
+* Convert your IMOD model file to a bitmap form:
+
+imodmop -color model data output
+model: model file
+data: data file that goes with the model (mrc format)
+output: output file (mrc format)
+
+Here's an example:
+imodmop -color /ncmirdata1/rgiuly/Gutmann_mito.mod /ncmirdata4/mterada/3View/Guttman_3month_wt/Guttman_3month_wt.preali.mrc guttman.mrc
+
+
+* Make sure you have python installed according to instruction for installation
+
+* Download this file and at your command line, go into the cytoseg/testing director
+
