@@ -18,7 +18,9 @@ tif2mrc guttman.mrc folderForTiffs
 Use convert command (a command from Image Magick) to convert the stack to 8 bit
 
 For example from inside the folder with the tif's, you can run this to do the conversion:
+
 mkdir folderFor8bitFiles
+
 ls *.tif | xargs -r -I FILE convert FILE -type Grayscale -depth 8 folderFor8bitFiles/FILE.8bit.tif
 
 Make sure you have python installed according to instruction for installation
