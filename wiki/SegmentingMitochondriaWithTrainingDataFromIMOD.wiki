@@ -28,7 +28,13 @@ Make sure you have python installed according to instruction for installation
 
 Download this file http://cytoseg.googlecode.com/files/cytoseg_mito_example.zip
 
+You can download from the command line with:
+<code>
+wget http://cytoseg.googlecode.com/files/cytoseg_mito_example.zip
+</code>
+
 Unzip the file
+<code> unzip cytoseg_mito_example.zip </code>
 
 At your command line, go into the cytoseg/testing directory
 
