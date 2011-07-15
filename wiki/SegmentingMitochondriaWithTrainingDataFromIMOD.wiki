@@ -52,3 +52,7 @@ output: toplevel folder for output of the process
 --traningData specifies the folder with training data (can be the same as input)
 
 --trainingSeg specifies the folder with segmentation bitmap stack
+
+New folders and files will be created in the output folder you specified. Inside of the output folder, go to voxelOutput\mitochondria\composite to view your output in a convenient colorized form.
+
+Inside of the output folder, voxelOutput\mitochondria\resized has a grayscale image of your output that can be thresholded with a program such as ImageJ to identify the structures of interest.
