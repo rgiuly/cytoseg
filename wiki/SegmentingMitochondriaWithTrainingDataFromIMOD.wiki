@@ -13,7 +13,7 @@ imodmop -color /ncmirdata1/rgiuly/Gutmann_mito.mod /ncmirdata4/mterada/3View/Gut
 
 Make sure you have python installed according to instruction for installation
 
-Download this file http://code.google.com/p/cytoseg/downloads/detail?name=cytoseg_mito_example.zip&can=2&q= and at your command line, go into the cytoseg/testing directory
+Download this file http://cytoseg.googlecode.com/files/cytoseg_mito_example.zip and at your command line, go into the cytoseg/testing directory
 
 Run sbfsem_batch_voxels_test like this:
 
