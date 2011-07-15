@@ -16,7 +16,7 @@ For the example, you can look at the output with:
 
 Convert the output mrc file from the last step to tif's with the command mrc2tif
 
-Here's an example, we're using the "folderForTiffs" as a folder to place our files.
+Here's an example, first we are creating the "folderForTiffs" folder as a folder to place our files.
 <code>
 mkdir folderForTiffs
 mrc2tif guttman.mrc folderForTiffs
