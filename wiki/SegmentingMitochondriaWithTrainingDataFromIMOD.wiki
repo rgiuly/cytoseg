@@ -1,6 +1,5 @@
 
-
-* Convert your IMOD model file to a bitmap form:
+Convert your IMOD model file to a bitmap form:
 
 imodmop -color model data output
 model: model file
@@ -11,7 +10,10 @@ Here's an example:
 imodmop -color /ncmirdata1/rgiuly/Gutmann_mito.mod /ncmirdata4/mterada/3View/Guttman_3month_wt/Guttman_3month_wt.preali.mrc guttman.mrc
 
 
-* Make sure you have python installed according to instruction for installation
+Make sure you have python installed according to instruction for installation
 
-* Download this file and at your command line, go into the cytoseg/testing director
+Download this file and at your command line, go into the cytoseg/testing directory
 
+Run sbfsem_batch_voxels_test like this:
+
+sbfsem_batch_voxels_test input output --trainingData=test1 --trainingSeg=test2 --trainingLowerBound=1,2,3 --trainingUpperBound=4,5,6 --processingLowerBound=7,8,9 --processingUpperBound=10,11,12
