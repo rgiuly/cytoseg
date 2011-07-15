@@ -15,7 +15,7 @@ Convert to tif's with mrc2tif
 Here's an example
 tif2mrc guttman.mrc folderForTiffs
 
-Use convert command, a command from "ImageMagick", to convert the stack to 8 bit
+Use convert command (a command from ImageMagick!) to convert the stack to 8 bit
 
 For example from inside the folder with the tif's, you can run this to do the conversion:
 mkdir folderFor8bitFiles
