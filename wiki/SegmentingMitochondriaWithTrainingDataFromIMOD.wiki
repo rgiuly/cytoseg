@@ -53,31 +53,32 @@ output: toplevel folder for output of the process
 
 --trainingSeg specifies the folder with segmentation bitmap stack
 
-New folders and files will be created in the output folder you specified. Inside of the output folder, go to voxelOutput\mitochondria\composite to view your output in a convenient colorized form.
+New folders and files will be created in the output folder you specified.
 
-Inside of the output folder, voxelOutput\mitochondria\resized has a grayscale image of your output that can be thresholded with a program such as ImageJ to identify the structures of interest.
+(Inside of the output folder, go to voxelOutput\mitochondria\composite to view your output in a convenient colorized form. This is useful for checking if the output looks correct.)
 
+Inside of the output folder, voxelOutput\mitochondria\resized has a grayscale image of your output that can be thresholded with a program such as ImageJ to identify the structures of interest. Next, convert this output to IMOD format.
 
 Converting autosegmentation output into imod:
 
-> imodauto intput.rec outputlines.mod
+<code> imodauto intput.rec outputlines.mod </code>
 
 
 this assumes you're got just two intensity values... if multiple values then (by default) each will go into a separate object... for liz we had to do something clever to the effect of: "imodauto -l 0 -h .06 /Users/anoske/Desktop/_liz/tiffs/slice0.mrc /Users/anoske/Desktop/_liz/tiffs/slice0.mod˙
 3dmod /Users/anoske/Desktop/_liz/tiffs/slice0.mrc /Users/anoske/Desktop/_liz/tiffs/slice0.mod". 
 .. then you want to open it with 3dmod:
 
-> 3dmod intput.rec outputlines.mod
+<code> 3dmod intput.rec outputlines.mod </code>
 
 Next you'll want to mesh this by clicking: Image > ModelView... then... click Edit > Object... then Meshing and Mesh All. (this is equivalent to running "imodmesh outputlines.mod outputlines.mod"). 
 
 Now you can save and go back to the command line. And type:
 
-> imodsortsurf  outputlines.mod outputlines.mod
+<code> imodsortsurf  outputlines.mod outputlines.mod </code>
 
 .. this sorts the contours by the surface # they have been meshed into. And finally it sounds like you want to type:
 
-> imodsortsurf -s outputlines.mod outputlines.mod
+<code> imodsortsurf -s outputlines.mod outputlines.mod </code>
 
 
 
