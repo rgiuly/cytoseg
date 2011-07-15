@@ -28,7 +28,7 @@ For example from inside the folder with the tif's (folderForTiffs in this exampl
 
 {{{
 mkdir folderFor8bitFiles
-ls *.tif | xargs -r -I FILE convert FILE -type Grayscale -depth 8 folderFor8bitFiles/FILE.8bit.tif
+ls *.tif | xargs -r -t -I FILE convert FILE -type Grayscale -depth 8 folderFor8bitFiles/FILE.8bit.tif
 }}}
 
 Make sure you have python installed according to instruction for installation
