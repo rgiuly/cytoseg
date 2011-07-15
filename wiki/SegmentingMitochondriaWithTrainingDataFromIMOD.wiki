@@ -11,7 +11,7 @@ output: output file (mrc format)
 Here's an example:
 <code>imodmop -color /ncmirdata1/rgiuly/Gutmann_mito.mod /ncmirdata4/mterada/3View/Guttman_3month_wt/Guttman_3month_wt.preali.mrc out.mrc</code>
 
-You can look at the output with:
+For the example, you can look at the output with:
 <code> 3dmod out.mrc </code>
 
 Convert to tif's with mrc2tif
