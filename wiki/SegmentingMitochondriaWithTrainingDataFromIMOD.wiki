@@ -31,9 +31,11 @@ mkdir folderFor8bitFiles
 ls *.tif | xargs -r -t -I FILE convert FILE -type Grayscale -depth 8 folderFor8bitFiles/FILE.8bit.tif
 }}}
 
-Make sure you have python installed according to instructions for installation
+Make sure you have python installed according to instructions for installation at cytoseg.googlecode.com
 
-Download this file http://cytoseg.googlecode.com/files/cytoseg_mito_example.zip
+You'll need python to run the scripts.
+
+Download this file with the python scripts http://cytoseg.googlecode.com/files/cytoseg_mito_example.zip
 
 You can download from the command line with:
 <code>
@@ -91,3 +93,7 @@ Now you can save and go back to the command line. And type:
 
 =Acknowledgements=
 Thanks Andrew for the instructions to convert into IMOD format.
+
+
+=Etc=
+Note for new users: use copy and paste heavily to speed up your work with the command line.
