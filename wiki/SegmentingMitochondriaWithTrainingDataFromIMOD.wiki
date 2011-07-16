@@ -1,5 +1,15 @@
 Instructions under construction (July 2011)
 
+Convert your data to an 8bit tif stack:
+<code>
+mrcbyte originalData.mrc byteData.mrc
+</code>
+
+Convert your data to a tif stack
+<code>
+mrc2tif byteData dataFolder/file
+</code>
+
 Convert your IMOD model file to a bitmap form:
 
 Using this command
