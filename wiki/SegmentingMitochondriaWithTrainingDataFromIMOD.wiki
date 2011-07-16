@@ -52,6 +52,11 @@ cd cytoseg
 cd testing
 </code>
 
+Create and output folder:
+<code>
+mkdir output
+</code>
+
 Run sbfsem_batch_voxels_test like this:
 
 <code>
