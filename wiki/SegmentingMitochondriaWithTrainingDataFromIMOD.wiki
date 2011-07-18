@@ -67,7 +67,7 @@ Create and output folder:
 mkdir output
 </code>
 
-Run sbfsem_batch_voxels_test like this:
+Run the sbfsem_batch_voxels_test.py script like this:
 
 <code>
 python sbfsem_batch_voxels_test.py input output --trainingData=test1 --trainingSeg=test2 --trainingLowerBound=1,2,3 --trainingUpperBound=4,5,6 --processingLowerBound=7,8,9 --processingUpperBound=10,11,12
