@@ -7,7 +7,7 @@ Convert your image data to an 8bit tif stack:
 mrcbyte originalData.mrc byteData.mrc
 </code>
 
-Where origialData.mrc is the 3D image you have traced in IMOD and byteData.mrc is the name of the output you want to use.
+Where origialData.mrc is the 3D image you have traced in IMOD and byteData.mrc is the name of the output file you want to use.
 
 Convert your data to a tif stack
 <code>
