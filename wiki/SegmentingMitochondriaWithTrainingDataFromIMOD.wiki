@@ -11,6 +11,7 @@ Where origialData.mrc is the 3D image you have traced in IMOD and byteData.mrc i
 
 Convert your data to a tif stack
 <code>
+mkdir dataFolder
 mrc2tif byteData dataFolder/file
 </code>
 
