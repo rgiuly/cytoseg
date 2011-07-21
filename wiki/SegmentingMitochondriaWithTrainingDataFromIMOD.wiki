@@ -70,6 +70,7 @@ cd testing
 Create and output folder:
 <code>
 mkdir output
+mkdir output/cytoseg_data
 </code>
 
 Run the sbfsem_batch_voxels_test.py script like this:
