@@ -97,7 +97,7 @@ Use tif2mrc to create segmentation.mrc from the tif's in the resized folder.
 
 Converting autosegmentation output into imod:
 
-<code> imodauto segmentation.mrc outputlines.mod </code>
+<code> imodauto -h 100 segmentation.mrc outputlines.mod </code>
 
 
 this assumes you're got just two intensity values... if multiple values then (by default) each will go into a separate object... for liz we had to do something clever to the effect of: "imodauto -l 0 -h .06 /Users/anoske/Desktop/_liz/tiffs/slice0.mrc /Users/anoske/Desktop/_liz/tiffs/slice0.mod˙
