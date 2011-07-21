@@ -1,6 +1,6 @@
 Instructions under construction (July 2011)
 
-Using command line on *nix system:
+Using command line on linux system:
 
 Convert your image data to an 8bit tif stack:
 <code>
