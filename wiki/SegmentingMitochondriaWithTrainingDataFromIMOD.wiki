@@ -1,6 +1,8 @@
 Instructions under construction (July 2011)
 
-Convert your data to an 8bit tif stack:
+Using command line on *nix system:
+
+Convert your image data to an 8bit tif stack:
 <code>
 mrcbyte originalData.mrc byteData.mrc
 </code>
