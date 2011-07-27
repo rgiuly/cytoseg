@@ -3,7 +3,7 @@ Instructions under construction (July 2011)
 Using command line on linux system:
 
 
-==Create data image stack==
+==Creating data image stack==
 
 Convert your image data to an 8bit tif stack:
 <code>
@@ -19,7 +19,7 @@ mkdir dataFolder
 mrc2tif byteData dataFolder/file
 </code>
 
-==Create segmentation image stack==
+==Creating segmentation image stack==
 
 Convert your IMOD model file to a bitmap form:
 
@@ -87,13 +87,13 @@ Run the sbfsem_batch_voxels_test.py script like this:
 python sbfsem_batch_voxels_test.py input output --trainingData=test1 --trainingSeg=test2 --trainingLowerBound=1,2,3 --trainingUpperBound=4,5,6 --processingLowerBound=7,8,9 --processingUpperBound=10,11,12
 </code>
 
-input: the input folder with a stack of 8bit data image files (We created this in the "Create data image stack section" above.)
+input: the input folder with a stack of 8bit data image files (We created this in the "Creating data image stack section" above.)
 
 output: toplevel folder for output of the process (We created this with the mkdir command above.)
 
 --traningData specifies the folder with training data (can be the same as input)
 
---trainingSeg specifies the folder with 8bit segmentation bitmap stack (We created this in the "Create segmentation image stack" section above.)
+--trainingSeg specifies the folder with 8bit segmentation bitmap stack (We created this in the "Creating segmentation image stack" section above.)
 
 New folders and files will be created in the output folder you specified.
 
