@@ -2,6 +2,9 @@ Instructions under construction (July 2011)
 
 Using command line on linux system:
 
+
+==Create data image stack==
+
 Convert your image data to an 8bit tif stack:
 <code>
 mrcbyte originalData.mrc byteData.mrc
@@ -9,7 +12,6 @@ mrcbyte originalData.mrc byteData.mrc
 
 Where origialData.mrc is the 3D image you have traced in IMOD and byteData.mrc is the name of the output file you want to use.
 
-==Create data image stack==
 
 Convert your data to a tif stack
 <code>
@@ -50,7 +52,7 @@ mkdir folderFor8bitFiles
 ls *.tif | xargs -r -t -I FILE convert FILE -type Grayscale -depth 8 folderFor8bitFiles/FILE.8bit.tif
 }}}
 
-==Run the script==
+==Running the script==
 
 Make sure you have python installed according to instructions for installation at cytoseg.googlecode.com
 
@@ -101,7 +103,7 @@ Inside of the output folder, voxelOutput\mitochondria\resized has a grayscale im
 
 Use tif2mrc to create segmentation.mrc from the tif's in the resized folder.
 
-Converting autosegmentation output into imod:
+==Converting autosegmentation output into IMOD model==
 
 <code> imodauto -h 100 segmentation.mrc outputlines.mod </code>
 
