@@ -1,12 +1,12 @@
 Instructions under construction (July 2011)
 
 Using command line on linux system:
-
+#
 Convert your image data to an 8bit tif stack:
 <code>
 mrcbyte originalData.mrc byteData.mrc
 </code>
-
+#
 Where origialData.mrc is the 3D image you have traced in IMOD and byteData.mrc is the name of the output file you want to use.
 
 Convert your data to a tif stack
