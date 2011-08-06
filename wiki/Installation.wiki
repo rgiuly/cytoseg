@@ -1,8 +1,5 @@
-On Windows or Linux:
 
-Note: Currently an installation of MATLAB is required for some of the functions of cytoseg to work. In the future this dependency will be removed.
-
-Installation Instructions (Windows):
+=Installation Instructions (Windows)=
   # Install [http://www.pythonxy.com pythonxy] with all optional components except opencv
   # Install opencv [http://opencv.willowgarage.com/wiki/] and copy the contents of OpenCV2.0\Python2.6\Lib\site-packages into Python26\Lib\site-packages (or wherever you have python installed)
   # Install orange for python http://www.ailab.si/orange/
@@ -12,7 +9,7 @@ Installation Instructions (Windows):
          {{{python main.py}}}
 
 ----
-Installation Instructions (Ubuntu Linux, Instructions not yet complete)
+=Installation Instructions (Ubuntu Linux, Instructions not yet complete)=
   # Install the following modules with synaptic: python, python-numpy, python-wxgtk2.8, python-scipy, python-matplotlib
   # Install [http://code.google.com/p/pyopencv/ pyopencv]
   # Visit http://code.enthought.com/projects/mayavi/docs/development/html/mayavi/installation.html to get the most recent version of mayavi2 and install it
