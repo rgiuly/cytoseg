@@ -19,7 +19,9 @@ mkdir dataFolder
 mrc2tif byteData dataFolder/file
 </code>
 
-==Creating segmentation image stack==
+==Creating training segmentation image stack==
+
+You'll need an IMOD model where you have traced mitochondria existing in the data. This will serve as training data.
 
 Convert your IMOD model file to a bitmap form:
 
@@ -30,7 +32,7 @@ data: data file that goes with the model (mrc format)
 output: output file (mrc format)
 
 Here's an example:
-<code>imodmop -color /ncmirdata1/rgiuly/Gutmann_mito.mod /ncmirdata4/mterada/3View/Guttman_3month_wt/Guttman_3month_wt.preali.mrc guttman.mrc</code>
+<code>imodmop -color /folder/Gutmann_mito.mod /folder/Guttman_3month_wt.preali.mrc guttman.mrc</code>
 
 For the example, you can look at the output with:
 <code> 3dmod guttman.mrc </code>
