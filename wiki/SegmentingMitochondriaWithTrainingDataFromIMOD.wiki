@@ -120,9 +120,9 @@ output: toplevel folder for output of the process (We created this with the mkdi
 
 For our example, the particular command would be:
 
-<code>
+{{{
 python sbfsem_batch_voxels_test.py /dataFolder outputFolder --trainingData=/dataFolder --trainingSeg=/trainingSegTiffs --trainingLowerBound=0,0,0 --trainingUpperBound=100,100,100 --processingLowerBound=0,0,0 --processingUpperBound=100,100,5
-</code>
+}}}
 
 
 
