@@ -4,7 +4,7 @@ Using command line on linux system:
 
 ==Training data==
 
-This process requires a training data set. In the training data, structures that we are interested in have been outlined in IMOD. You choose how much training data you want to use. More training data (i.e., more manually traced structures) typically makes the process more accurate. In our example we'll refer to this training data set:
+This process requires a training data set. In the training data, structures that we are interested in must have been outlined in IMOD. You choose how much training data you want to use. More training data (i.e., more manually traced structures) typically makes the process more accurate. In our example we'll refer to this training data set:
 
 /folder/Guttman_3month_wt.preali.mrc (the training data file)
 
