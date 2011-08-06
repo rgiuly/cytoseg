@@ -25,8 +25,8 @@ Where origialData.mrc is the 3D image you have traced in IMOD and byteData.mrc i
 
 Convert your data to a tif stack
 <code>
-mkdir dataFolder
-mrc2tif byteData dataFolder/file
+mkdir /dataFolder
+mrc2tif byteData /dataFolder/file
 </code>
 
 ==Creating training segmentation image stack==
@@ -49,15 +49,15 @@ For the example, you can look at the output with:
 
 Convert the output mrc file from the last step to tif's with the command mrc2tif
 
-Here's an example, first we are creating the "trainingSegTiffs" folder as a folder to place our files.
+Here's an example, first we are creating the "/trainingSegTiffs" folder as a folder to place our files.
 <code>
-mkdir trainingSegTiffs
-mrc2tif trainingseg.mrc trainingSegTiffs/file
+mkdir /trainingSegTiffs
+mrc2tif trainingseg.mrc /trainingSegTiffs/file
 </code>
 
 Use convert command (a command from Image Magick) to convert the stack to 8 bit
 
-For example from inside the folder with the tif's (trainingSegTiffs in this example), you can run this to do the conversion:
+For example from inside the folder with the tif's (/trainingSegTiffs in this example), you can run this to do the conversion:
 
 {{{
 mkdir folderFor8bitFiles
@@ -89,15 +89,17 @@ cd testing
 
 Create and output folder:
 <code>
-mkdir output
-mkdir output/cytoseg_data
+mkdir outputFolder
+mkdir outputFolder/cytoseg_data
 </code>
 
-Run the sbfsem_batch_voxels_test.py script like this:
+Next we'll use the sbfsem_batch_voxels_test.py command.
 
-<code>
-python sbfsem_batch_voxels_test.py input output --trainingData=test1 --trainingSeg=test2 --trainingLowerBound=0,0,0 --trainingUpperBound=100,100,100 --processingLowerBound=0,0,0 --processingUpperBound=100,100,100
-</code>
+In general, the command is used like this:
+
+
+python sbfsem_batch_voxels_test.py input output --trainingData=test1 --trainingSeg=test2 --trainingLowerBound=X1,Y1,Z1 --trainingUpperBound=X2,Y2,Z2 --processingLowerBound=X1,Y1,Z1 --processingUpperBound=X2,Y2,Z2
+
 
 input: the input folder with a stack of 8bit data image files (We created this in the "Creating data image stack section" above.)
 
@@ -116,11 +118,19 @@ output: toplevel folder for output of the process (We created this with the mkdi
 --processingUpperBound specifies X2,Y2,Z2 corner of input data to be processed
 
 
+For our example, the particular command would be:
+
+<code>
+python sbfsem_batch_voxels_test.py /dataFolder outputFolder --trainingData=/dataFolder --trainingSeg=/trainingSegTiffs --trainingLowerBound=0,0,0 --trainingUpperBound=100,100,100 --processingLowerBound=0,0,0 --processingUpperBound=100,100,5
+</code>
+
+
+
 During the process, new folders and files will be created in the output folder you specified.
 
-(Inside of the output folder, go to voxelOutput\mitochondria\composite to view your output in a convenient colorized form. This is useful for checking if the output looks correct.)
+(Inside of the output folder, go to voxelOutput/mitochondria/composite to view your output in a convenient colorized form. This is useful for checking if the output looks correct.)
 
-Inside of the output folder, voxelOutput\mitochondria\resized has a grayscale image of your output that can be thresholded with a program such as ImageJ to identify the structures of interest. Next, convert this output to IMOD format.
+Inside of the output folder, voxelOutput/mitochondria/resized has a grayscale image of your output that can be thresholded with a program such as ImageJ to identify the structures of interest. Next, convert this output to IMOD format.
 
 Use tif2mrc to create segmentation.mrc from the tif's in the resized folder.
 
