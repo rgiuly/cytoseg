@@ -4,7 +4,7 @@
   # Install orange for python http://www.ailab.si/orange/
   # Install [http://code.google.com/p/python-graph/ python-graph]
   # Download cytoseg from svn (see http://code.google.com/p/cytoseg/source/checkout)
-  # To start the program, enter the following command from inside the cytoseg folder:
+  # To test the program, enter the following command from inside the cytoseg folder:
          {{{python main.py}}}
 
 ----
