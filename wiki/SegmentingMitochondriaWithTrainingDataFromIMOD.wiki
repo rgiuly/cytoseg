@@ -1,4 +1,4 @@
-Instructions under construction (July 2011)
+Instructions under construction (August 2011)
 
 Using command line on linux system:
 
