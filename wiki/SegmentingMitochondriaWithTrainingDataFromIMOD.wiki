@@ -42,17 +42,17 @@ data: data file that goes with the model (mrc format)
 output: output file (mrc format)
 
 Here's an example:
-<code>imodmop -color /folder/Gutmann_mito.mod /folder/Guttman_3month_wt.preali.mrc guttman.mrc</code>
+<code>imodmop -color /folder/Gutmann_mito.mod /folder/Guttman_3month_wt.preali.mrc trainingseg.mrc</code>
 
 For the example, you can look at the output with:
-<code> 3dmod guttman.mrc </code>
+<code> 3dmod trainingseg.mrc </code>
 
 Convert the output mrc file from the last step to tif's with the command mrc2tif
 
 Here's an example, first we are creating the "folderForTiffs" folder as a folder to place our files.
 <code>
 mkdir folderForTiffs
-mrc2tif guttman.mrc folderForTiffs/file
+mrc2tif trainingseg.mrc folderForTiffs/file
 </code>
 
 Use convert command (a command from Image Magick) to convert the stack to 8 bit
