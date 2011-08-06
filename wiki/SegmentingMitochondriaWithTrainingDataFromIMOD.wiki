@@ -86,7 +86,7 @@ mkdir output/cytoseg_data
 Run the sbfsem_batch_voxels_test.py script like this:
 
 <code>
-python sbfsem_batch_voxels_test.py input output --trainingData=test1 --trainingSeg=test2 --trainingLowerBound=1,2,3 --trainingUpperBound=4,5,6 --processingLowerBound=7,8,9 --processingUpperBound=10,11,12
+python sbfsem_batch_voxels_test.py input output --trainingData=test1 --trainingSeg=test2 --trainingLowerBound=0,0,0 --trainingUpperBound=100,100,100 --processingLowerBound=0,0,0 --processingUpperBound=100,100,100
 </code>
 
 input: the input folder with a stack of 8bit data image files (We created this in the "Creating data image stack section" above.)
@@ -97,7 +97,16 @@ output: toplevel folder for output of the process (We created this with the mkdi
 
 --trainingSeg specifies the folder with 8bit segmentation bitmap stack (We created this in the "Creating segmentation image stack" section above.)
 
-New folders and files will be created in the output folder you specified.
+--trainingLowerBound specifies X1,Y1,Z1 corner of training data
+
+--trainingUpperBound specifies X2,Y2,Z2 corner of training data
+
+--processingLowerBound specifies X1,Y1,Z1 corner of input data to be processed
+
+--processingUpperBound specifies X2,Y2,Z2 corner of input data to be processed
+
+
+During the process, new folders and files will be created in the output folder you specified.
 
 (Inside of the output folder, go to voxelOutput\mitochondria\composite to view your output in a convenient colorized form. This is useful for checking if the output looks correct.)
 
