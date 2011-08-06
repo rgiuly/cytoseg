@@ -49,15 +49,15 @@ For the example, you can look at the output with:
 
 Convert the output mrc file from the last step to tif's with the command mrc2tif
 
-Here's an example, first we are creating the "folderForTiffs" folder as a folder to place our files.
+Here's an example, first we are creating the "trainingSegTiffs" folder as a folder to place our files.
 <code>
-mkdir folderForTiffs
-mrc2tif trainingseg.mrc folderForTiffs/file
+mkdir trainingSegTiffs
+mrc2tif trainingseg.mrc trainingSegTiffs/file
 </code>
 
 Use convert command (a command from Image Magick) to convert the stack to 8 bit
 
-For example from inside the folder with the tif's (folderForTiffs in this example), you can run this to do the conversion:
+For example from inside the folder with the tif's (trainingSegTiffs in this example), you can run this to do the conversion:
 
 {{{
 mkdir folderFor8bitFiles
