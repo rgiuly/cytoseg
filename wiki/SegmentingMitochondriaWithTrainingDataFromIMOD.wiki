@@ -1,32 +1,37 @@
 Instructions under construction (August 2011)
 
+==Introduction==
+
 Using command line on linux system:
+
+<code>/home</code> represents whatever folder you use to work in. On your computer, it may be something like /home/yourname. You can use whatever folder you want, as long as you have read/write access.
+
 
 ==Training data==
 
 This process requires a training data set. In the training data, structures that we are interested in must have been outlined in IMOD. You choose how much training data you want to use. More training data (i.e., more manually traced structures) typically makes the process more accurate. In our example we'll refer to this training data set:
 
-/folder/Guttman_3month_wt.preali.mrc (the training data file)
+/home/myOriginalData.mrc (the training data file)
 
-/folder/Gutmann_mito.mod (the corresponding model file)
+/home/myManualSegmentation.mod (the corresponding model file)
 
-You'll also have a full dataset that you want to process automatically. We call this originalData.mrc in this example. This file can be (but does not have to be) the same as the training data file.
+You'll also have a full dataset that you want to process automatically. We call this myOriginalData.mrc in this example. This file can be (but does not have to be) the same as the training data file.
 
 
 ==Creating data image stack==
 
 Convert your image data to an 8bit tif stack:
 <code>
-mrcbyte originalData.mrc byteData.mrc
+mrcbyte myOriginalData.mrc byteData.mrc
 </code>
 
-Where origialData.mrc is the 3D image you have traced in IMOD and byteData.mrc is the name of the output file you want to use.
+Note: origialData.mrc is the 3D image you have traced in IMOD and byteData.mrc is the name of the output file you want to use.
 
 
 Convert your data to a tif stack
 <code>
-mkdir /dataFolder
-mrc2tif byteData /dataFolder/file
+mkdir /home/dataFolder
+mrc2tif byteData.mrc /home/dataFolder/file
 </code>
 
 ==Creating training segmentation image stack==
@@ -42,22 +47,22 @@ data: data file that goes with the model (mrc format)
 output: output file (mrc format)
 
 Here's an example:
-<code>imodmop -color /folder/Gutmann_mito.mod /folder/Guttman_3month_wt.preali.mrc trainingseg.mrc</code>
+<code>imodmop -color /home/myManualSegmentation.mod /home/myOriginalData.mrc trainingseg.mrc</code>
 
 For the example, you can look at the output with:
 <code> 3dmod trainingseg.mrc </code>
 
 Convert the output mrc file from the last step to tif's with the command mrc2tif
 
-Here's an example, first we are creating the "/trainingSegTiffs" folder as a folder to place our files.
+Here's an example, first we are creating the "/home/trainingSegTiffs" folder as a folder to place our files.
 <code>
-mkdir /trainingSegTiffs
-mrc2tif trainingseg.mrc /trainingSegTiffs/file
+mkdir /home/trainingSegTiffs
+mrc2tif trainingseg.mrc /home/trainingSegTiffs/file
 </code>
 
 Use convert command (a command from Image Magick) to convert the stack to 8 bit
 
-For example from inside the folder with the tif's (/trainingSegTiffs in this example), you can run this to do the conversion:
+For example from inside the folder with the tif's (/home/trainingSegTiffs in this example), you can run this to do the conversion:
 
 {{{
 mkdir folderFor8bitFiles
@@ -89,8 +94,8 @@ cd testing
 
 Create and output folder:
 <code>
-mkdir outputFolder
-mkdir outputFolder/cytoseg_data
+mkdir /home/outputFolder
+mkdir /home/outputFolder/cytoseg_data
 </code>
 
 Next we'll use the sbfsem_batch_voxels_test.py command.
@@ -121,12 +126,12 @@ output: toplevel folder for output of the process (We created this with the mkdi
 For our example, the particular command would be:
 
 <code>
-python sbfsem_batch_voxels_test.py /dataFolder outputFolder --trainingData=/dataFolder --trainingSeg=/trainingSegTiffs --trainingLowerBound=0,0,0 --trainingUpperBound=100,100,100 --processingLowerBound=0,0,0 --processingUpperBound=100,100,5
+python sbfsem_batch_voxels_test.py /home/dataFolder /home/outputFolder --trainingData=/home/dataFolder --trainingSeg=/home/trainingSegTiffs --trainingLowerBound=0,0,0 --trainingUpperBound=100,100,100 --processingLowerBound=0,0,0 --processingUpperBound=100,100,5
 </code>
 
 
 
-During the process, new folders and files will be created in the output folder you specified.
+During the process, new folders and files will be created in the output folder you specified (/home/outputFolder).
 
 (Inside of the output folder, go to voxelOutput/mitochondria/composite to view your output in a convenient colorized form. This is useful for checking if the output looks correct.)
 
