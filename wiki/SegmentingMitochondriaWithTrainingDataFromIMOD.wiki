@@ -119,6 +119,7 @@ output: toplevel folder for output of the process (We created this with the mkdi
 
 --processingUpperBound specifies X2,Y2,Z2 corner of input data to be processed
 
+<b>Use ImageJ to determine X, Y, and Z coordinates of the corners.</b>
 
 For our example, the particular command would be:
 
