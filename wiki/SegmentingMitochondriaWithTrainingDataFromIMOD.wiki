@@ -54,8 +54,8 @@ Here's an example:
 For the example, you can look at the output with:
 <code> 3dmod trainingseg.mrc </code>
 
-Conver to 8 bit:
-<code> mrcbyte trainingseg8bit.mrc </code>
+Convert to 8 bit:
+<code> mrcbyte trainingseg.mrc trainingseg8bit.mrc </code>
 
 Convert the output mrc file from the last step to tif's with the command mrc2tif
 
