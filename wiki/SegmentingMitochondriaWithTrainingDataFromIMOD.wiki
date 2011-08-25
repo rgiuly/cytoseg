@@ -54,22 +54,17 @@ Here's an example:
 For the example, you can look at the output with:
 <code> 3dmod trainingseg.mrc </code>
 
+Conver to 8 bit:
+<code> mrcbyte trainingseg8bit.mrc </code>
+
 Convert the output mrc file from the last step to tif's with the command mrc2tif
 
 Here's an example, first we are creating the "/home/trainingSegTiffs" folder as a folder to place our files.
 <code>
 mkdir /home/trainingSegTiffs
-mrc2tif trainingseg.mrc /home/trainingSegTiffs/file
+mrc2tif trainingseg8bit.mrc /home/trainingSegTiffs/file
 </code>
 
-Use convert command (a command from Image Magick) to convert the stack to 8 bit
-
-For example from inside the folder with the tif's (/home/trainingSegTiffs in this example), you can run this to do the conversion:
-
-{{{
-mkdir folderFor8bitFiles
-ls *.tif | xargs -r -t -I FILE convert FILE -type Grayscale -depth 8 folderFor8bitFiles/FILE.8bit.tif
-}}}
 
 ==Running the script==
 
