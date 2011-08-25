@@ -1,10 +1,12 @@
 Instructions under construction (August 2011)
 
+=Using IMOD model for training data=
+Using command line on linux system
+
 ==Introduction==
 
-Using command line on linux system:
 
-<code>/home</code> represents whatever folder you use to work in. On your computer, it may be something like /home/yourname. You can use whatever folder you want, as long as you have read/write access.
+In this document, <code>/home</code> represents your working folder. On your computer, it may be something like /home/yourname. You can use whatever folder you want, as long as you have read/write access.
 
 
 ==Training data==
