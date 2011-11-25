@@ -43,7 +43,7 @@ You'll need an IMOD model where you have traced mitochondria existing in the dat
 Convert your IMOD model file to a bitmap form:
 
 Using this command
-<code> imodmop -color model data output </code>
+<code> imodmop model data output </code>
 model: model file
 data: data file that goes with the model (mrc format)
 output: output file (mrc format)
