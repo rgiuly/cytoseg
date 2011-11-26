@@ -48,8 +48,8 @@ model: model file
 data: data file that goes with the model (mrc format)
 output: output file (mrc format)
 
-Here's an example:
-<code>imodmop /home/myManualSegmentation.mod /home/myOriginalData.mrc trainingSeg.mrc</code> `*`
+Here's an example:  `*`
+<code>imodmop /home/myManualSegmentation.mod /home/myOriginalData.mrc trainingSeg.mrc</code>
 
 For the example, you can look at the output with:
 <code> 3dmod trainingSeg.mrc </code>
