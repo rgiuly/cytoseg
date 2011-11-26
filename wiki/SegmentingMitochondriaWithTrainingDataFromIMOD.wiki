@@ -49,7 +49,7 @@ data: data file that goes with the model (mrc format)
 output: output file (mrc format)
 
 Here's an example:
-<code>imodmop /home/myManualSegmentation.mod /home/myOriginalData.mrc trainingSeg.mrc</code> "*"
+<code>imodmop /home/myManualSegmentation.mod /home/myOriginalData.mrc trainingSeg.mrc</code> `*`
 
 For the example, you can look at the output with:
 <code> 3dmod trainingSeg.mrc </code>
@@ -66,7 +66,7 @@ mrc2tif trainingSeg8bit.mrc /home/trainingSegTiffs/file
 </code>
 
 
-"*" If using contour processing, this segmentation stack needs to be converted again so that each mitochondria has a single value for a label.
+`*` If using contour processing, this segmentation stack needs to be converted again so that each mitochondria has a single value for a label.
 
 ==Running the script==
 
