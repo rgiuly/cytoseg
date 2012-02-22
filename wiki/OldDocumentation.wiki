@@ -1,0 +1,59 @@
+
+If you would like to use Cytoseg, please contact us.
+
+=Contact=
+http://cytoseg.googlecode.com/svn/trunk/cytoseg/docs/cytoseg_email.png
+<br><br>
+
+=Discussion Group=
+http://groups.google.com/group/cytoseg
+
+=Documentation=
+
+[Installation]
+
+[CommandLineUsage]
+
+[Tutorial Tutorials]
+
+  * [MachineLearningTutorial]
+
+  * [SegmentingMitochondriaWithTrainingDataFromIMOD]
+
+  * [UsingAmira]
+
+  * [OldTutorials]
+
+
+Example Code
+
+  * [LoadImageStack Load Image Stack]
+  * [VoxelClassification Voxel Classification]
+  * [ContourDetectionAndClassification Contour Detection and Classification]
+
+[DataFormats Data Formats]
+
+
+=Blog=
+[http://cytoseg.blogspot.com/ Visit Cytoseg Blog]
+
+<a href=http://cytoseg.blogspot.com>
+http://www.jungleboogie.org/cytoseg_media/mitochondria_orange_on_green.gif
+
+
+=Plans=
+  * [Plan Outline for Cytoseg Development]
+
+
+New project members are welcome. If you would like to contribute code or expertise (in computer vision, machine learning, or GUI design, etc.) please feel free to post on the forum or contact the administrator.
+
+=Personal Pages=
+[https://sites.google.com/site/rickgiuly/ Rick Giuly]
+
+=Aknowledgement=
+
+We ask users of this software acknowledge use of Cytoseg their publications and inform us of these publications.
+
+
+=Related Projects=
+[http://farsight-toolkit.org Farsight Toolkit]
