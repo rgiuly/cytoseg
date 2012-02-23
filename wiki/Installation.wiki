@@ -4,11 +4,9 @@
   # Install orange for python http://www.ailab.si/orange/
   # Install [http://code.google.com/p/python-graph/ python-graph]
   # Download cytoseg from svn (see http://code.google.com/p/cytoseg/source/checkout)
-  # To test the program, enter the following command from inside the cytoseg folder:
-         {{{python main.py}}}
 
 ----
-=Installation Instructions (Ubuntu Linux, Instructions may not yet be complete)=
+=Installation Instructions (Ubuntu Linux)=
   # Install the following modules with synaptic: python, python-numpy, python-wxgtk2.8, python-scipy, python-matplotlib
   # Install [http://code.google.com/p/pyopencv/ pyopencv]
   # Visit http://code.enthought.com/projects/mayavi/docs/development/html/mayavi/installation.html to get the most recent version of mayavi2 and install it
@@ -18,8 +16,6 @@
   # Install orange for python http://www.ailab.si/orange/
   # Install [http://code.google.com/p/python-graph/ python-graph]
   # Download cytoseg from svn (see http://code.google.com/p/cytoseg/source/checkout)
-  # To test the program, enter the following command from inside the cytoseg folder:
-         {{{python main.py}}}
 
 ----
 [OptionalInstallation]
