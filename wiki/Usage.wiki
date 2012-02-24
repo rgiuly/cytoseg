@@ -26,3 +26,5 @@ To view the results superimposed on the original images, view the result stack i
 Here is the result image stack from output\voxelOutput\blobs\composite
 
 http://cytoseg.googlecode.com/svn/trunk/cytoseg/docs/mito_example_animated.gif
+
+Note: there is a 30 pixel border around the image that is not processed. It has been cropped from the animated stack above.
