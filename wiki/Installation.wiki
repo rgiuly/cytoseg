@@ -9,13 +9,16 @@
 =Installation Instructions (Ubuntu Linux)=
   # Install the following modules with synaptic: python, python-numpy, python-wxgtk2.8, python-scipy, python-matplotlib
   # Install [http://code.google.com/p/pyopencv/ pyopencv]
-  # Visit http://code.enthought.com/projects/mayavi/docs/development/html/mayavi/installation.html to get the most recent version of mayavi2 and install it
   # Visit http://www.paulnovo.org/ and follow instructions to install python itk packages. You will need both of the following package installations:
    * sudo apt-get install insighttoolkit python-insighttoolkit
    * sudo apt-get install python-insighttoolkit-extras
   # Install orange for python http://www.ailab.si/orange/
   # Install [http://code.google.com/p/python-graph/ python-graph]
   # Download cytoseg from svn (see http://code.google.com/p/cytoseg/source/checkout)
+
+Optional for experimental features:
+  # Visit http://code.enthought.com/projects/mayavi/docs/development/html/mayavi/installation.html to get the most recent version of mayavi2 and install it
+
 
 ----
 =Installation Instruction (Redhat Linux)=
@@ -24,8 +27,9 @@ Note: Redhat installation is more time consuming than Windows or Linux due to ne
 
   # Install enouthough python suite version 7.1
   # Install WrapITK with ITK version 3.17
-   # Include PyBuffer with WrapITK [http://old.nabble.com/How-to-build-ITK%2BWrapITK-python%2BPyBuffer--td27078096.html Discussion about this]
+   * Include PyBuffer with WrapITK [http://old.nabble.com/How-to-build-ITK%2BWrapITK-python%2BPyBuffer--td27078096.html Discussion about this]
   # Install orange data mining module for python
+  # Install opencv for python
   # Download cytoseg from svn (see http://code.google.com/p/cytoseg/source/checkout)
 ----
 [OptionalInstallation]
