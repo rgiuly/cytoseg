@@ -27,7 +27,7 @@ Note: Redhat installation is more time consuming than Windows or Linux due to ne
 
   # Install enouthough python suite version 7.1
   # Install WrapITK with ITK version 3.17
-   * Include "PyBuffer" with "WrapITK" [http://old.nabble.com/How-to-build-ITK%2BWrapITK-python%2BPyBuffer--td27078096.html Discussion about this]
+   * Include 'PyBuffer' with 'WrapITK' [http://old.nabble.com/How-to-build-ITK%2BWrapITK-python%2BPyBuffer--td27078096.html Discussion about this]
   # Install orange data mining module for python
   # Install opencv for python
   # Download cytoseg from svn (see http://code.google.com/p/cytoseg/source/checkout)
