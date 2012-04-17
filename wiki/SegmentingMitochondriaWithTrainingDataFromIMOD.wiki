@@ -1,4 +1,3 @@
-Instructions under construction (August 2011)
 
 =Using IMOD model for training data=
 Using command line on linux system
