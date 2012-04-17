@@ -151,8 +151,8 @@ Finally, this sorts the contours by the surface # they have been meshed into:
 
 <code> imodsortsurf -s contours.mod sortedContours.mod </code>
 
-To view the final result model you can use:
-imod /home/myOriginalData.mrc sortedContours.mod
+To view the final result model you can use this:
+<code> imod /home/myOriginalData.mrc sortedContours.mod </code>
 
 
 
