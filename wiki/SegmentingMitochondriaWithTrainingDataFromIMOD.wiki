@@ -139,19 +139,21 @@ Use tif2mrc to create segmentation.mrc from the tif's in the resized folder.
 
 ==Converting autosegmentation output into IMOD model==
 
-<code> imodauto -h 100 segmentation.mrc outputlines.mod </code>
+<code> imodauto -h 100 segmentation.mrc contours.mod </code>
 
 Optional: now you can check it with 3dmod:
-<code> 3dmod intput.rec outputlines.mod </code>
+<code> 3dmod /home/myOriginalData.mrc contours.mod </code>
 
 Create mesh:
-<code> imodmesh outputlines.mod </code>
+<code> imodmesh contours.mod </code>
 
-Finally, this sorts the contours by the surface # they have been meshed into.
+Finally, this sorts the contours by the surface # they have been meshed into:
 
-<code> imodsortsurf -s outputlines.mod outputlines_sorted.mod </code>
+<code> imodsortsurf -s contours.mod sortedContours.mod </code>
 
-Final result model: outputlines_sorted.mod
+To view the final result model you can use:
+imod /home/myOriginalData.mrc sortedContours.mod
+
 
 
 =Acknowledgements=
