@@ -147,7 +147,7 @@ Then, you want to open it with 3dmod:
 
 <code> 3dmod intput.rec outputlines.mod </code>
 
-Next you'll want to mesh this by clicking: Image > Model View... then... click Edit > Object... then Meshing and Mesh All. (this is equivalent to running "imodmesh outputlines.mod outputlines.mod"). 
+<code> imodmesh outputlines.mod outputlines.mod" </code>
 
 Now you can save and go back to the command line. And type:
 
