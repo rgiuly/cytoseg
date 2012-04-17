@@ -1,4 +1,3 @@
-
 =Using IMOD model for training data=
 Using command line on linux system
 
@@ -148,19 +147,15 @@ Optional: now you can check it with 3dmod:
 Create mesh:
 <code> imodmesh outputlines.mod </code>
 
-Now you can save and go back to the command line. And type:
+Finally, this sorts the contours by the surface # they have been meshed into.
 
-<code> imodsortsurf  outputlines.mod outputlines.mod </code>
+<code> imodsortsurf -s outputlines.mod outputlines_sorted.mod </code>
 
-.. this sorts the contours by the surface # they have been meshed into. And finally it sounds like you want to type:
-
-<code> imodsortsurf -s outputlines.mod outputlines.mod </code>
-
-
+Final result model: outputlines_sorted.mod
 
 
 =Acknowledgements=
-Thanks Andrew for the instructions to convert into IMOD format.
+Thanks Andrew Noske for the instructions to convert into IMOD format.
 
 
 =Etc=
