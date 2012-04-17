@@ -143,11 +143,11 @@ Use tif2mrc to create segmentation.mrc from the tif's in the resized folder.
 
 <code> imodauto -h 100 segmentation.mrc outputlines.mod </code>
 
-Then, you want to open it with 3dmod:
-
+Optional: now you can check it with 3dmod:
 <code> 3dmod intput.rec outputlines.mod </code>
 
-<code> imodmesh outputlines.mod outputlines.mod" </code>
+Create mesh:
+<code> imodmesh outputlines.mod </code>
 
 Now you can save and go back to the command line. And type:
 
