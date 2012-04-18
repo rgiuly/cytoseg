@@ -1,8 +1,13 @@
 =Using IMOD model for training data and viewing results in IMOD=
 Using command line on linux system
 
+
 ==Introduction==
 
+What's IMOD? [http://bio3d.colorado.edu/imod/ IMOD] is a mature software package widely used for segmentation with 3D electron microscopy. It is suitable for creating training data, editing, and viewing segmentation results.
+
+
+==Note==
 
 In this document, <code>/home</code> represents your working folder. On your computer, it may be something like /home/yourname. You can use whatever folder you want, as long as you have read/write access.
 
