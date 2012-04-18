@@ -119,9 +119,9 @@ During the process, new folders and files will be created in the output folder y
 
 (Inside of the output folder, go to voxelOutput/mitochondria/composite to view your output in a convenient colorized form. This is useful for checking if the output looks correct.)
 
-Inside of the output folder, voxelOutput/mitochondria/resized has a grayscale image of your output that can be thresholded with a program such as ImageJ to identify the structures of interest. Next, convert this output to IMOD format.
+Inside of the output folder, voxelOutput/blobs/resized has a grayscale image of your output that can be thresholded with a program such as ImageJ to identify the structures of interest. Next, convert this output to IMOD format.
 
-Use tif2mrc to create segmentation.mrc from the tif's in the resized folder.
+Use tif2mrc to create segmentation.mrc from the tif's in the voxelOutput/blobs/resized folder.
 
 ==Converting autosegmentation output into IMOD model==
 
