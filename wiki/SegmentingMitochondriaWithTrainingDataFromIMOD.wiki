@@ -157,7 +157,7 @@ To view the final result model you can use this:
 
 
 =Acknowledgements=
-Thanks Andrew Noske for the instructions to convert into IMOD format.
+Thanks Andrew Noske for the instructions about converting into IMOD format.
 
 
 =Etc=
