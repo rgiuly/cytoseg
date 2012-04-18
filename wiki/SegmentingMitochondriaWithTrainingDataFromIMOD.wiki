@@ -100,36 +100,17 @@ mkdir /home/outputFolder
 mkdir /home/outputFolder/cytoseg_data
 </code>
 
-Next we'll use the sbfsem_batch_voxels_test.py command.
+Next we'll use the run_pipeline_test.py command.
 
-In general, the command is used like this:
-
-
-python sbfsem_batch_voxels_test.py input output --trainingData=test1 --trainingSeg=test2 --trainingLowerBound=X1,Y1,Z1 --trainingUpperBound=X2,Y2,Z2 --processingLowerBound=X1,Y1,Z1 --processingUpperBound=X2,Y2,Z2
-
-
-input: the input folder with a stack of 8bit data image files (We created this in the "Creating data image stack section" above.)
-
-output: toplevel folder for output of the process (We created this with the mkdir command above.)
-
---traningData specifies the folder with training data (can be the same as input)
-
---trainingSeg specifies the folder with 8bit segmentation bitmap stack (We created this in the "Creating segmentation image stack" section above.)
-
---trainingLowerBound specifies X1,Y1,Z1 corner of training data
-
---trainingUpperBound specifies X2,Y2,Z2 corner of training data
-
---processingLowerBound specifies X1,Y1,Z1 corner of input data to be processed
-
---processingUpperBound specifies X2,Y2,Z2 corner of input data to be processed
-
-<b>Use ImageJ to determine X, Y, and Z coordinates of the corners.</b>
+[CommandLine] information
 
 For our example, the particular command would be:
 
 <code>
-python sbfsem_batch_voxels_test.py /home/dataFolder /home/outputFolder --trainingData=/home/dataFolder --trainingSeg=/home/trainingSegTiffs --trainingLowerBound=0,0,0 --trainingUpperBound=100,100,100 --processingLowerBound=0,0,0 --processingUpperBound=100,100,5
+
+
+python run_pipeline_test.py /home/dataFolder /home/outputFolder --trainingImage=/home/dataFolder --trainingSeg=/home/trainingSegTiffs  --voxelTrainingLowerBound=*,*,* --voxelTrainingUpperBound=*,*,* --voxelProcessingLowerBound=*,*,* --voxelProcessingUpperBound=*,*,* --contourTrainingLowerBound=*,*,* --contourTrainingUpperBound=*,*,* --contourProcessingLowerBound=*,*,* --contourProcessingUpperBound=*,*,* --accuracyCalcLowerBound=*,*,* --accuracyCalcUpperBound=*,*,* --labelConfigFile=settings3.py --voxelWeights=0.0130,0.00064 --contourListWeights=7,1 --contourListThreshold=0.8 --step1 --step2
+
 </code>
 
 
