@@ -4,7 +4,8 @@ Using command line on linux system
 
 ==Introduction==
 
-What's IMOD? [http://bio3d.colorado.edu/imod/ IMOD] is a mature software package widely used for segmentation with 3D electron microscopy. It is suitable for creating training data, editing, and viewing segmentation results.
+What's IMOD?
+[http://bio3d.colorado.edu/imod/ IMOD] is a mature software package widely used for segmentation with 3D electron microscopy. It is suitable for creating training data, editing, and viewing segmentation results.
 
 
 ==Note==
