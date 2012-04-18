@@ -1,7 +1,10 @@
+This page is under construction (April 2012)
+
+
 In general, the command is used like this:
 
 
-python sbfsem_batch_voxels_test.py input output --trainingData=test1 --trainingSeg=test2 --trainingLowerBound=X1,Y1,Z1 --trainingUpperBound=X2,Y2,Z2 --processingLowerBound=X1,Y1,Z1 --processingUpperBound=X2,Y2,Z2
+python run_pipeline_test.py input output --trainingData=test1 --trainingSeg=test2 --trainingLowerBound=X1,Y1,Z1 --trainingUpperBound=X2,Y2,Z2 --processingLowerBound=X1,Y1,Z1 --processingUpperBound=X2,Y2,Z2
 
 
 input: the input folder with a stack of 8bit data image files (We created this in the "Creating data image stack section" above.)
