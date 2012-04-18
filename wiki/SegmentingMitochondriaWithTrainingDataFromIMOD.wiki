@@ -1,4 +1,4 @@
-=Using IMOD model for training data=
+=Using IMOD model for training data and viewing results in IMOD=
 Using command line on linux system
 
 ==Introduction==
