@@ -1,5 +1,0 @@
-media filtered, then gaussian filtered
-
-original data:
-Re: neuropil (MP 3649)
-http://ccdb-portal.nbirn.net:8081/sand/main?gsid=174455C92FD56D35F629CBF2557F8E4F_1228953997860&mpid=3649&event=displayRecon
