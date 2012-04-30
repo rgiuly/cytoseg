@@ -1,3 +1,5 @@
+# Reads command line arguments and executes process
+
 
 import os
 import sys
@@ -11,6 +13,9 @@ from data_viewer import borderWidthForFeatures
 from batch_process import *
 import logging
 import copy
+
+
+# Variable initializations
 
 originalImageFilePath = None
 
@@ -39,6 +44,8 @@ contourListThreshold = 0.5
 
 
 def interpretCoordinateString(coordinates):
+    """Convert comma separated list string on command line to list of numbers."""
+
     coordinates = re.split(",", arg)
     for i in range(len(coordinates)):
         if coordinates[i] == "*":
@@ -47,9 +54,104 @@ def interpretCoordinateString(coordinates):
             coordinates[i] = int(coordinates[i])
     return coordinates
 
-def usage():
-    print "usage: sbfsem_batch_voxels_test input output --trainingImage directory --trainingSeg directory"
 
+
+def usage():
+    """Print usage information."""
+    print "For usage, see http://code.google.com/p/cytoseg/wiki/Usage"
+
+
+
+
+
+
+def voxelStep(stepName):
+    """
+    Run a voxel processing step on a volume.
+    Each chunk of the volume is loaded separately.
+    """
+
+    print "voxelSingleStep", stepName
+    batchProcessVoxels(segmentationParams,
+                       stepName,
+                       voxelFullRegionToClassify,
+                       voxelChunkSize)
+
+
+def contourSingleStep_old(stepName):
+    """Deprecated"""
+
+    print "contourSingleStep", stepName
+
+    segmentationParams['guiVisible'] = False
+
+    batchProcessContours(segmentationParams,
+                         (stepName,),
+                         contourProcessingRegion,
+                         contourChunkSize)
+
+
+def contourSingleStep(stepName):
+    """
+    Execute a substep (given by stepName) in the contour processing step of the segmentation process.
+    segmentationParams variable has detailed information about the process.
+    """
+
+    print "contourSingleStep", stepName
+
+    segmentationParams['guiVisible'] = False
+    segmentationParams['contourProcessingRegionToClassify'] = contourProcessingRegion
+    segmentationParams['steps'] = stepName
+
+    runSteps(**segmentationParams)
+
+
+def contourStepSet():
+    """
+    Execute all substeps of the contour process phase of the segmentation process.
+    segmentationParams variable has detailed information about the process.
+    """
+
+    segmentationParams['guiVisible'] = False
+
+    stepSets = ['findInputContours',
+                'classifyInputContours',
+                'writeAllInputContoursToImageStack',
+                'inputContourListProbabilityFilter',
+                'fill3DBlobs']
+
+    print "contourStepSet", stepSets
+
+    batchProcessContours(segmentationParams,
+                         stepSets,
+                         contourProcessingRegion,
+                         contourChunkSize)
+
+
+def classifyTrainingVoxelsStep():
+    """Run step that classifies the training voxels."""
+
+    # use the training images as input
+    segmentationParamsCopy = copy.deepcopy(segmentationParams)
+    segmentationParamsCopy['originalImageFilePath'] = segmentationParamsCopy['voxelTrainingImageFilePath'] 
+
+    # use the contour training region as the region to be classified
+    fullRegion = segmentationParamsCopy['contourProcessingTrainingRegion']
+
+    # classify voxels and send output to appropriate folder
+    stepName = 'classifyVoxelsAndUseTrainingOutputFolder'
+    batchProcessVoxels(segmentationParamsCopy,
+                       stepName,
+                       fullRegion,
+                       voxelChunkSize)
+
+
+
+
+
+
+
+# Process command line arguments
 try:
     opts, args = getopt.gnu_getopt(sys.argv, "", ["trainingImage=", "trainingSeg=", "voxelTrainingLowerBound=", "voxelTrainingUpperBound=", "voxelProcessingLowerBound=", "voxelProcessingUpperBound=", "contourTrainingLowerBound=", "contourTrainingUpperBound=", "contourProcessingLowerBound=", "contourProcessingUpperBound=", "accuracyCalcLowerBound=", "accuracyCalcUpperBound=", "labelConfigFile=", "voxelWeights=", "contourListWeights=", "contourListThreshold=", "step1", "step2"])
     print "opts, args", opts, args
@@ -175,17 +277,6 @@ print
 
 
 
-
-#if socket.gethostname() == 'cytoseg.crbs.ucsd.edu':
-#    baseFolder = "/home/rgiuly/"
-#elif socket.gethostname() == 'cluster0.crbs.ucsd.edu':
-#    #todo: missing ending slash caused error, it shouldn't really
-#    baseFolder = "/export2/rgiuly/"
-#elif socket.gethostname() == 'jane.crbs.ucsd.edu':
-#    baseFolder = "/tmp/output080309/"
-#else:
-#    baseFolder = "O:/"
-
 default_path.defaultTemporaryFolder = cytosegDataFolder
 default_path.cytosegDataFolder = cytosegDataFolder
 default_path.contourOutputTemporaryFolder = cytosegDataFolder
@@ -207,14 +298,10 @@ segmentationParams =\
                   voxelTrainingImageFilePath=voxelTrainingImageFilePath,
                   voxelTrainingLabelFilePath=voxelTrainingLabelFilePath,
                   voxelWeightDict=voxelWeightDict,
-                  #precomputedProbabilityMapFilePath=baseFolder+"images/neuropil/mitochondria",
-                  #precomputedProbabilityMapFilePath=baseFolder+"cytoseg_data/voxelOutput_training_200_to_215/mitochondria/resized", #IEEE paper
                   precomputedTrainingProbabilityMapFilePath=os.path.join(cytosegDataFolder, "voxelOutput", "training", "mitochondria", "resized"),
                   precomputedInputProbabilityMapFilePath=os.path.join(cytosegDataFolder, "voxelOutput", "mitochondria", "resized"),
-                  #path, numTrees, 6+1, None, zStart - zStartOffset, zStop + zEndOffset + 1, iteration, taskToPerform)
                   blobImageStackOutputFolder=os.path.join(cytosegDataFolder, "voxelOutput"),
                   numberOfTrees=25,
-                  #numberOfTrainingLayersToProcess=6+1,
                   numberOfTrainingLayersToProcess=None,
                   trainingRegion=trainingRegion,
                   numberOfLayersToProcess=None,
@@ -239,96 +326,22 @@ voxelChunkingParams = dict(zStart=230, zStop=240, chunkSize=5)
 contourChunkingParams = dict(zStart=230, zStop=238, chunkSize=5)
 
 
-def voxelStep(stepName):
-
-    print "voxelSingleStep", stepName
-    batchProcessVoxels(segmentationParams,
-                       stepName,
-                       voxelFullRegionToClassify,
-                       voxelChunkSize)
-
-
-def contourSingleStep_old(stepName):
-
-    print "contourSingleStep", stepName
-
-    segmentationParams['guiVisible'] = False
-
-    #stepSets = ['findTrainingContours']
-    #stepSets = ['classifyTrainingContours'] # shows accuracy measure
-    #stepSets = ['findInputContours']
-    #stepSets = ['classifyInputContours']
-    #stepSets = ['writeAllInputContoursToImageStack']
-    #stepSets = ['inputContourListProbabilityFilter']
-    #stepSets = ['fill3DBlobs']
-    #stepSets = ['voxelAccuracy'] #old
-    #stepSets = ['accuracy']
-
-    batchProcessContours(segmentationParams,
-                         (stepName,),
-                         contourProcessingRegion,
-                         contourChunkSize)
-
-
-def contourSingleStep(stepName):
-
-    print "contourSingleStep", stepName
-
-    segmentationParams['guiVisible'] = False
-    segmentationParams['contourProcessingRegionToClassify'] = contourProcessingRegion
-    segmentationParams['steps'] = stepName
-
-    runSteps(**segmentationParams)
-
-
-def contourStepSet():
-
-    segmentationParams['guiVisible'] = False
-
-    stepSets = ['findInputContours',
-                'classifyInputContours',
-                'writeAllInputContoursToImageStack',
-                'inputContourListProbabilityFilter',
-                'fill3DBlobs']
-
-    print "contourStepSet", stepSets
-
-    batchProcessContours(segmentationParams,
-                         stepSets,
-                         contourProcessingRegion,
-                         contourChunkSize)
-
-
-def classifyTrainingVoxelsStep():
-
-    # use the training images as input
-    segmentationParamsCopy = copy.deepcopy(segmentationParams)
-    segmentationParamsCopy['originalImageFilePath'] = segmentationParamsCopy['voxelTrainingImageFilePath'] 
-
-    # use the contour training region as the region to be classified
-    fullRegion = segmentationParamsCopy['contourProcessingTrainingRegion']
-
-    # classify voxels and send output to appropriate folder
-    stepName = 'classifyVoxelsAndUseTrainingOutputFolder'
-    batchProcessVoxels(segmentationParamsCopy,
-                       stepName,
-                       fullRegion,
-                       voxelChunkSize)
-
-
 #voxelChunkSize=1;
 
 if not(runStep1) and not(runStep2):
+    """Ensure that the user specified steps to run."""
     raise Exception("No steps specified. You may use parameters such as --step1 and --step2 to specify what steps to run.")
 
+
+# Run step 1 if the user specified it (voxel processing)
 if runStep1:
     voxelStep('classifyVoxels')
     classifyTrainingVoxelsStep()
 
-#voxelStep('classifyTrainingVoxels')
 
+# Run step 2 if the user specified it (contour and level set processing)
 if runStep2:
-    #voxelChunkSize=8; voxelStep('randonLikeFeaturesProcess') # todo: you probably want another function sort of like voxelStep but for function that are to be run just once rather than as a piece of a batch process
+    # todo: create another function similar to voxelStep but for functions that are to be run just once rather than as a piece of a batch process
     contourSingleStep('findTrainingContours')
     contourSingleStep('classifyTrainingContours')
     #contourChunkSize = 4
