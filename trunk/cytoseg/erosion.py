@@ -1,7 +1,8 @@
 # Erosion operation on the region represented by a contour
-# Written by outside contractor.
-# The erosion_polygon function converts a polygon into raster image, performs erosion, and
-# then returns the outline of the resulting eroded region as a contour.
+# Written by outside programmer.
+#
+# This module provides the erosion_polygon function which converts a polygon into raster image,
+# performs erosion, and then returns the outline of the resulting eroded region as a contour.
 
 
 import cv
@@ -13,7 +14,10 @@ import pickle
 g_cnt = 0
 b_debug = False
 
+
 def erosion_cv( vertices, pos = 2):
+    """Use opencv to perform erosion"""
+
     global g_cnt
     global b_debug
     
@@ -112,7 +116,9 @@ def erosion_cv( vertices, pos = 2):
         g_cnt = g_cnt + 1
     return erosionVerticesList
 
+
 def gen_contour_from_binaryimage( imageBinary, width, height, zVal):
+    """Extract contour from binary image."""
     
     contourList = []
 
@@ -237,7 +243,10 @@ def gen_contour_from_binaryimage( imageBinary, width, height, zVal):
  
     return contourList
 
+
 def gen_binaryimage_from_contour( contour ):
+    """Make binary image from contour."""
+
     width = 0
     height = 0
 
@@ -310,6 +319,7 @@ def gen_binaryimage_from_contour( contour ):
         
     return imageBinary, width, height
 
+
 def generate_struct( radius, bDiskShape = False):
     _struct = [[1]*(radius*2+1) for i in xrange(radius*2+1)]
 
@@ -330,6 +340,7 @@ def generate_struct( radius, bDiskShape = False):
                 _struct[radius * 2 - i][radius * 2 - j] = 0
             
     return _struct
+
 
 def erosion( imageBinary, width, height, pixels = 3, bDiskShape = False):
     temp = []
@@ -372,6 +383,7 @@ def erosion( imageBinary, width, height, pixels = 3, bDiskShape = False):
                     temp[i][j] = 0    
     return temp
 
+
 def eliminate_line_component(imageBinary, width, height):
     outImage = []
     for i in xrange(height):
@@ -394,7 +406,10 @@ def eliminate_line_component(imageBinary, width, height):
                 outImage[i][j] = 0
     return outImage
 
+
 def erosion_contour( contour, pixels = 3, bDiskShape = False ):
+    """Deprecated"""
+
     imageBinary, width, height = gen_binaryimage_from_contour( contour )
     zVal = contour[0][2]
     tempImageBinary = erosion( imageBinary, width, height, pixels, bDiskShape )
@@ -405,8 +420,11 @@ def erosion_contour( contour, pixels = 3, bDiskShape = False ):
     erosionContourList = gen_contour_from_binaryimage( outImage, width, height, zVal )
     return erosionContourList
 
+
 def erosion_polygon(virtices, pixels = 5):
-    
+    """Converts contour to filled binary region, performs erosion, and gives the result
+    as the contour outline around the eroded region."""
+
     return erosion_cv(virtices, pixels/2)
 
     contour = get_contour_from_virtices(virtices)
@@ -432,7 +450,10 @@ def erosion_polygon(virtices, pixels = 5):
             erosionContourList[i][j][1] = erosionContourList[i][j][1] + delta_y
     return erosionContourList
 
+
 def get_contour_from_virtices( virtices ):
+    """Get contour from vertices"""
+
     contour = []
     length = len(virtices);
     if length < 3:
@@ -493,8 +514,10 @@ def get_contour_from_virtices( virtices ):
     return contour
 
 
-# for test 
+# for testing
 def do_gen_contour( inName, outName ):
+    """Generate contour for testing."""
+
     f_in = open( inName, "r")
     firstline = f_in.readline()
     firstline = firstline.strip()
@@ -515,21 +538,24 @@ def do_gen_contour( inName, outName ):
     pickle.dump(contourList[0], f_out)
     f_out.close()
 
-# for test
+# for testing
 def do_read_contour(inName):
+    """Read contour for testing."""
     f_in = open(inName, "r")
     contour = pickle.load(f_in)
     f_in.close()
     return contour
 
-# for test
+# for testing
 def do_write_contour(contour, outName):
+    """Write contour for testing"""
     f_out = open(outName, "w")
     pickle.dump(contour, f_out)
     f_out.close()
 
-# for test 
+# for testing
 def do_gen_binaryimage(inName, outName):
+    """Generate binary image for testing"""
     f_in = open(inName, "r")
     contour = pickle.load(f_in)
     f_in.close()
@@ -546,7 +572,10 @@ def do_gen_binaryimage(inName, outName):
         f_out.write("\n")
     f_out.close()   
 
+
 def do_write_binaryimage(imageBinary, width, height, outName):
+    """Write binary image"""
+
     f_out = open( outName, "w" )
     f_out.write( str(width) + " " + str(height) + "\n") 
     for i in range(0, height):
@@ -559,7 +588,8 @@ def do_write_binaryimage(imageBinary, width, height, outName):
 
     
 def main():
-  
+    """Testing function"""
+
     pos = 5
     
     verticesList = []

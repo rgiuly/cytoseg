@@ -46,10 +46,7 @@ try:
 except ImportError:
     print "could not load: import cv"
 
-try:
-    from fill import *
-except ImportError:
-    print "could not load fill"
+from fill import *
 
 import globals
 import default_path
