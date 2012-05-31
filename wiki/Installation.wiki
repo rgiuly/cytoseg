@@ -8,7 +8,7 @@
 ----
 =Installation Instructions (Ubuntu Linux)=
   # Install the following modules with synaptic: python, python-numpy, python-wxgtk2.8, python-scipy, python-matplotlib
-  # Install [http://code.google.com/p/pyopencv/ pyopencv]
+  # Install opencv and opencv python bindings using the Ubuntu Software Center
   # Visit http://www.paulnovo.org/ and follow instructions to install python itk packages. You will need both of the following package installations:
    * sudo apt-get install insighttoolkit python-insighttoolkit
    * sudo apt-get install python-insighttoolkit-extras
