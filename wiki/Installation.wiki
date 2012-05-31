@@ -9,9 +9,7 @@
 =Installation Instructions (Ubuntu Linux)=
   # Install the following modules with synaptic: python, python-numpy, python-wxgtk2.8, python-scipy, python-matplotlib
   # Install opencv and opencv python bindings using the Ubuntu Software Center
-  # Visit http://www.paulnovo.org/ and follow instructions to install python itk packages. You will need both of the following package installations:
-   * sudo apt-get install insighttoolkit python-insighttoolkit
-   * sudo apt-get install python-insighttoolkit-extras
+  # Install itk for python: sudo apt-get install python-insighttoolkit3
   # Install orange for python http://www.ailab.si/orange/
   # Install [http://code.google.com/p/python-graph/ python-graph]
   # Download cytoseg from svn (see http://code.google.com/p/cytoseg/source/checkout)
