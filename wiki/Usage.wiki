@@ -8,6 +8,8 @@ Parameters used in this example:
  * Training images folder: data\example\train_images
  * Training segmentation folder: data\example\train_seg
 
+(You will have the test data for this sample if you checked out via svn.)
+
 <code>
 svn checkout http://cytoseg.googlecode.com/svn/trunk/ cytoseg-read-only
 cd cytoseg-read-only
