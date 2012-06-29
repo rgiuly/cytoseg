@@ -24,7 +24,7 @@ Optional for experimental features:
 Note: Redhat installation is more time consuming than Windows or Linux due to need for compilation of Wrap ITK and orange
 
   # Install enouthough python suite version 7.1
-  # Install WrapITK with ITK version 3.17
+  # Install WrapITK with ITK
    * Ensure that `PyBuffer` in installed with `WrapITK` [http://old.nabble.com/How-to-build-ITK%2BWrapITK-python%2BPyBuffer--td27078096.html Discussion about this]
   # Install orange data mining module for python
   # Install opencv for python
