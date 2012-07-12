@@ -1,4 +1,4 @@
-===Example for Segmenting Mitochondria (on Windows):===
+===Example for Segmenting Mitochondria:===
 
 (Input and training images for this example are included in the svn download.)
 
@@ -10,6 +10,7 @@ Parameters used in this example:
 
 (You will have the test data for this sample if you checked out via svn.)
 
+Example (for Windows):
 <code>
 svn checkout http://cytoseg.googlecode.com/svn/trunk/ cytoseg-read-only
 cd cytoseg-read-only
@@ -18,6 +19,17 @@ cd testing
 mkdir output
 python run_pipeline_test.py data\example\input output --trainingImage=data\example\train_images --trainingSeg=data\example\train_seg  --voxelTrainingLowerBound=*,*,* --voxelTrainingUpperBound=*,*,* --voxelProcessingLowerBound=*,*,* --voxelProcessingUpperBound=*,*,* --contourTrainingLowerBound=*,*,* --contourTrainingUpperBound=*,*,* --contourProcessingLowerBound=*,*,* --contourProcessingUpperBound=*,*,* --accuracyCalcLowerBound=*,*,* --accuracyCalcUpperBound=*,*,* --labelConfigFile=settings3.py --voxelWeights=0.0130,0.00064 --contourListWeights=7,1 --contourListThreshold=0.8 --step1 --step2
 </code>
+
+Example (for Linux):
+<code>
+svn checkout http://cytoseg.googlecode.com/svn/trunk/ cytoseg-read-only
+cd cytoseg-read-only
+cd cytoseg
+cd testing
+mkdir output
+python run_pipeline_test.py data/example/input output --trainingImage=data/example/train_images --trainingSeg=data/example/train_seg  --voxelTrainingLowerBound=*,*,* --voxelTrainingUpperBound=*,*,* --voxelProcessingLowerBound=*,*,* --voxelProcessingUpperBound=*,*,* --contourTrainingLowerBound=*,*,* --contourTrainingUpperBound=*,*,* --contourProcessingLowerBound=*,*,* --contourProcessingUpperBound=*,*,* --accuracyCalcLowerBound=*,*,* --accuracyCalcUpperBound=*,*,* --labelConfigFile=settings3.py --voxelWeights=0.0130,0.00064 --contourListWeights=7,1 --contourListThreshold=0.8 --step1 --step2
+</code>
+
 
 In this example, the result stack will be written to output\voxelOutput\blobs\resized
 
