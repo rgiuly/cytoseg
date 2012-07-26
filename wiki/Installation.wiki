@@ -32,14 +32,12 @@ Note: Redhat installation is more time consuming than Windows or Linux due to ne
 
 You'll need to configure environmental variables according to the instructions for each module. Here's an example of how I set my environmental variables assuming that EPD is installed at /usr/local/EPD:
 
+<code>
 export PYTHON_INCLUDE_PATH=/usr/local/EPD/include/python2.7
-
 export PYTHON_LIB_PATH=/usr/local/EPD/lib/python2.7
-
 export LD_LIBRARY_PATH=/usr/lib64:/lib:/lib64:/usr/lib:/usr/local/EPD/lib:/usr/local/lib/InsightToolkit:/usr/local/lib/InsightToolkit/WrapITK/lib
-
 export PATH=/usr/local/EPD/bin:$PATH
-
+</code>
 
 ----
 [OptionalInstallation]
