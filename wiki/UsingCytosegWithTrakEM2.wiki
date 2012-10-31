@@ -1,4 +1,4 @@
-=Using TrakEM2 for training data and viewing results in ImageJ/Fiji=
+=Using TrakEM2 for training data and viewing results in ImageJ / Fiji=
 
 
 ==Introduction==
