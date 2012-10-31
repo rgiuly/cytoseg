@@ -89,4 +89,4 @@ In Fiji, open the output stack located here voxelOutput/blobs/resized
 
 Threshold the stack to make the blobs white and the background black.
 
-Use the connected components tool in plugins to create separate labels for each blob. Now you have a label volume that can be imported into TrakEM2 and edited.
+Use the connected components tool (Plugins->Process->Find Connected Regions) in plugins to create separate labels for each blob. Now you have a label volume that can be imported into TrakEM2 and edited.
