@@ -15,26 +15,14 @@ In this document, <code>/home</code> represents your working folder. On your com
 
 ==Creating data image stack==
 
-Convert your image data to an 8bit tif stack:
-<code>
-mrcbyte myOriginalData.mrc byteData.mrc
-</code>
+Convert your image data to an 8bit tif stack and place it in /home/dataFolder
 
-Note: origialData.mrc is the 3D image you have traced in IMOD and byteData.mrc is the name of the output file you want to use.
-
-
-Convert your data to a tif stack
-<code>
-mkdir /home/dataFolder
-mrc2tif byteData.mrc /home/dataFolder/file
-</code>
 
 ==Creating training segmentation image stack==
 
 You'll need a TrakEM2 project open where you have traced mitochondria existing in the data. This will serve as training data.
 
 Right click in TrakEM2 and export your labels to TIFF format:
-
 
 Use ImageJ to convert the TIFF stack to 8bit and save the stack here:
 <code>
@@ -102,4 +90,3 @@ In Fiji, open the output stack located here voxelOutput/blobs/resized
 Threshold the stack to make the blobs white and the background black.
 
 Use the connected components tool in plugins to create separate labels for each blob. Now you have a label volume that can be imported into TrakEM2 and edited.
-
