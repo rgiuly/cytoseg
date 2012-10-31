@@ -1,4 +1,3 @@
-
 If you would like to use Cytoseg, please contact us.
 
 =Contact=
@@ -52,7 +51,7 @@ New project members are welcome. If you would like to contribute code or experti
 
 =Aknowledgement=
 
-We ask users of this software acknowledge use of Cytoseg their publications and inform us of these publications.
+We kindy ask users of this software to acknowledge use of Cytoseg their publications and inform us of these publications.
 
 
 =Related Projects=
