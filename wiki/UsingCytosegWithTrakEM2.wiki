@@ -1,0 +1,105 @@
+=Using TrakEM2 for training data and viewing results in ImageJ/Fiji=
+
+
+==Introduction==
+
+Fiji (with TrakEM2) is a software package widely used for segmentation with 3D electron microscopy. It is suitable for creating training data, editing, and viewing segmentation results.
+
+If you are new to TrakEM2, there are tutuorials here: http://www.ini.uzh.ch/~acardona/trakem2.html
+
+==Note==
+
+In this document, <code>/home</code> represents your working folder. On your computer, it may be something like /home/yourname. You can use whatever folder you want, as long as you have read/write access.
+
+
+
+==Creating data image stack==
+
+Convert your image data to an 8bit tif stack:
+<code>
+mrcbyte myOriginalData.mrc byteData.mrc
+</code>
+
+Note: origialData.mrc is the 3D image you have traced in IMOD and byteData.mrc is the name of the output file you want to use.
+
+
+Convert your data to a tif stack
+<code>
+mkdir /home/dataFolder
+mrc2tif byteData.mrc /home/dataFolder/file
+</code>
+
+==Creating training segmentation image stack==
+
+You'll need a TrakEM2 project open where you have traced mitochondria existing in the data. This will serve as training data.
+
+Right click in TrakEM2 and export your labels to TIFF format:
+
+
+Use ImageJ to convert the TIFF stack to 8bit and save the stack here:
+<code>
+/home/trainingSegTiffs
+</code>
+
+
+
+==Running the script==
+
+Make sure you have python installed according to instructions for installation at cytoseg.googlecode.com
+
+You'll need python to run the scripts.
+
+Download this file with the python scripts http://cytoseg.googlecode.com/files/cytoseg_mito_example.zip
+
+You can download from the command line with:
+<code>
+wget http://cytoseg.googlecode.com/files/cytoseg_mito_example.zip
+</code>
+
+Unzip the file
+<code> unzip cytoseg_mito_example.zip </code>
+
+At your command line, go into the cytoseg/testing directory
+
+<code>
+cd cytoseg
+cd testing
+</code>
+
+Create and output folder:
+<code>
+mkdir /home/outputFolder
+mkdir /home/outputFolder/cytoseg_data
+</code>
+
+Next we'll use the run_pipeline_test.py command.
+
+[CommandLine] information
+
+For our example, the particular command would be:
+
+<code>
+
+
+python run_pipeline_test.py /home/dataFolder /home/outputFolder --trainingImage=/home/dataFolder --trainingSeg=/home/trainingSegTiffs  --voxelTrainingLowerBound=*,*,* --voxelTrainingUpperBound=*,*,* --voxelProcessingLowerBound=*,*,* --voxelProcessingUpperBound=*,*,* --contourTrainingLowerBound=*,*,* --contourTrainingUpperBound=*,*,* --contourProcessingLowerBound=*,*,* --contourProcessingUpperBound=*,*,* --accuracyCalcLowerBound=*,*,* --accuracyCalcUpperBound=*,*,* --labelConfigFile=settings3.py --voxelWeights=0.0130,0.00064 --contourListWeights=7,1 --contourListThreshold=0.8 --step1 --step2
+
+</code>
+
+
+
+During the process, new folders and files will be created in the output folder you specified (/home/outputFolder).
+
+(Inside of the output folder, go to voxelOutput/mitochondria/composite to view your output in a convenient colorized form. This is useful for checking if the output looks correct.)
+
+Inside of the output folder, voxelOutput/blobs/resized has a grayscale image of your output that can be thresholded with a program such as ImageJ to identify the structures of interest. Next, convert this output to IMOD format.
+
+Use tif2mrc to create segmentation.mrc from the tif's in the voxelOutput/blobs/resized folder.
+
+==Autosegmentation output in TrakEM2==
+
+In Fiji, open the output stack located here voxelOutput/blobs/resized
+
+Threshold the stack to make the blobs white and the background black.
+
+Use the connected components tool in plugins to create separate labels for each blob. Now you have a label volume that can be imported into TrakEM2 and edited.
+
