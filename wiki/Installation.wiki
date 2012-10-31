@@ -11,6 +11,7 @@
   # Install opencv and opencv python bindings using the Ubuntu Software Center
   # Install itk for python: sudo apt-get install python-insighttoolkit3
   # Install orange for python http://www.ailab.si/orange/
+   # [http://manojbits.wordpress.com/2012/09/25/installing-orange-in-ubuntu-12-04/ Instructions for installing orange in Ubuntu 12.04]
   # Install [http://code.google.com/p/python-graph/ python-graph]
   # Download cytoseg from svn (see http://code.google.com/p/cytoseg/source/checkout)
 
