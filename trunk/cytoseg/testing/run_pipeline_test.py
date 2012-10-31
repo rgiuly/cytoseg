@@ -341,11 +341,19 @@ if runStep1:
 
 # Run step 2 if the user specified it (contour and level set processing)
 if runStep2:
+    print "segmentationParams 1", segmentationParams
+    print "contourProcessingRegion 1", contourProcessingRegion
     classifyTrainingVoxelsStep()
     # todo: create another function similar to voxelStep but for functions that are to be run just once rather than as a piece of a batch process
+    print "segmentationParams 2", segmentationParams
+    print "contourProcessingRegion 1", contourProcessingRegion
     contourSingleStep('findTrainingContours')
+    print "segmentationParams 3", segmentationParams
+    print "contourProcessingRegion 1", contourProcessingRegion
     contourSingleStep('classifyTrainingContours')
     #contourChunkSize = 4
+    print "segmentationParams 4", segmentationParams
+    print "contourProcessingRegion 1", contourProcessingRegion
     contourStepSet()
     #contourSingleStep('accuracy')
 
