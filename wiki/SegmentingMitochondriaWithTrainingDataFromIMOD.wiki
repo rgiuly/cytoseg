@@ -68,8 +68,8 @@ mkdir /home/trainingSegTiffs
 mrc2tif trainingSeg8bit.mrc /home/trainingSegTiffs/file
 </code>
 
+Use a tool (such as Fiji) to threshold the /home/trainingSegTiffs stack and make the objects being segmented white (255) and everything else black (0). When you are finished the stack /home/trainingSegTiffs should be black and white.
 
-`*` If using contour processing, this segmentation stack needs to be converted so that each mitochondria has a single value for a label.
 
 ==Running the script==
 
