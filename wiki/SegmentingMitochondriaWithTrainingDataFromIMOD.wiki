@@ -79,11 +79,8 @@ Download this file with the python scripts http://cytoseg.googlecode.com/files/c
 
 You can download from the command line with:
 <code>
-wget http://cytoseg.googlecode.com/files/cytoseg_mito_example.zip
+svn checkout http://cytoseg.googlecode.com/svn/trunk/ cytoseg-read-only
 </code>
-
-Unzip the file
-<code> unzip cytoseg_mito_example.zip </code>
 
 At your command line, go into the cytoseg/testing directory
 
