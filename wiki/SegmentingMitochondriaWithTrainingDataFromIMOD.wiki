@@ -51,8 +51,7 @@ model: model file
 data: data file that goes with the model (mrc format)
 output: output file (mrc format)
 
-Here's an example:  `*`
-<code>imodmop /home/myManualSegmentation.mod /home/myOriginalData.mrc trainingSeg.mrc</code>
+<code>imodmop -mask 1 /home/myManualSegmentation.mod /home/myOriginalData.mrc trainingSeg.mrc</code>
 
 For the example, you can look at the output with:
 <code> 3dmod trainingSeg.mrc </code>
@@ -68,7 +67,6 @@ mkdir /home/trainingSegTiffs
 mrc2tif trainingSeg8bit.mrc /home/trainingSegTiffs/file
 </code>
 
-Use a tool (such as Fiji) to threshold the /home/trainingSegTiffs stack and make the objects being segmented white (255) and everything else black (0). When you are finished the stack /home/trainingSegTiffs should be black and white.
 
 
 ==Running the script==
@@ -143,7 +141,7 @@ To view the final result model you can use this:
 
 
 =Acknowledgements=
-Thanks Andrew Noske for the instructions about converting into IMOD format.
+Thanks Andrew Noske & Alex Perez for the instructions about converting into IMOD format.
 
 
 =Etc=
