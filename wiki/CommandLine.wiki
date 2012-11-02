@@ -1,17 +1,17 @@
-This page is under construction (April 2012)
+This page is under construction (October 2012)
 
 
 In general, the command is used like this:
 
 
-python run_pipeline_test.py input output --trainingData=test1 --trainingSeg=test2 --trainingLowerBound=X1,Y1,Z1 --trainingUpperBound=X2,Y2,Z2 --processingLowerBound=X1,Y1,Z1 --processingUpperBound=X2,Y2,Z2
+python run_pipeline_test.py input output --trainingImage=test1 --trainingSeg=test2 --trainingLowerBound=X1,Y1,Z1 --trainingUpperBound=X2,Y2,Z2 --processingLowerBound=X1,Y1,Z1 --processingUpperBound=X2,Y2,Z2
 
 
 input: the input folder with a stack of 8bit data image files (We created this in the "Creating data image stack section" above.)
 
 output: toplevel folder for output of the process (We created this with the mkdir command above.)
 
---traningData specifies the folder with training data (can be the same as input)
+--traningImage specifies the folder with training data (can be the same as input)
 
 --trainingSeg specifies the folder with 8bit segmentation bitmap stack (We created this in the "Creating segmentation image stack" section above.)
 
