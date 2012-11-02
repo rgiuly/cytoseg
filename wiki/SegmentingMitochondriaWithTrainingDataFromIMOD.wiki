@@ -1,6 +1,6 @@
-=Using IMOD model for training data and viewing results in IMOD=
-Using command line on linux system
+=Using IMOD to create training data and view or edit results=
 
+These instructions show use of the command line on a Linux-based or similar operating system system.
 
 ==Introduction==
 
