@@ -75,8 +75,6 @@ Make sure you have python installed according to instructions for installation a
 
 You'll need python to run the scripts.
 
-Download this file with the python scripts http://cytoseg.googlecode.com/files/cytoseg_mito_example.zip
-
 You can download from the command line with:
 <code>
 svn checkout http://cytoseg.googlecode.com/svn/trunk/ cytoseg-read-only
