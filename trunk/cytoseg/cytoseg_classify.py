@@ -170,7 +170,7 @@ class ClassificationControlsFrame(ControlsFrame):
         
         # classification
         self.numberOfTrees = 50
-        self.balanceExamples = False
+        #self.balanceExamples = False
         #self.balanceExamples = True
 
         # gui
@@ -542,21 +542,21 @@ class ClassificationControlsFrame(ControlsFrame):
         
         #self.addPersistentVolumeAndRefreshDataTree(membraneVoxelVolume, 'MembraneVoxel')
         
-        if self.balanceExamples:
-
-            print "balanceExamples==true"
-
-            membranesCount = labelIdentifierDict['membranes'].count(membraneVoxelVolume)
-            blankInnerCellCount =\
-                labelIdentifierDict['blankInnerCell'].count(membraneVoxelVolume)
-            print 'membranes count', membranesCount
-            print 'blankInnerCell count', blankInnerCellCount
-            ratio = round(float(blankInnerCellCount) / float(membranesCount))
-            print "ratio", ratio
-
-        else:
-
-            print "balanceExamples==false"
+#        if self.balanceExamples:
+#
+#            print "balanceExamples==true"
+#
+#            membranesCount = labelIdentifierDict['membranes'].count(membraneVoxelVolume)
+#            blankInnerCellCount =\
+#                labelIdentifierDict['blankInnerCell'].count(membraneVoxelVolume)
+#            print 'membranes count', membranesCount
+#            print 'blankInnerCell count', blankInnerCellCount
+#            ratio = round(float(blankInnerCellCount) / float(membranesCount))
+#            print "ratio", ratio
+#
+#        else:
+#
+#            print "balanceExamples==false"
 
 
         step = 1
@@ -581,9 +581,11 @@ class ClassificationControlsFrame(ControlsFrame):
                     className = None
 
                     value = membraneVoxelVolume[x,y,z]
-                    for target in labelIdentifierDict:
-                        if labelIdentifierDict[target].isMember(value):
-                            className = target
+                    for id in labelIdentifierDict:
+                        if labelIdentifierDict[id].isMember(value):
+                            labelID = id
+                            labelIdentifier = labelIdentifierDict[labelID]
+                            className = labelIdentifier.objectName
 
                     #print className
                     countDict[str(className)] += 1
@@ -591,24 +593,24 @@ class ClassificationControlsFrame(ControlsFrame):
                     mitochondriaProbability = voxelWeightDict['foreground']
                     NoneProbability = voxelWeightDict['background']
                     if (className == 'mitochondria' and\
-                        random.random() < mitochondriaProbability) or\
+                        random.random() < (mitochondriaProbability * labelIdentifier.labelWeight)) or\
                         (className != None and\
-                        random.random() < NoneProbability):
+                        random.random() < (NoneProbability * labelIdentifier.labelWeight)):
                         #random.random() < 0.025:
 
                         # This records an example.
                         # It skips over some examples to balance the number.
-                        if not(self.balanceExamples) or\
-                            className != 'blankInnerCell' or\
-                            (countDict['blankInnerCell'] % ratio) == 0:
+                        #if not(self.balanceExamples) or\
+                        #    className != 'blankInnerCell' or\
+                        #    (countDict['blankInnerCell'] % ratio) == 0:
                         #if 1:
 
-                            recordedExampleCountDict[className] += 1
+                        recordedExampleCountDict[className] += 1
 
-                            d = getPointFeaturesAt(inputVolumeDict, filteredVolume,
-                                               'training', self, (x,y,z))
+                        d = getPointFeaturesAt(inputVolumeDict, filteredVolume,
+                                           'training', self, (x,y,z))
 
-                            self.writeExample(file, d, className)
+                        self.writeExample(file, d, className)
 
         print "recorded example counts:", recordedExampleCountDict
 

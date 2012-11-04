@@ -32,8 +32,9 @@ class LabelIdentifier:
     Specifies the voxel label value or values that are associated with this object.
     """
 
-    def __init__(self, min=None, max=None, values=None):
+    def __init__(self, objectName, min=None, max=None, values=None, weight=1.0):
 
+        self.objectName = objectName
         self.min = min
         self.max = max
 
@@ -44,6 +45,8 @@ class LabelIdentifier:
         else:
             self.values = None
         #self.values = values
+
+        self.labelWeight = weight
 
 
     def isMember(self, value):
