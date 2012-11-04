@@ -8,8 +8,8 @@ def mapNumbersToComponents(detector):
     for object in (detector.componentDetector,):
 
         object.labelIdentifierDict['mitochondria'] =\
-            LabelIdentifier(min=141, max=141)
+            LabelIdentifier('mitochondria', min=141, max=141)
         object.labelIdentifierDict['other'] =\
-            LabelIdentifier(values=range(3,100+1)+[142]+[2]+[138]+[0])
+            LabelIdentifier('other', values=range(3,100+1)+[142]+[2]+[138]+[0])
 
     detector.setTarget('mitochondria_new')
