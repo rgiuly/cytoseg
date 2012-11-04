@@ -176,7 +176,7 @@ def classifyTrainingVoxelsStep():
 
 # Process command line arguments
 #try:
-opts, args = getopt.gnu_getopt(sys.argv, "", ["trainingImage=", "trainingSeg=", "voxelTrainingLowerBound=", "voxelTrainingUpperBound=", "voxelProcessingLowerBound=", "voxelProcessingUpperBound=", "contourTrainingLowerBound=", "contourTrainingUpperBound=", "contourProcessingLowerBound=", "contourProcessingUpperBound=", "accuracyCalcLowerBound=", "accuracyCalcUpperBound=", "labelConfigFile=", "voxelWeights=", "contourListWeights=", "contourListThreshold=", "step1", "step2"])
+opts, args = getopt.gnu_getopt(sys.argv, "", ["trainingImage=", "trainingSeg=", "voxelTrainingLowerBound=", "voxelTrainingUpperBound=", "voxelProcessingLowerBound=", "voxelProcessingUpperBound=", "contourTrainingLowerBound=", "contourTrainingUpperBound=", "contourProcessingLowerBound=", "contourProcessingUpperBound=", "accuracyCalcLowerBound=", "accuracyCalcUpperBound=", "labelConfigFile=", "voxelWeights=", "contourListWeights=", "contourListThreshold=", "step1", "step2", "step3"])
 print "opts, args", opts, args
 #except getopt.GetoptError as e:
 #    print "Error processing command line arguments"
@@ -266,6 +266,9 @@ for opt, arg in opts:
     if opt == "--step2":
         runStep2 = True
 
+    if opt == "--step3":
+        runStep3 = True
+
 if originalImageFilePath == None:
     print "Error: No input data specified"
     sys.exit()
@@ -351,7 +354,7 @@ contourChunkingParams = dict(zStart=230, zStop=238, chunkSize=5)
 
 #voxelChunkSize=1;
 
-if not(runStep1) and not(runStep2):
+if not(runStep1) and not(runStep2) and not(runStep3):
     """Ensure that the user specified steps to run."""
     raise Exception("No steps specified. You may use parameters such as --step1 and --step2 to specify what steps to run.")
 
@@ -370,6 +373,9 @@ if runStep2:
     print "contourProcessingRegion 2", contourProcessingRegion
     classifyTrainingVoxelsStep()
     # todo: create another function similar to voxelStep but for functions that are to be run just once rather than as a piece of a batch process
+
+
+if runStep3:
     print "segmentationParams 3", segmentationParams
     print "contourProcessingRegion 3", contourProcessingRegion
     contourSingleStep('findTrainingContours')
