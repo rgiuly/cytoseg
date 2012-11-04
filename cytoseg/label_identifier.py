@@ -112,8 +112,9 @@ class LabelIdentifierDict(dict):
             #print "target", target
             #print "value", value
             #print "self[target].isMember(value)", self[target].isMember(value)
-            if self[target].isMember(value):
-                className = target
+            labelIdentifier = self[target] 
+            if labelIdentifier.isMember(value):
+                className = labelIdentifier.objectName
 
         return className
 
