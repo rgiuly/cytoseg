@@ -564,11 +564,12 @@ class ClassificationControlsFrame(ControlsFrame):
         countDict = {}
         countDict[str(None)] = 0
         for target in labelIdentifierDict:
-            countDict[target] = 0
+            countDict[labelIdentifierDict[target].objectName] = 0
+        #print "countDict initialization:", countDict
 
         recordedExampleCountDict = {}
         for target in labelIdentifierDict:
-            recordedExampleCountDict[target] = 0
+            recordedExampleCountDict[labelIdentifierDict[target].objectName] = 0
 
         border = borderWidthForFeatures
         for x in range(border[0], sh[0]-border[0], step):
@@ -583,8 +584,7 @@ class ClassificationControlsFrame(ControlsFrame):
                     value = membraneVoxelVolume[x,y,z]
                     for id in labelIdentifierDict:
                         if labelIdentifierDict[id].isMember(value):
-                            labelID = id
-                            labelIdentifier = labelIdentifierDict[labelID]
+                            labelIdentifier = labelIdentifierDict[id]
                             className = labelIdentifier.objectName
 
                     #print className
