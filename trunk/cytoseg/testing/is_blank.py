@@ -19,10 +19,10 @@ for x in range(w):
 print allZeros
 
 if allZeros:
-    print "Using exit status 1, the image is blank"
+    print "Using exit status 1. The image is blank."
     exit(1)
 else:
-    print "Using exit status 0, the image is not blank"
+    print "Using exit status 0. The image is not blank."
     exit(0)
 
 
