@@ -2322,11 +2322,14 @@ def makeDefaultGUITree():
     print 'children types'
     for x in rootNode.children:
         print type(x)
-    f = open("temp.pickle", "w")
+
+    tempFilePath = os.path.join(default_path.defaultTemporaryFolder, "tempMakeDefaultTree.pickle")
+
+    f = open(tempFilePath, "w")
     cPickle.dump(rootNode, f)
     f.close()
 
-    f = open("temp.pickle", "r")
+    f = open(tempFilePath, "r")
     loadedData = cPickle.load(f)
     print "data loaded from file"
     print loadedData
