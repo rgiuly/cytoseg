@@ -9,7 +9,7 @@ Processing input data can take a long time, so you probably want to start by pro
 
 Results from step 1 can be found as a stack of images representing a probability map in the folder
 
-<code> <your output folder>\voxelOutput\mitochondria\resized </code>
+<code> <your_output_folder>\voxelOutput\mitochondria\resized </code>
 
 
 ===Step 2===
@@ -20,3 +20,5 @@ Step 2 (specified with --step2) will classify the training image data. This is a
 ===Step 3===
 
 Step 3 finds contours, classifies them, and generates 3D blobs. This step usually runs much faster than steps 1 and 2 because it does not involved classification of every voxel. It just involves classification of contours pairs. (There are far fewer contour pairs than voxels.) Assuming you have run step 1 and step 2, and you are adjusting --contourListWeights or --contourListThreshold=0.8, you only need to run step 3 to get the change.
+
+
