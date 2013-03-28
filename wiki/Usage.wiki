@@ -35,6 +35,9 @@ In this example, the result stack will be written to output\voxelOutput\blobs\re
 
 To view the results superimposed on the original images, view the result stack in the folder output\voxelOutput\blobs\composite
 
+Note: An intermediate result, the probability map, will be in the folder output\voxelOutput\mitochondria\resized
+
+
 ===Example Result:===
 
 Here is the result image stack from output\voxelOutput\blobs\composite
