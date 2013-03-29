@@ -2773,7 +2773,7 @@ def loadImageStack(path, subvolumeBox, maxNumberOfImages=None):
         im1 = im1.transpose(Image.FLIP_LEFT_RIGHT)
 
         array2d = numpy.fromstring(im1.tostring(), uint8)
-        
+
         if im1.size[0] * im1.size[1] != array2d.shape[0]:
             raise Exception, "problem loading the image %s. possible problem: it has to be 8bit grayscale to work" % filename
         else:
@@ -2834,7 +2834,7 @@ def loadImageStack(path, subvolumeBox, maxNumberOfImages=None):
             if box.cornerB[0] > array2d.shape[0]: raise Exception("Image region X upper bound %d outside of the data." % box.cornerB[0])
             if box.cornerA[1] > array2d.shape[1]: raise Exception("Image region Y lower bound %d outside of the data." % box.cornerA[1])
             if box.cornerB[1] > array2d.shape[1]: raise Exception("Image region Y upper bound %d outside of the data." % box.cornerB[1])
-            volume[:, : ,i-box.cornerA[2]] = array2d[box.cornerA[0]:box.cornerB[0], box.cornerA[1]:box.cornerB[1]] 
+            volume[:, :, i-box.cornerA[2]] = array2d[box.cornerA[0]:box.cornerB[0], box.cornerA[1]:box.cornerB[1]] 
             
     return volume
     
