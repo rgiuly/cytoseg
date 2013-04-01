@@ -77,10 +77,23 @@ During the process, new folders and files will be created in the output folder y
 Inside of the output folder, voxelOutput/blobs/resized has a grayscale image of your output that can be thresholded with a program such as ImageJ to identify the structures of interest.
 
 
-==Autosegmentation output in TrakEM2==
+==Editing Cytoseg output in TrakEM2==
+
+You'll want to load both the original images and the (1) automatic segmentation and (2) Cytoseg output into TrakEM2.
+
+=== (1) Loading your original images into TrakEM2===
+
+Use ImageJ to convert your input stack into an AVI and then open the AVI in TrakEM2.
+
+Reason for this: During my testing, for some reason TrakEM2 did not load a stack of PNGs. So I converted them to an AVI (with ImageJ). When I opened the AVI in TrakEM2, it worked fine.
+
+
+=== (2) Loading the output from Cytoseg into Fiji's TrakEM2 as labels===
 
 In Fiji, open the output stack located here voxelOutput/blobs/resized
 
 Threshold the stack to make the blobs white and the background black.
 
 Use the connected components tool (Plugins->Process->Find Connected Regions) in plugins to create separate labels for each blob. Now you have a label volume that can be imported into TrakEM2 and edited.
+
+
