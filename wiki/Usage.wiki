@@ -1,5 +1,8 @@
 =Introduction=
 
+Cytoseg uses a training image and training segmentation to learn about how to segment the structures of interest. Training images and training segmentations are represented as image stacks and they must align exactly.
+
+
 ===Example for Segmenting Mitochondria:===
 
 (Input and training images for this example are included in the svn download.)
@@ -9,6 +12,7 @@ Parameters used in this example:
  * Output folder: output
  * Training images folder: data\example\train_images
  * Training segmentation folder: data\example\train_seg
+
 
 (You will have the test data for this sample if you checked out via svn.)
 
