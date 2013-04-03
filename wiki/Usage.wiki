@@ -57,5 +57,5 @@ Note: there is a 30 pixel border around the image that is not processed. It has 
 
 =Topics=
 
- # [Steps How to Break the Process Down into Indpendent Steps]
+ # [Steps Breaking the Process Down into Steps for more Efficient Testing]
  # [BalancingExamples Balancing Examples to Improve Accuracy]
