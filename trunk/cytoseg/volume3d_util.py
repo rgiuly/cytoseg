@@ -164,7 +164,7 @@ def writeTiffStack_version1(path, redVolume, greenVolume, blueVolume):
 def imageFilename(path, baseFilename, fileExtension, index):
     """Combine basename with number to form image filename."""
 
-    return os.path.join(path, "%s%0.3d%s" % (baseFilename, index, fileExtension))
+    return os.path.join(path, "%s%0.5d%s" % (baseFilename, index, fileExtension))
 
 
 def writeImagePadding(path, baseFilename, fileExtension, volumeShape, dataStartIndex):
