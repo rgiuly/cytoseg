@@ -2734,7 +2734,8 @@ def loadImageStack(path, subvolumeBox, maxNumberOfImages=None):
 
     
     fileList.sort()
-    print "Image files in the folder", path, ": ", fileList
+    #print "Image files in the folder", path, ": ", fileList
+    print "Number of images in folder", path, ": ", len(fileList)
         
     numImages = len(fileList)
 
@@ -2777,7 +2778,8 @@ def loadImageStack(path, subvolumeBox, maxNumberOfImages=None):
         if im1.size[0] * im1.size[1] != array2d.shape[0]:
             raise Exception, "problem loading the image %s. possible problem: it has to be 8bit grayscale to work" % filename
         else:
-                   
+
+            print "load image, creating 2D array"                   
             array2d.shape = im1.size[1], im1.size[0]
             #print "old shape %d %d" % (im1.size[1], im1.size[0])
             
@@ -2790,10 +2792,14 @@ def loadImageStack(path, subvolumeBox, maxNumberOfImages=None):
             
                 box.cornerA[1] = 0
                 box.cornerB[1] = im1.size[0]
+
+                print "subvolume specified as none, using:", box
     
             else:
 
                 box = subvolumeBox.getBoxForShape((im1.size[1], im1.size[0], numImages))
+
+                print "subvolume:", box
 
             # get X and Y dimensions from the first image and initialize the 3D volume
             if firstImage:
@@ -2802,7 +2808,8 @@ def loadImageStack(path, subvolumeBox, maxNumberOfImages=None):
 
                 #print "shape %s" % str(box.shape())
                 #print "array2d %s" % str(array2d.shape)
-                
+
+                print "Processing first image"
                 print "Box corners for the 3D array that will contain the images being loaded from %s:" % path
                 print box.cornerA
                 print box.cornerB
