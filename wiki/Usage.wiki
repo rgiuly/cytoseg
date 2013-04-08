@@ -5,7 +5,7 @@ The Cytoseg command line takes a set of parameters to specify the input, the tra
 === Training Data ===
 Cytoseg uses a training image and training segmentation to learn about how to segment the structures of interest. Training images and training segmentations are represented as image stacks and they must align exactly, and they should have the same dimensions This means that the size of the images and the number of images in the stack should be the same.
 
-Note: If your training labels use nonzero values for the object, and 0 for other, you should use the parameter --labelConfigFile=settings3.py
+Note: If your training labels use nonzero values for the object, and 0 for other, you should use the parameter --labelConfigFile=settings2.py
 
 
 ==Example Tutorial for Segmenting Mitochondria:==
