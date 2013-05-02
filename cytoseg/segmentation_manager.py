@@ -94,11 +94,11 @@ class SegmentationManager:
     
         self.componentDetector.thresholdStep = 36 #40 #80 #40 #0.05
 
-        self.setTarget('mitochondria')
+        self.setTarget('primaryObject')
 
 
     def setTarget(self, target):
-        """Set name of target object. e.g. 'mitochondria'"""
+        """Set name of target object. e.g. 'primaryObject'"""
 
         self.componentDetector.target = target
 

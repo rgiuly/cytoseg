@@ -195,15 +195,15 @@ def recordFeaturesOfContourLists(dataViewer,
                     minimum = 10000000
                     for child in contourListNode.children:
                         countDict = child.object.labelCountDict
-                        if 'mitochondria' in countDict:
-                            value = countDict['mitochondria']
+                        if 'primaryObject' in countDict:
+                            value = countDict['primaryObject']
                             if value < minimum:
                                 minimum = value
                         else:
                             minimum = 0
 
-                    #if 'mitochondria' in firstLabelCountDict:
-                    #    count = firstLabelCountDict['mitochondria']
+                    #if 'primaryObject' in firstLabelCountDict:
+                    #    count = firstLabelCountDict['primaryObject']
                     #else:
                     #    count = 0
 

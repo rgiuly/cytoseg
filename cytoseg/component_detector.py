@@ -427,9 +427,9 @@ class ComponentDetector:
         #self.maxVoxelLabelValue = None
 
         self.displayParametersDict = {}
-        self.displayParametersDict['mitochondria'] = ContourAndBlobDisplayParameters()
-        self.displayParametersDict['mitochondria'].numberOfContoursToDisplay = None #20
-        self.displayParametersDict['mitochondria'].contourProbabilityThreshold = 0.08
+        self.displayParametersDict['primaryObject'] = ContourAndBlobDisplayParameters()
+        self.displayParametersDict['primaryObject'].numberOfContoursToDisplay = None #20
+        self.displayParametersDict['primaryObject'].contourProbabilityThreshold = 0.08
         self.displayParametersDict['mitochondria_new'] = ContourAndBlobDisplayParameters()
         self.displayParametersDict['mitochondria_new'].numberOfContoursToDisplay = None #20
         self.displayParametersDict['mitochondria_new'].contourProbabilityThreshold = 0.0
@@ -443,7 +443,7 @@ class ComponentDetector:
         self.displayParametersDict['vesicles'].contourProbabilityThreshold = 0.15
 
         self.probabilityFunctionDict = {}
-        self.probabilityFunctionDict['mitochondria'] = mitochondriaProbability
+        self.probabilityFunctionDict['primaryObject'] = mitochondriaProbability
         self.probabilityFunctionDict['mitochondria_new'] =\
             mitochondria_newProbability
         self.probabilityFunctionDict['vesicles'] = vesicleProbability
@@ -451,7 +451,7 @@ class ComponentDetector:
         self.probabilityFunctionDict['membranes'] = blankInnerCellProbability
         self.probabilityFunctionDict['membranes_test'] = blankInnerCellProbability
         self.pathLength = {}
-        self.pathLength['mitochondria'] = 3
+        self.pathLength['primaryObject'] = 3
         self.pathLength['mitochondria_new'] = 2
         #self.pathLength['mitochondria_new'] = 3
         self.pathLength['vesicles'] = 1
@@ -924,7 +924,7 @@ class ComponentDetector:
             detector.probabilityFunction = self.probabilityFunctionDict[self.target]
 
     
-            if (self.target == 'mitochondria') or (self.target == 'blankInnerCell'):
+            if (self.target == 'primaryObject') or (self.target == 'blankInnerCell'):
 
                 if numberOfLayersToProcess != None:
                     detector.originalVolume = self.dataViewer.getPersistentVolume_old(self.blurredVolumeName)\
@@ -936,7 +936,7 @@ class ComponentDetector:
                     detector.filteredVolume = self.dataViewer.getPersistentVolume_old(self.currentVoxelClassificationResultPath()[1])
     
                 #detector.originalVolume = frm.getPersistentVolume_old(blurredVolumeName)
-                if self.target == 'mitochondria':
+                if self.target == 'primaryObject':
                     #detector.probabilityFunction = mitochondriaProbability
                     detector.filteredVolume = filterVolume2D(detector.filteredVolume,
                                                             'GrayscaleErode', kernelSize=4)
@@ -1483,7 +1483,7 @@ class ComponentDetector:
                                            region))[b[0]:-b[0], b[1]:-b[1], startZ:endZ]
 
 
-        target = 'mitochondria'
+        target = 'primaryObject'
 
         pyplot.hold(True)
 
@@ -1651,7 +1651,7 @@ class ComponentDetector:
 
         self.highProbabilityContoursNodeName = self.target + 'HighProbabilityContours'
     
-        if self.target == 'mitochondria':
+        if self.target == 'primaryObject':
             self.fastMarchInputVolumeName = self.currentVoxelClassificationResultPath()[1]
         if self.target == 'mitochondria_new':
             self.fastMarchInputVolumeName =\
