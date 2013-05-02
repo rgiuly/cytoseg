@@ -595,8 +595,8 @@ class ClassificationControlsFrame(ControlsFrame):
                     randomValue = random.random()
                     useBackground = randomValue < backgroundProbability * labelIdentifier.labelWeight
                     useForeground = randomValue < mitochondriaProbability * labelIdentifier.labelWeight
-                    if (className == 'mitochondria' and useForeground) or\
-                        ((className != None and className != 'mitochondria') and useBackground):
+                    if (className == 'primaryObject' and useForeground) or\
+                        ((className != None and className != 'primaryObject') and useBackground):
 
                         #random.random() < 0.025:
 

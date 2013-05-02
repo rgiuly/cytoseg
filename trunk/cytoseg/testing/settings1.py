@@ -7,7 +7,7 @@ def mapNumbersToComponents(detector):
 
     for object in (detector.componentDetector,):
 
-        object.labelIdentifierDict['mitochondria'] =\
+        object.labelIdentifierDict['primaryObject'] =\
             LabelIdentifier(min=141, max=141)
         object.labelIdentifierDict['other'] =\
             LabelIdentifier(values=range(3,100+1)+[142]+[2]+[138])
