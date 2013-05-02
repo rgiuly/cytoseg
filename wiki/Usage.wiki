@@ -68,3 +68,4 @@ Note: there is a 30 pixel border around the image that is not processed. It has 
 
  # [Steps Breaking the process down into steps for more efficient testing]
  # [BalancingExamples Balancing examples to improve accuracy]
+ # [Bounds Using bounds in the command line]
