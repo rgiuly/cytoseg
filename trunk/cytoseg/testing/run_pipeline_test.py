@@ -57,6 +57,7 @@ regionToClassifyZ2 = None
 
 runStep1 = False
 runStep2 = False
+runStep3 = False
 
 voxelWeightDict = {'foreground':1, 'background':1}
 contourListWeightDict = {True:1, False:1}
