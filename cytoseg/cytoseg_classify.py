@@ -591,12 +591,18 @@ class ClassificationControlsFrame(ControlsFrame):
                     countDict[str(className)] += 1
 
                     mitochondriaProbability = voxelWeightDict['foreground']
-                    NoneProbability = voxelWeightDict['background']
-                    if (className == 'mitochondria' and\
-                        random.random() < (mitochondriaProbability * labelIdentifier.labelWeight)) or\
-                        (className != None and\
-                        random.random() < (NoneProbability * labelIdentifier.labelWeight)):
+                    backgroundProbability = voxelWeightDict['background']
+                    randomValue = random.random()
+                    useBackground = randomValue < backgroundProbability * labelIdentifier.labelWeight
+                    useForeground = randomValue < mitochondriaProbability * labelIdentifier.labelWeight
+                    if (className == 'mitochondria' and useForeground) or\
+                        ((className != None and className != 'mitochondria') and useBackground):
+
                         #random.random() < 0.025:
+
+                        #print "className", className
+                        #print "mitochondriaProbability * labelIdentifier.labelWeight", mitochondriaProbability * labelIdentifier.labelWeight
+                        #print "NoneProbability * labelIdentifier.labelWeight", NoneProbability * labelIdentifier.labelWeight
 
                         # This records an example.
                         # It skips over some examples to balance the number.
@@ -1363,6 +1369,14 @@ def getPointFeaturesAt(inputVolumeDict, volume, derivativeVolumesIdentifier, gui
             #print point[1]
             #print point[2]
             #print inputVolume.shape
+
+
+            #for windowSize in range(0, 6):
+            #    for xOffset in range(-(windowSize+1), windowSize, step):
+            #        for yOffset in range(-(windowSize+1), windowSize, step):
+            #            f['focus_%s_%d_%d_%d' % (key, xOffset, yOffset, windowSize)] =\
+            #                inputVolume[point[0] + xOffset, point[1] + yOffset, point[2]]
+
 
             for xOffset in range(-(windowSize+1), windowSize, step):
                 for yOffset in range(-(windowSize+1), windowSize, step):
