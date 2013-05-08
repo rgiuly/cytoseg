@@ -1371,17 +1371,17 @@ def getPointFeaturesAt(inputVolumeDict, volume, derivativeVolumesIdentifier, gui
             #print inputVolume.shape
 
 
-            #for windowSize in range(0, 6):
-            #    for xOffset in range(-(windowSize+1), windowSize, step):
-            #        for yOffset in range(-(windowSize+1), windowSize, step):
-            #            f['focus_%s_%d_%d_%d' % (key, xOffset, yOffset, windowSize)] =\
-            #                inputVolume[point[0] + xOffset, point[1] + yOffset, point[2]]
+            for windowSize in range(0, 6):
+                for xOffset in range(-(windowSize+1), windowSize, step):
+                    for yOffset in range(-(windowSize+1), windowSize, step):
+                        f['focus_%s_%d_%d_%d' % (key, xOffset, yOffset, windowSize)] =\
+                            inputVolume[point[0] + xOffset, point[1] + yOffset, point[2]]
 
 
-            for xOffset in range(-(windowSize+1), windowSize, step):
-                for yOffset in range(-(windowSize+1), windowSize, step):
-                    f['focus_%s_%d_%d' % (key, xOffset, yOffset)] =\
-                        inputVolume[point[0] + xOffset, point[1] + yOffset, point[2]]
+            #for xOffset in range(-(windowSize+1), windowSize, step):
+            #    for yOffset in range(-(windowSize+1), windowSize, step):
+            #        f['focus_%s_%d_%d' % (key, xOffset, yOffset)] =\
+            #            inputVolume[point[0] + xOffset, point[1] + yOffset, point[2]]
 
 
         # experimental features
