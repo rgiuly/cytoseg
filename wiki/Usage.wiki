@@ -28,7 +28,7 @@ cd cytoseg-read-only
 cd cytoseg
 cd testing
 mkdir output
-python run_pipeline_test.py data\example\input output --trainingImage=data\example\train_images --trainingSeg=data\example\train_seg  --voxelTrainingLowerBound=*,*,* --voxelTrainingUpperBound=*,*,* --voxelProcessingLowerBound=*,*,* --voxelProcessingUpperBound=*,*,* --contourTrainingLowerBound=*,*,* --contourTrainingUpperBound=*,*,* --contourProcessingLowerBound=*,*,* --contourProcessingUpperBound=*,*,* --accuracyCalcLowerBound=*,*,* --accuracyCalcUpperBound=*,*,* --labelConfigFile=settings3.py --voxelWeights=0.0130,0.00164 --contourListWeights=7,1 --contourListThreshold=0.5 --step1 --step2 --step3
+python run_pipeline.py data\example\input output --trainingImage=data\example\train_images --trainingSeg=data\example\train_seg  --voxelTrainingLowerBound=*,*,* --voxelTrainingUpperBound=*,*,* --voxelProcessingLowerBound=*,*,* --voxelProcessingUpperBound=*,*,* --contourTrainingLowerBound=*,*,* --contourTrainingUpperBound=*,*,* --contourProcessingLowerBound=*,*,* --contourProcessingUpperBound=*,*,* --accuracyCalcLowerBound=*,*,* --accuracyCalcUpperBound=*,*,* --labelConfigFile=settings3.py --voxelWeights=0.0130,0.00164 --contourListWeights=7,1 --contourListThreshold=0.5 --step1 --step2 --step3
 </code>
 
 Example (for Linux):
@@ -38,7 +38,7 @@ cd cytoseg-read-only
 cd cytoseg
 cd testing
 mkdir output
-python run_pipeline_test.py data/example/input output --trainingImage=data/example/train_images --trainingSeg=data/example/train_seg  --voxelTrainingLowerBound=*,*,* --voxelTrainingUpperBound=*,*,* --voxelProcessingLowerBound=*,*,* --voxelProcessingUpperBound=*,*,* --contourTrainingLowerBound=*,*,* --contourTrainingUpperBound=*,*,* --contourProcessingLowerBound=*,*,* --contourProcessingUpperBound=*,*,* --accuracyCalcLowerBound=*,*,* --accuracyCalcUpperBound=*,*,* --labelConfigFile=settings3.py --voxelWeights=0.0130,0.00164 --contourListWeights=7,1 --contourListThreshold=0.5 --step1 --step2 --step3
+python run_pipeline.py data/example/input output --trainingImage=data/example/train_images --trainingSeg=data/example/train_seg  --voxelTrainingLowerBound=*,*,* --voxelTrainingUpperBound=*,*,* --voxelProcessingLowerBound=*,*,* --voxelProcessingUpperBound=*,*,* --contourTrainingLowerBound=*,*,* --contourTrainingUpperBound=*,*,* --contourProcessingLowerBound=*,*,* --contourProcessingUpperBound=*,*,* --accuracyCalcLowerBound=*,*,* --accuracyCalcUpperBound=*,*,* --labelConfigFile=settings3.py --voxelWeights=0.0130,0.00164 --contourListWeights=7,1 --contourListThreshold=0.5 --step1 --step2 --step3
 </code>
 
 
