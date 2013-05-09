@@ -36,6 +36,7 @@ from data_viewer import borderWidthForFeatures
 from batch_process import *
 import logging
 import copy
+import globals
 
 
 # Variable initializations
@@ -260,6 +261,11 @@ for opt, arg in opts:
 
     if opt == "--contourListThreshold":
         contourListThreshold = float(arg)
+
+    if opt == "--focus":
+        dir(globals)
+        sys.exit()
+        globals.focusOnCenter = True
 
     if opt == "--step1":
         runStep1 = True
