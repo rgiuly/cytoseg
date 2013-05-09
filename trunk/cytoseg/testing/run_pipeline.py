@@ -178,7 +178,7 @@ def classifyTrainingVoxelsStep():
 
 # Process command line arguments
 #try:
-opts, args = getopt.gnu_getopt(sys.argv, "", ["trainingImage=", "trainingSeg=", "voxelTrainingLowerBound=", "voxelTrainingUpperBound=", "voxelProcessingLowerBound=", "voxelProcessingUpperBound=", "contourTrainingLowerBound=", "contourTrainingUpperBound=", "contourProcessingLowerBound=", "contourProcessingUpperBound=", "accuracyCalcLowerBound=", "accuracyCalcUpperBound=", "labelConfigFile=", "voxelWeights=", "contourListWeights=", "contourListThreshold=", "step1", "step2", "step3"])
+opts, args = getopt.gnu_getopt(sys.argv, "", ["trainingImage=", "trainingSeg=", "voxelTrainingLowerBound=", "voxelTrainingUpperBound=", "voxelProcessingLowerBound=", "voxelProcessingUpperBound=", "contourTrainingLowerBound=", "contourTrainingUpperBound=", "contourProcessingLowerBound=", "contourProcessingUpperBound=", "accuracyCalcLowerBound=", "accuracyCalcUpperBound=", "labelConfigFile=", "voxelWeights=", "contourListWeights=", "contourListThreshold=", "step1", "step2", "step3", "focus"])
 print "opts, args", opts, args
 #except getopt.GetoptError as e:
 #    print "Error processing command line arguments"
