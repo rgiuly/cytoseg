@@ -263,8 +263,6 @@ for opt, arg in opts:
         contourListThreshold = float(arg)
 
     if opt == "--focus":
-        dir(globals)
-        sys.exit()
         globals.focusOnCenter = True
 
     if opt == "--step1":
