@@ -31,3 +31,7 @@ def blobOutputCropZLower():
 def blobOutputCropZUpper():
 
     return 2
+
+
+focusOnCenter = False
+

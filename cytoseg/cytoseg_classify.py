@@ -32,6 +32,8 @@ import os
 import threading
 import random
 
+import globals
+
 try:
     import orange, orngTree, orngEnsemble
     print "orange loaded"
@@ -1371,17 +1373,20 @@ def getPointFeaturesAt(inputVolumeDict, volume, derivativeVolumesIdentifier, gui
             #print inputVolume.shape
 
 
-            for windowSize in range(0, 6):
+            if globals.focusOnCenter:
+
+                for windowSize in range(0, 6):
+                    for xOffset in range(-(windowSize+1), windowSize, step):
+                        for yOffset in range(-(windowSize+1), windowSize, step):
+                            f['focus_%s_%d_%d_%d' % (key, xOffset, yOffset, windowSize)] =\
+                                inputVolume[point[0] + xOffset, point[1] + yOffset, point[2]]
+
+            else:
+
                 for xOffset in range(-(windowSize+1), windowSize, step):
                     for yOffset in range(-(windowSize+1), windowSize, step):
-                        f['focus_%s_%d_%d_%d' % (key, xOffset, yOffset, windowSize)] =\
+                        f['focus_%s_%d_%d' % (key, xOffset, yOffset)] =\
                             inputVolume[point[0] + xOffset, point[1] + yOffset, point[2]]
-
-
-            #for xOffset in range(-(windowSize+1), windowSize, step):
-            #    for yOffset in range(-(windowSize+1), windowSize, step):
-            #        f['focus_%s_%d_%d' % (key, xOffset, yOffset)] =\
-            #            inputVolume[point[0] + xOffset, point[1] + yOffset, point[2]]
 
 
         # experimental features
