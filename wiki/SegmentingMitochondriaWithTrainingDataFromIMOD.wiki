@@ -41,7 +41,7 @@ mrc2tif byteData.mrc /home/dataFolder/file
 
 ==Creating training segmentation image stack==
 
-You'll need an IMOD model where you have traced mitochondria existing in the data. This will serve as training data.
+You'll need an IMOD model where you have traced objects (such as mitochondria) existing in the data. This will serve as training data.
 
 Convert your IMOD model file to a bitmap form:
 
@@ -110,7 +110,7 @@ python run_pipeline_test.py /home/dataFolder /home/outputFolder --trainingImage=
 
 During the process, new folders and files will be created in the output folder you specified (/home/outputFolder).
 
-(Inside of the output folder, go to voxelOutput/mitochondria/composite to view your output in a convenient colorized form. This is useful for checking if the output looks correct.)
+(Inside of the output folder, go to voxelOutput/primaryObject/composite to view your output in a convenient colorized form. This is useful for checking if the output looks correct.)
 
 Inside of the output folder, voxelOutput/blobs/resized has a grayscale image of your output that can be thresholded with a program such as ImageJ to identify the structures of interest. Next, convert this output to IMOD format.
 
